@@ -22,7 +22,10 @@ class WindowsRunnerTests(unittest.TestCase):
                 'if "%ASCEND_INFRA_FAIL_STAGE%"=="%~1" exit /b 7\n'
                 f'if "%~1"=="test" echo {escaped}>"%~5"\n'
                 'echo Infrastructure command fixture. This is NOT Swift.\nexit /b 0\n', encoding='ascii')
-            env = dict(os.environ, ASCEND_INFRA_FAIL_STAGE=fail_stage or '')
+            # verify-windows.ps1 requires an existing SDKROOT before invoking SwiftPM.
+            # The orchestration fixture is intentionally not a real Swift toolchain, so point
+            # SDKROOT at the temporary fixture directory to exercise control flow only.
+            env = dict(os.environ, ASCEND_INFRA_FAIL_STAGE=fail_stage or '', SDKROOT=str(folder))
             command = ['powershell.exe', '-NoProfile', '-File', str(ROOT / 'tools/verify-windows.ps1'),
                        '-OutputDirectory', str(folder / 'results'), '-SwiftExecutable', str(fixture) if not missing else 'ascend-missing-swift-fixture']
             result = subprocess.run(command, env=env, capture_output=True, text=True, timeout=30)
