@@ -19,13 +19,31 @@ public struct WorkoutEngine: Sendable {
     public func volume(_ sets: [SetPerformance]) -> Double { sets.reduce(0) { $0 + $1.kilograms * Double($1.reps) } }
     public func recordCandidates(_ sets: [SetPerformance]) -> [RecordCandidate] {
         let working = sets.filter { $0.reps > 0 }
-        return [
-            .init(kind: .weight, value: working.map(\.kilograms).max() ?? 0),
-            .init(kind: .reps, value: Double(working.map(\.reps).max() ?? 0)),
-            .init(kind: .volume, value: volume(working)),
-            .init(kind: .estimatedOneRepMax, value: working.filter { $0.reps <= 12 && $0.kilograms > 0 }
-                .map { $0.kilograms * (1 + Double($0.reps) / 30) }.max() ?? 0)
-        ].filter { $0.value > 0 && $0.value.isFinite }
+
+        let maximumWeight = working.reduce(0.0) { current, set in
+            max(current, set.kilograms)
+        }
+        let maximumReps = working.reduce(0) { current, set in
+            max(current, set.reps)
+        }
+        let totalVolume = volume(working)
+
+        var maximumEstimatedOneRepMax = 0.0
+        for set in working where set.reps <= 12 && set.kilograms > 0 {
+            let repFactor = 1.0 + Double(set.reps) / 30.0
+            let estimate = set.kilograms * repFactor
+            maximumEstimatedOneRepMax = max(maximumEstimatedOneRepMax, estimate)
+        }
+
+        let candidates: [RecordCandidate] = [
+            RecordCandidate(kind: .weight, value: maximumWeight),
+            RecordCandidate(kind: .reps, value: Double(maximumReps)),
+            RecordCandidate(kind: .volume, value: totalVolume),
+            RecordCandidate(kind: .estimatedOneRepMax, value: maximumEstimatedOneRepMax)
+        ]
+        return candidates.filter { candidate in
+            candidate.value > 0 && candidate.value.isFinite
+        }
     }
     public func newRecords(sets: [SetPerformance], previous: [RecordKind: Double]) -> [RecordCandidate] {
         recordCandidates(sets).filter { $0.value > previous[$0.kind, default: 0] }
