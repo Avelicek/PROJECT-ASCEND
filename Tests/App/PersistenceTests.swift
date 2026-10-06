@@ -66,4 +66,74 @@ final class PersistenceTests: XCTestCase {
         XCTAssertGreaterThanOrEqual(evaluation.eloDelta, 0)
         XCTAssertEqual(occurrence.title, original)
     }
+
+    @MainActor func testLoadRecordsOrdersAllDatedEntitiesAfterAnUnorderedFetch() throws {
+        let now = Date(timeIntervalSince1970: 1_791_288_000)
+        let policy = DayPolicy(timeZoneIdentifier: "UTC")
+        let store = try AppStore(container: PersistenceController.makeContainer(inMemory: true), now: now, clock: { now })
+        let dates = [-3, -2, -1].map { policy.adding(days: $0, to: policy.start(of: now)) }
+        let exercise = try XCTUnwrap(store.exercises.first { $0.catalogID == "bench_press" })
+
+        // Persist in neither ascending nor descending order. Call loadRecords directly so
+        // daily evaluation/materialization cannot mask the fetch-ordering contract.
+        for index in [2, 0, 1] {
+            let date = dates[index]
+            let dayKey = policy.key(for: date)
+            store.context.insert(BodyWeightEntry(measuredAt: date, kilograms: 56 + Double(index)))
+            store.context.insert(NutritionEntry(dayKey: dayKey, date: date, calories: 3000,
+                proteinGrams: 130, calorieGoal: 3000, proteinGoal: 130))
+            store.context.insert(SleepEntry(dayKey: dayKey, date: date, durationHours: 8, quality: 4))
+
+            let session = WorkoutSession(startedAt: date, title: "Ordering \(index)", isQuickLog: true)
+            session.completedAt = date
+            store.context.insert(session)
+            let objective = DailyObjective(title: "Ordering \(index)", kind: .custom, cadence: .daily,
+                importance: .standard, target: 1, unit: "entry", startsAt: date)
+            store.context.insert(objective)
+            store.context.insert(DailyObjectiveCompletion(objective: objective, date: date, policy: policy))
+
+            let elo = 101 + index
+            let result = ELOResult(previousELO: elo - 1, elo: elo, delta: 1,
+                components: [.init(category: .training, label: "Ordering", points: 1)],
+                rank: RankEngine().status(elo: elo, previousELO: elo - 1))
+            let evaluation = try DailyEvaluation(dayKey: dayKey, date: date, result: result, evaluatedAt: now)
+            let entry = ELOHistoryEntry(dayKey: dayKey, date: date, previousELO: elo - 1, elo: elo, delta: 1)
+            evaluation.history = entry; entry.evaluation = evaluation
+            store.context.insert(evaluation); store.context.insert(entry)
+            store.context.insert(PersonalRecord(exerciseCatalogID: exercise.catalogID, kind: .weight,
+                value: 55 + Double(index), achievedAt: date, sessionID: session.id))
+        }
+        try store.context.save()
+        try store.loadRecords()
+
+        XCTAssertEqual(store.weights.map(\.measuredAt), dates)
+        XCTAssertEqual(store.nutrition.map(\.date), dates)
+        XCTAssertEqual(store.sleep.map(\.date), dates)
+        XCTAssertEqual(store.sessions.map(\.startedAt), Array(dates.reversed()))
+        XCTAssertEqual(store.objectives.map(\.startsAt), dates)
+        XCTAssertEqual(store.occurrences.map(\.date), dates)
+        XCTAssertEqual(store.evaluations.map(\.date), dates)
+        XCTAssertEqual(store.history.map(\.date), dates)
+        XCTAssertEqual(store.currentELO, 103, "The last history entry must remain the newest evaluation")
+        XCTAssertEqual(store.records.map(\.achievedAt), Array(dates.reversed()))
+
+        try store.loadRecords()
+        XCTAssertEqual(store.history.map(\.date), dates, "Repeated loads preserve chronological ledger order")
+        XCTAssertEqual(store.sessions.map(\.startedAt), Array(dates.reversed()))
+    }
+
+    @MainActor func testLoadRecordsOrdersExercisesAlphabeticallyIgnoringCase() throws {
+        let store = try AppStore(container: PersistenceController.makeContainer(inMemory: true))
+        for (identifier, name) in [("zeta", "Zeta"), ("alpha", "alpha"), ("beta", "beta")] {
+            store.context.insert(Exercise(catalogID: "ordering.\(identifier)", name: name, category: .strength,
+                equipment: .none, trackingMode: .reps, bodyweightCapable: false,
+                additionalWeightAllowed: false, contributions: []))
+        }
+        try store.context.save()
+        try store.loadRecords()
+
+        let names = store.exercises.filter { $0.catalogID.hasPrefix("ordering.") }.map(\.name)
+        XCTAssertEqual(names, ["alpha", "beta", "Zeta"])
+        XCTAssertEqual(store.exercises.count, ExerciseCatalog.definitions.count + 3)
+    }
 }

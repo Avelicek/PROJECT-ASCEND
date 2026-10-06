@@ -98,16 +98,19 @@ enum InputError: LocalizedError {
     }
 
     func loadRecords() throws {
-        weights = try context.fetch(FetchDescriptor<BodyWeightEntry>(sortBy: [SortDescriptor(\.measuredAt)]))
-        nutrition = try context.fetch(FetchDescriptor<NutritionEntry>(sortBy: [SortDescriptor(\.date)]))
-        sleep = try context.fetch(FetchDescriptor<SleepEntry>(sortBy: [SortDescriptor(\.date)]))
-        exercises = try context.fetch(FetchDescriptor<Exercise>(sortBy: [SortDescriptor(\.name)]))
-        sessions = try context.fetch(FetchDescriptor<WorkoutSession>(sortBy: [SortDescriptor(\.startedAt, order: .reverse)]))
-        objectives = try context.fetch(FetchDescriptor<DailyObjective>(sortBy: [SortDescriptor(\.startsAt)]))
-        occurrences = try context.fetch(FetchDescriptor<DailyObjectiveCompletion>(sortBy: [SortDescriptor(\.date)]))
-        evaluations = try context.fetch(FetchDescriptor<DailyEvaluation>(sortBy: [SortDescriptor(\.date)]))
-        history = try context.fetch(FetchDescriptor<ELOHistoryEntry>(sortBy: [SortDescriptor(\.date)]))
-        records = try context.fetch(FetchDescriptor<PersonalRecord>(sortBy: [SortDescriptor(\.achievedAt, order: .reverse)]))
+        // Keep model access and sorting on MainActor without sending model key paths to SortDescriptor.
+        weights = try context.fetch(FetchDescriptor<BodyWeightEntry>()).sorted { $0.measuredAt < $1.measuredAt }
+        nutrition = try context.fetch(FetchDescriptor<NutritionEntry>()).sorted { $0.date < $1.date }
+        sleep = try context.fetch(FetchDescriptor<SleepEntry>()).sorted { $0.date < $1.date }
+        exercises = try context.fetch(FetchDescriptor<Exercise>()).sorted {
+            $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending
+        }
+        sessions = try context.fetch(FetchDescriptor<WorkoutSession>()).sorted { $0.startedAt > $1.startedAt }
+        objectives = try context.fetch(FetchDescriptor<DailyObjective>()).sorted { $0.startsAt < $1.startsAt }
+        occurrences = try context.fetch(FetchDescriptor<DailyObjectiveCompletion>()).sorted { $0.date < $1.date }
+        evaluations = try context.fetch(FetchDescriptor<DailyEvaluation>()).sorted { $0.date < $1.date }
+        history = try context.fetch(FetchDescriptor<ELOHistoryEntry>()).sorted { $0.date < $1.date }
+        records = try context.fetch(FetchDescriptor<PersonalRecord>()).sorted { $0.achievedAt > $1.achievedAt }
     }
 
     private func materializeToday() {
