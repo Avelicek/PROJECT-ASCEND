@@ -22,7 +22,7 @@ struct CountUpText: View {
             }
     }
     private func formatted(_ number: Double) -> String {
-        if signed { return number.formatted(.number.precision(.fractionLength(fractionDigits)).sign(strategy: .always)) }
+        if signed { return number.formatted(.number.precision(.fractionLength(fractionDigits)).sign(strategy: .always())) }
         return number.formatted(.number.precision(.fractionLength(fractionDigits)))
     }
 }
