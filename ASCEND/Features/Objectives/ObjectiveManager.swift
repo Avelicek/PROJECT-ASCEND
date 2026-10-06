@@ -19,13 +19,17 @@ struct ObjectiveManager: View {
                 }
                 Button("Add objective", systemImage: "plus") { adding = true }
             } footer: { Text("Weekly objectives are due on the weekday of their start date. Edits affect today and future occurrences; closed-day snapshots stay intact.") }
-            Section("Recovery alternatives") {
+            Section {
                 ForEach(store.todayObjectives.filter { $0.kindRaw == ObjectiveKind.exercise.rawValue || $0.kindRaw == ObjectiveKind.workout.rawValue }, id: \.occurrenceKey) { occurrence in
                     Button(occurrence.recoveryExempt ? "Protected · \(occurrence.title)" : "Choose recovery day for \(occurrence.title)") {
                         _ = store.chooseRecoveryAlternative(occurrence)
                     }.disabled(occurrence.recoveryExempt || occurrence.completedAt != nil)
                 }
-            } footer: { Text("If training is inappropriate today, explicitly choose recovery. This occurrence is exempt from a missed-objective penalty. Automated suggestions will be added after personal recovery confidence improves.") }
+            } header: {
+                Text("Recovery alternatives")
+            } footer: {
+                Text("If training is inappropriate today, explicitly choose recovery. This occurrence is exempt from a missed-objective penalty. Automated suggestions will be added after personal recovery confidence improves.")
+            }
         }.scrollContentBackground(.hidden).background(AppColor.background)
             .navigationTitle("Your objectives").navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
