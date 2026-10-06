@@ -20,6 +20,7 @@
 		0CF357D30855610EDBF4BFD8 = { isa = PBXBuildFile; fileRef = 720B4C71041D42B59DBBD14B; };
 		0FA1AB9FA296E5612A390FE2 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "AppStore.swift"; path = "ASCEND/App/AppStore.swift"; sourceTree = SOURCE_ROOT; };
 		112513406BD2BC6B37D4020C = { isa = PBXBuildFile; fileRef = D424891BCE73963986F6CE39; };
+		15345C6CDE1400F5BE2C8130 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "VisualMetrics.swift"; path = "ASCEND/Components/VisualMetrics.swift"; sourceTree = SOURCE_ROOT; };
 		15385F09E020901A55C3B43C = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "RecoveryEngineTests.swift"; path = "Tests/Core/RecoveryEngineTests.swift"; sourceTree = SOURCE_ROOT; };
 		154BF7F6D072E5B0E7FDD3C4 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "AppStore+Editing.swift"; path = "ASCEND/App/AppStore+Editing.swift"; sourceTree = SOURCE_ROOT; };
 		156052F04525D0F710673CF0 = { isa = PBXGroup; children = (C54CC2D4D06A96DE3B77029C, 284CEAE32E0635BA7105DFCE, 73321F1B03019DC59ED43B46,); name = "Tests"; sourceTree = "<group>"; };
@@ -38,6 +39,7 @@
 		39F831DAFE5A2F37503C83B2 = { isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
 		3AB36C5A259E6297ABD26694 = { isa = XCConfigurationList; buildConfigurations = (BAC435B037607B50C4729BF1, 5DE0B96147C56CE7EB664EA3,); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
 		4149B5694F727B43E5A8C9EE = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "FitnessTypes.swift"; path = "ASCEND/Core/Domain/FitnessTypes.swift"; sourceTree = SOURCE_ROOT; };
+		43279D0F77DC7EFE06DE9EBA = { isa = PBXBuildFile; fileRef = CE265A0DFAEA7E718B116779; };
 		43CBB101410F6978193BEA7D = { isa = PBXBuildFile; fileRef = A799DD4117C3D4D2E9F2FD5C; };
 		47348E11D4ACB472B54673A0 = { isa = PBXGroup; children = (720B4C71041D42B59DBBD14B, 6EE5295B8B309ED36C5341BA,); name = "Workout"; sourceTree = "<group>"; };
 		47A460E3C3D8576B354F28A4 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "RankEngineTests.swift"; path = "Tests/Core/RankEngineTests.swift"; sourceTree = SOURCE_ROOT; };
@@ -57,13 +59,15 @@
 		63E2C3F88C5C9266A7CAF05A = { isa = PBXBuildFile; fileRef = 8B90864E375CE4CF32C6C719; };
 		640DC9EFD529235A8D9E2727 = { isa = XCConfigurationList; buildConfigurations = (ED8772ADEC3A6C25161BC957, 00F209874A1F7309F6DCEAA7,); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
 		6420EDDBDB556A0810AF16F6 = { isa = PBXBuildFile; fileRef = D912E77732373C2DCDC5DB56; };
-		666E64F30BC04AFFDBAF726C = { isa = PBXGroup; children = (5B6A994C285DFF352BE81E2E, B7727D26B63AF31327E992B6, 9831B72A71909A59A97E41BB, 0CECBD68E1C216D3A7CFA8C5, 7922F22D8A18B7A021D7072E,); name = "Components"; sourceTree = "<group>"; };
+		65884015009FDF22CE697F3B = { isa = PBXBuildFile; fileRef = A0BFE29759F99C33CC4F02D1; };
+		65B7E3D152A2CD82E8FE3A94 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "VisualIntegrationTests.swift"; path = "Tests/App/VisualIntegrationTests.swift"; sourceTree = SOURCE_ROOT; };
+		666E64F30BC04AFFDBAF726C = { isa = PBXGroup; children = (5B6A994C285DFF352BE81E2E, B7727D26B63AF31327E992B6, 9831B72A71909A59A97E41BB, 0CECBD68E1C216D3A7CFA8C5, 7922F22D8A18B7A021D7072E, 15345C6CDE1400F5BE2C8130,); name = "Components"; sourceTree = "<group>"; };
 		6C7CCDEB3609F1FAA874E941 = { isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ASCENDTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		6EE5295B8B309ED36C5341BA = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "WorkoutView.swift"; path = "ASCEND/Features/Workout/WorkoutView.swift"; sourceTree = SOURCE_ROOT; };
 		713EAEC8E22D7BB5FD4C7E9E = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "PersistenceTests.swift"; path = "Tests/App/PersistenceTests.swift"; sourceTree = SOURCE_ROOT; };
 		720B4C71041D42B59DBBD14B = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "WorkoutEditor.swift"; path = "ASCEND/Features/Workout/WorkoutEditor.swift"; sourceTree = SOURCE_ROOT; };
 		73321F1B03019DC59ED43B46 = { isa = PBXGroup; children = (0679E3AF7A48F00C75AB63A1, FA7728AE14FC0C650352C7F4, 5259871296CB9BC61C1A0602,); name = "UI"; sourceTree = "<group>"; };
-		77A03FEE20FE96AD9384861E = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (EE7CA9B25F36B1741AFC88B7, 6420EDDBDB556A0810AF16F6, 8F52A6DD07F6455D54F1833B, A0D703FBC12B27836BE0B80F, 8E5E493E25C5ED28EB1D87FF, 0A924FF8F7E11FC778995190,); runOnlyForDeploymentPostprocessing = 0; };
+		77A03FEE20FE96AD9384861E = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (EE7CA9B25F36B1741AFC88B7, 96809DF32C9F70AFA1C9BA4C, 6420EDDBDB556A0810AF16F6, 8F52A6DD07F6455D54F1833B, A0D703FBC12B27836BE0B80F, 8E5E493E25C5ED28EB1D87FF, 0A924FF8F7E11FC778995190,); runOnlyForDeploymentPostprocessing = 0; };
 		7922F22D8A18B7A021D7072E = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "RankBadgeView.swift"; path = "ASCEND/Components/RankBadgeView.swift"; sourceTree = SOURCE_ROOT; };
 		794AAC98ACE6EB716B86C3A5 = { isa = PBXNativeTarget; buildConfigurationList = 3AB36C5A259E6297ABD26694; buildPhases = (F9ACDEB529017EFC18F5E60A, 39F831DAFE5A2F37503C83B2, 19F0976CA299F93A2DFF5F71,); buildRules = (); dependencies = (DE58E2B17C19600779694943,); name = ASCENDUITests; productName = ASCENDUITests; productReference = 9B7BED31F6F48AD5D908B2BC; productType = "com.apple.product-type.bundle.ui-testing"; };
 		7B96EE4562D8ACA41221CC41 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "RecoveryEngine.swift"; path = "ASCEND/Core/Domain/RecoveryEngine.swift"; sourceTree = SOURCE_ROOT; };
@@ -83,7 +87,8 @@
 		8ECC8B5D05B79F879ACDF1A2 = { isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (C1FFFB61196F8C993C0041FD,); runOnlyForDeploymentPostprocessing = 0; };
 		8F52A6DD07F6455D54F1833B = { isa = PBXBuildFile; fileRef = 1E5370E03A60A8382B20046A; };
 		91C173BFDFEBE86A5833E9D5 = { isa = PBXGroup; children = (BD23AEB15A8E6E26042C5C6A,); name = "Progress"; sourceTree = "<group>"; };
-		949D493B91791558E87BC5D7 = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (F7EEF6AB9C78E2C52E856BF8, B7E28A505684B9B9FFD22D0C, F85805CE9BA4C711D54E62D7, 07794CDB4B42E70262D19B63, B693616B323C8F87CDD5B266, 35D61553E4D0002C0431835A, 07EA8A136C6682454A42D5E6, 7C3310605D7F32D4E14F715A, B272E43E5A86B2C9C68CB917, 62F38C0D699021D5D5434775, 002ED3035321842ABAAE05C2, FC16145645E91E563E12813D, 869CC16463ED2140B15B8653, 83ECC1145B1C6C3748C99507, 1FC52CB61D1729ED663BE192, 893B76868BE725C647856DFD, C1C75C32CD1840C981ABC7FC, 112513406BD2BC6B37D4020C, 7E7789AB33E94D8BF75ACCEA, A15F0F946DAF1D37A2D8A8A8, 191FE728EDC4FFA06C553EC7, 60E8F81E9B561497C79BEE51, 9C3CE273DD1F90ECCE0CC988, A4741A52013705C24C46534F, 7D4C8BF60034BDEF932C227F, AF7799F634E0DD27227EAA67, 0B70C3DC983C056A35C717FE, 8C02AF27C4847BE409A3C90A, BD586F459DB7EE2548C9BEDB, 0C5EF8DDA52383CC83AEBA16, 63E2C3F88C5C9266A7CAF05A, 43CBB101410F6978193BEA7D, 3948C7BB4DD1C518D7823B21, F62C92C8A48392D997F05A64, E320D93657411B7F004D97F1, 0CF357D30855610EDBF4BFD8, 8C210E0667B36E58B3451E00, B0DB40CDF16253287BBD825B, B6A674B7B185BE9BBFA0CC85,); runOnlyForDeploymentPostprocessing = 0; };
+		949D493B91791558E87BC5D7 = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (F7EEF6AB9C78E2C52E856BF8, B7E28A505684B9B9FFD22D0C, F85805CE9BA4C711D54E62D7, 07794CDB4B42E70262D19B63, B693616B323C8F87CDD5B266, 35D61553E4D0002C0431835A, 07EA8A136C6682454A42D5E6, 7C3310605D7F32D4E14F715A, B272E43E5A86B2C9C68CB917, 62F38C0D699021D5D5434775, E91E4FF191818F70EB6CF232, 002ED3035321842ABAAE05C2, FC16145645E91E563E12813D, 869CC16463ED2140B15B8653, 83ECC1145B1C6C3748C99507, 1FC52CB61D1729ED663BE192, 893B76868BE725C647856DFD, C1C75C32CD1840C981ABC7FC, 112513406BD2BC6B37D4020C, 7E7789AB33E94D8BF75ACCEA, A15F0F946DAF1D37A2D8A8A8, 191FE728EDC4FFA06C553EC7, 60E8F81E9B561497C79BEE51, 9C3CE273DD1F90ECCE0CC988, A4741A52013705C24C46534F, 7D4C8BF60034BDEF932C227F, AF7799F634E0DD27227EAA67, 0B70C3DC983C056A35C717FE, 8C02AF27C4847BE409A3C90A, BD586F459DB7EE2548C9BEDB, 0C5EF8DDA52383CC83AEBA16, 63E2C3F88C5C9266A7CAF05A, 43CBB101410F6978193BEA7D, 3948C7BB4DD1C518D7823B21, F62C92C8A48392D997F05A64, 65884015009FDF22CE697F3B, E320D93657411B7F004D97F1, 0CF357D30855610EDBF4BFD8, 8C210E0667B36E58B3451E00, B0DB40CDF16253287BBD825B, B6A674B7B185BE9BBFA0CC85, 43279D0F77DC7EFE06DE9EBA,); runOnlyForDeploymentPostprocessing = 0; };
+		96809DF32C9F70AFA1C9BA4C = { isa = PBXBuildFile; fileRef = 65B7E3D152A2CD82E8FE3A94; };
 		9831B72A71909A59A97E41BB = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "PremiumCard.swift"; path = "ASCEND/Components/PremiumCard.swift"; sourceTree = SOURCE_ROOT; };
 		98F54143AB4E86B28C3AFEE0 = { isa = PBXProject; attributes = { BuildIndependentTargetsInParallel = YES; LastUpgradeCheck = 2700;
     TargetAttributes = { F75109BEB4DD8800DA6B45F8 = { CreatedOnToolsVersion = 27.0; }; C062A5A4A7F4F37DD90F54CB = { CreatedOnToolsVersion = 27.0; TestTargetID = F75109BEB4DD8800DA6B45F8; }; 794AAC98ACE6EB716B86C3A5 = { CreatedOnToolsVersion = 27.0; TestTargetID = F75109BEB4DD8800DA6B45F8; }; }; };
@@ -92,9 +97,10 @@
     targets = (F75109BEB4DD8800DA6B45F8, C062A5A4A7F4F37DD90F54CB, 794AAC98ACE6EB716B86C3A5,); };
 		9B7BED31F6F48AD5D908B2BC = { isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ASCENDUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		9C3CE273DD1F90ECCE0CC988 = { isa = PBXBuildFile; fileRef = 7ED5B3A887967AF7479D9D65; };
-		9CE41C4AF10AD5E6EB822D5F = { isa = PBXGroup; children = (C2FF57A11681B1C22E1010AB,); name = "Recovery"; sourceTree = "<group>"; };
+		9CE41C4AF10AD5E6EB822D5F = { isa = PBXGroup; children = (A0BFE29759F99C33CC4F02D1, C2FF57A11681B1C22E1010AB,); name = "Recovery"; sourceTree = "<group>"; };
 		9E26F8FA81FE5A26E901DC36 = { isa = PBXBuildFile; fileRef = 0679E3AF7A48F00C75AB63A1; };
 		A094C75BF8273A6E3B40E308 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "ExerciseCatalog.swift"; path = "ASCEND/Resources/ExerciseCatalog.swift"; sourceTree = SOURCE_ROOT; };
+		A0BFE29759F99C33CC4F02D1 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "BodyMapView.swift"; path = "ASCEND/Features/Recovery/BodyMapView.swift"; sourceTree = SOURCE_ROOT; };
 		A0D703FBC12B27836BE0B80F = { isa = PBXBuildFile; fileRef = 47A460E3C3D8576B354F28A4; };
 		A15F0F946DAF1D37A2D8A8A8 = { isa = PBXBuildFile; fileRef = 7B96EE4562D8ACA41221CC41; };
 		A4741A52013705C24C46534F = { isa = PBXBuildFile; fileRef = 2D6979E51EA4E0AF5C184925; };
@@ -124,10 +130,11 @@
 		C1FFFB61196F8C993C0041FD = { isa = PBXBuildFile; fileRef = 3685E330EC5277A9DD5661C6; };
 		C29C44923CA92F250D681F19 = { isa = PBXBuildFile; fileRef = FA7728AE14FC0C650352C7F4; };
 		C2FF57A11681B1C22E1010AB = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "RecoveryView.swift"; path = "ASCEND/Features/Recovery/RecoveryView.swift"; sourceTree = SOURCE_ROOT; };
-		C54CC2D4D06A96DE3B77029C = { isa = PBXGroup; children = (713EAEC8E22D7BB5FD4C7E9E,); name = "App"; sourceTree = "<group>"; };
+		C54CC2D4D06A96DE3B77029C = { isa = PBXGroup; children = (713EAEC8E22D7BB5FD4C7E9E, 65B7E3D152A2CD82E8FE3A94,); name = "App"; sourceTree = "<group>"; };
 		C638E847F3F50668C27AE53E = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "FitnessBrain.swift"; path = "ASCEND/Core/Domain/FitnessBrain.swift"; sourceTree = SOURCE_ROOT; };
 		CA052C97BB4EFCFC158A4EA9 = { isa = PBXGroup; children = (2336285774BA3CA533F71E8A, DDA4E69D52E78DEB1041B4EA, D470F80959DE6B2F061893E6, F8A8CC1F3059B7FBBDA04425,); name = "Core"; sourceTree = "<group>"; };
 		CC3B0DB49ABC9177228BB231 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "FoundationModelsBrainProvider.swift"; path = "ASCEND/Core/Intelligence/FoundationModelsBrainProvider.swift"; sourceTree = SOURCE_ROOT; };
+		CE265A0DFAEA7E718B116779 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "RankBadgeAsset.swift"; path = "ASCEND/Resources/RankBadgeAsset.swift"; sourceTree = SOURCE_ROOT; };
 		CF08FA96A557D1DE4228140E = { isa = PBXGroup; children = (E3BBA14384AD85101CAD5FBE,); name = "Logging"; sourceTree = "<group>"; };
 		D424891BCE73963986F6CE39 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "ProgressEngine.swift"; path = "ASCEND/Core/Domain/ProgressEngine.swift"; sourceTree = SOURCE_ROOT; };
 		D428895D0D151660838B8CED = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "DashboardView.swift"; path = "ASCEND/Features/Dashboard/DashboardView.swift"; sourceTree = SOURCE_ROOT; };
@@ -135,7 +142,7 @@
 		D5C76E148680C094C001AC35 = { isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
 		D799BAE6088A90139B415FCC = { isa = PBXContainerItemProxy; containerPortal = 98F54143AB4E86B28C3AFEE0; proxyType = 1; remoteGlobalIDString = F75109BEB4DD8800DA6B45F8; remoteInfo = ASCEND; };
 		D912E77732373C2DCDC5DB56 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "ELOAndObjectiveTests.swift"; path = "Tests/Core/ELOAndObjectiveTests.swift"; sourceTree = SOURCE_ROOT; };
-		D9E7DB7E8348983E30AC2B87 = { isa = PBXGroup; children = (3685E330EC5277A9DD5661C6, A094C75BF8273A6E3B40E308, 4EE32AFFD62AE870777ED243,); name = "Resources"; sourceTree = "<group>"; };
+		D9E7DB7E8348983E30AC2B87 = { isa = PBXGroup; children = (3685E330EC5277A9DD5661C6, A094C75BF8273A6E3B40E308, 4EE32AFFD62AE870777ED243, CE265A0DFAEA7E718B116779,); name = "Resources"; sourceTree = "<group>"; };
 		DCFD8E9D30A5710F477D11BE = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "AppStore+Evaluation.swift"; path = "ASCEND/App/AppStore+Evaluation.swift"; sourceTree = SOURCE_ROOT; };
 		DDA4E69D52E78DEB1041B4EA = { isa = PBXGroup; children = (4E4442B18E2E3D9ACC5F2267, C638E847F3F50668C27AE53E, 4149B5694F727B43E5A8C9EE, F3044D60CBCE9D49C5BB15C5, 5D1C66F49F54C74F0A4A6952, B3B8867129652F32F82361A6, D424891BCE73963986F6CE39, 63DC27FE102543D379504A81, 7B96EE4562D8ACA41221CC41, 05DD5461B6B4434CC4550339,); name = "Domain"; sourceTree = "<group>"; };
 		DDE1BED5CA96D2D4854289E8 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "RankHeroView.swift"; path = "ASCEND/Features/Dashboard/RankHeroView.swift"; sourceTree = SOURCE_ROOT; };
@@ -144,6 +151,7 @@
 		E05DB79C430AA1B0BA487AFC = { isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
 		E320D93657411B7F004D97F1 = { isa = PBXBuildFile; fileRef = C2FF57A11681B1C22E1010AB; };
 		E3BBA14384AD85101CAD5FBE = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "MetricEditors.swift"; path = "ASCEND/Features/Logging/MetricEditors.swift"; sourceTree = SOURCE_ROOT; };
+		E91E4FF191818F70EB6CF232 = { isa = PBXBuildFile; fileRef = 15345C6CDE1400F5BE2C8130; };
 		ED8772ADEC3A6C25161BC957 = { isa = XCBuildConfiguration; buildSettings = { SDKROOT = "iphoneos"; IPHONEOS_DEPLOYMENT_TARGET = "27.0"; SWIFT_VERSION = "5.0"; CLANG_ENABLE_MODULES = "YES"; CLANG_ENABLE_OBJC_ARC = "YES"; ENABLE_USER_SCRIPT_SANDBOXING = "YES"; GCC_WARN_64_TO_32_BIT_CONVERSION = "YES"; CLANG_WARN_BOOL_CONVERSION = "YES"; CLANG_WARN_CONSTANT_CONVERSION = "YES"; CLANG_WARN_DOCUMENTATION_COMMENTS = "YES"; CLANG_WARN_EMPTY_BODY = "YES"; CLANG_WARN_UNREACHABLE_CODE = "YES"; SWIFT_STRICT_CONCURRENCY = "targeted"; SUPPORTED_PLATFORMS = "iphoneos iphonesimulator"; TARGETED_DEVICE_FAMILY = "1"; SWIFT_OPTIMIZATION_LEVEL = "-Onone"; SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)"; ENABLE_TESTABILITY = "YES"; DEBUG_INFORMATION_FORMAT = "dwarf"; }; name = Debug; };
 		EE7CA9B25F36B1741AFC88B7 = { isa = PBXBuildFile; fileRef = 713EAEC8E22D7BB5FD4C7E9E; };
 		F3044D60CBCE9D49C5BB15C5 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "Muscle.swift"; path = "ASCEND/Core/Domain/Muscle.swift"; sourceTree = SOURCE_ROOT; };

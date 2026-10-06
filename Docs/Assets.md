@@ -1,18 +1,20 @@
 # Owner-supplied rank artwork
 
-No rank images have been generated. Each tier/division has an empty universal image set in `ASCEND/Resources/Assets.xcassets`:
+All 18 original 1254 × 1254 PNGs live in `ASCEND/Resources/RankBadges`. Their bytes, colors and transparency are preserved. No replacement badges are generated.
 
-```text
-rank_bronze_1       rank_bronze_2       rank_bronze_3
-rank_silver_1       rank_silver_2       rank_silver_3
-rank_gold_1         rank_gold_2         rank_gold_3
-rank_platinum_1     rank_platinum_2     rank_platinum_3
-rank_diamond_1      rank_diamond_2      rank_diamond_3
-rank_conqueror_1    rank_conqueror_2    rank_conqueror_3
+`tools/rank_badges.json` is the import manifest. Bronze/silver/gold/diamond filenames map to their corresponding divisions; `plat (1–3).png` maps to Platinum I–III and `conq1–3.png` maps to Conqueror I–III. Stable asset names are `rank_<tier>_<division>`.
+
+After replacing owner artwork, run:
+
+```sh
+python tools/import_rank_badges.py
+python -m unittest discover -s Tests/Infrastructure -v
 ```
 
-In Xcode, drag the owner's corresponding image into each named image set. Preserve transparency and choose an appropriate resolution for the 118-point dashboard badge. Do not rename the sets or bake glow/particles into the source images.
+The importer validates all source PNG chunks/checksums before writing any asset. It copies original bytes into universal image sets with original rendering intent. Commit both originals and image sets. Source originals are not bundled separately in the app; the Xcode resource phase compiles only the asset catalog.
 
-`RankBadgeView` detects actual named images. Until supplied, a neutral vector outline, tier color and division glyph render in code; this is a graceful placeholder, not replacement rank artwork. Ambient depth and glow surround either path in SwiftUI. No code change is needed when artwork arrives.
+`RankBadgeAsset` centralizes the 18 valid asset names. `RankBadgeView` resolves the domain rank through that enum, loads the compiled UIImage and adds tier-colored aura/shadow in SwiftUI. Dashboard, Profile and the compact ELO-history entry use this component. Unranked or missing artwork retains a vector fallback.
 
-The AppIcon set is also empty because no final application icon was supplied. Add a 1024×1024 app icon before distribution; an empty slot is intentional for local Build 01 development. Empty image sets may produce asset-catalog warnings until populated.
+Python checks verify the complete mapping, PNG integrity and byte identity. Hosted XCTest loads every compiled asset. UI tests assert Platinum II artwork loads on the seeded Dashboard and Profile.
+
+The AppIcon remains an empty slot because no final app icon was supplied. Add the owner's icon before distribution.

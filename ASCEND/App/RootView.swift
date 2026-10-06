@@ -13,6 +13,7 @@ enum LogDestination: String, Identifiable { case weight, nutrition, sleep, worko
 struct RootView: View {
     @Environment(AppStore.self) private var store
     @State private var destination = AppDestination.dashboard
+    @Namespace private var tabHighlight
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     var body: some View {
         @Bindable var store = store
@@ -50,12 +51,17 @@ struct RootView: View {
             ForEach(AppDestination.allCases) { item in
                 Button {
                     AppHaptics.selection(enabled: store.settings.hapticsEnabled)
-                    withAnimation(reduceMotion ? nil : AppAnimation.interaction) { destination = item }
+                    withAnimation(reduceMotion || AppMotion.snapshotMode ? nil : AppAnimation.interaction) { destination = item }
                 } label: {
                     VStack(spacing: 6) {
                         Image(systemName: item.icon).font(.system(.body, weight: destination == item ? .semibold : .regular))
                             .frame(width: 44, height: 27)
-                            .background(destination == item ? AppColor.accent.opacity(0.15) : .clear, in: Capsule())
+                            .background {
+                                if destination == item {
+                                    Capsule().fill(AppColor.accent.opacity(0.20)).matchedGeometryEffect(id: "selectedTab", in: tabHighlight)
+                                        .overlay { Capsule().strokeBorder(AppColor.accent.opacity(0.25)) }
+                                }
+                            }
                         Text(item.title).font(.system(.caption2, weight: .medium)).lineLimit(1).minimumScaleFactor(0.7)
                     }.foregroundStyle(destination == item ? AppColor.text : AppColor.muted)
                         .frame(maxWidth: .infinity, minHeight: 56).contentShape(Rectangle())

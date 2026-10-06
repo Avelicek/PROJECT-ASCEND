@@ -4,11 +4,13 @@ struct PremiumCard<Content: View>: View {
     var accented = false
     @ViewBuilder var content: Content
     var body: some View {
-        content.padding(AppSpacing.lg).frame(maxWidth: .infinity, alignment: .leading)
-            .background(AppColor.surface, in: RoundedRectangle(cornerRadius: AppRadius.card, style: .continuous))
+        content.padding(18).frame(maxWidth: .infinity, alignment: .leading)
+            .background(LinearGradient(colors: [AppColor.surface, AppColor.elevated.opacity(0.52)], startPoint: .topLeading, endPoint: .bottomTrailing),
+                in: RoundedRectangle(cornerRadius: AppRadius.card, style: .continuous))
             .overlay {
                 RoundedRectangle(cornerRadius: AppRadius.card, style: .continuous)
-                    .strokeBorder(accented ? AppColor.accent.opacity(0.22) : AppColor.separator, lineWidth: 1)
+                    .strokeBorder(LinearGradient(colors: [accented ? AppColor.accent.opacity(0.32) : Color.white.opacity(0.13), AppColor.separator.opacity(0.25)],
+                        startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1)
             }
     }
 }
@@ -27,7 +29,7 @@ struct PillStatus: View {
     let title: String
     var tint: Color = AppColor.accent
     var body: some View {
-        Text(title).font(.system(.caption2, weight: .semibold)).tracking(0.8)
+        Text(title).font(.system(.caption2, weight: .semibold)).tracking(0.5).lineLimit(1).minimumScaleFactor(0.75)
             .foregroundStyle(tint).padding(.horizontal, 10).padding(.vertical, 6)
             .background(tint.opacity(0.1), in: Capsule())
     }
@@ -57,10 +59,12 @@ struct EmptyStateCard: View {
     let detail: String
     var body: some View {
         PremiumCard {
-            VStack(alignment: .leading, spacing: AppSpacing.md) {
-                Image(systemName: symbol).font(.title2).foregroundStyle(AppColor.accent).accessibilityHidden(true)
-                Text(title).font(.headline)
-                Text(detail).font(AppTypography.body).foregroundStyle(AppColor.muted).fixedSize(horizontal: false, vertical: true)
+            HStack(spacing: AppSpacing.md) {
+                Image(systemName: symbol).font(.title2).foregroundStyle(AppColor.accent).frame(width: 44).accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(title).font(.headline)
+                    Text(detail).font(.caption).foregroundStyle(AppColor.muted).fixedSize(horizontal: false, vertical: true)
+                }
             }
         }
     }
@@ -71,10 +75,16 @@ struct PrimaryAction: View {
     let action: () -> Void
     var body: some View {
         Button(action: action) {
-            Label(title, systemImage: symbol).font(.system(.subheadline, weight: .semibold))
-                .frame(maxWidth: .infinity).padding(.vertical, 16)
-                .foregroundStyle(AppColor.text).background(AppColor.accent.opacity(0.22), in: RoundedRectangle(cornerRadius: AppRadius.small))
-                .overlay { RoundedRectangle(cornerRadius: AppRadius.small).strokeBorder(AppColor.accent.opacity(0.35)) }
-        }.buttonStyle(PremiumPressStyle())
+            HStack(spacing: 10) {
+                Image(systemName: symbol).frame(width: 20).accessibilityHidden(true)
+                Text(title)
+                Spacer(minLength: 4)
+                Image(systemName: "arrow.up.right").font(.caption).accessibilityHidden(true)
+            }.font(.system(.subheadline, weight: .semibold)).padding(.horizontal, 16).frame(minHeight: 50)
+                .foregroundStyle(AppColor.text)
+                .background(LinearGradient(colors: [AppColor.accent.opacity(0.35), AppColor.blue.opacity(0.12)], startPoint: .leading, endPoint: .trailing),
+                    in: RoundedRectangle(cornerRadius: 16))
+                .overlay { RoundedRectangle(cornerRadius: 16).strokeBorder(AppColor.accent.opacity(0.3)) }
+        }.buttonStyle(PremiumPressStyle()).accessibilityLabel(title)
     }
 }

@@ -1,4 +1,4 @@
-# PROJECT ASCEND — Build 01 + Build 01.5 verification
+# PROJECT ASCEND — Build 02
 
 Native, local-first personal fitness for iPhone / iOS 27. SwiftUI, SwiftData, Swift Charts and optional on-device Foundation Models. No account, backend, CloudKit, HealthKit or third-party UI dependencies.
 
@@ -14,11 +14,12 @@ Release builds ignore `--demo`. Demo data never enters the production store.
 
 ## Implemented
 
-- Dashboard with rank badge fallback, ELO, provisional daily delta, rank progress, readiness, signed momentum, interactive objectives, nutrition and contextual insight.
+- Dashboard with owner rank artwork and tier aura, animated ELO, provisional daily delta, rank progress, readiness gauge, momentum sparkline, interactive objectives, nutrition and contextual insight.
 - Five native navigation destinations with a custom accessible tab bar, dark reusable components, number/progress transitions, reduced-motion handling and contextual haptics.
 - Editable goals, timestamped weight entries, daily calorie/protein totals and sleep with optional bed/wake times.
 - Built-in catalog of 22 exercises, quick/full set logging, retroactive timestamps, previous performance, volume and PR engine.
-- Detailed muscle model, cumulative decaying load, confidence-aware readiness and a replaceable anatomy preview.
+- Detailed muscle model, cumulative decaying load, confidence-aware readiness and a selectable front/back recovery map with honest unknown regions.
+- Training console with focus chips and numbered sets; composed goal/weight analytics; identity-based Profile with real rank and a responsive goals grid. See [Build02.md](Docs/Build02.md).
 - Exact 18-rank ladder; no XP. Lifetime level accumulates positive finalized ELO without decreasing.
 - Rolling personal baselines for 7/14/28/90 days, weight smoothing, distinct goal progress and signed momentum.
 - User-defined one-time, daily, weekly or weekday objectives with three importance weights and explicit recovery exemption.
@@ -51,7 +52,7 @@ Docs/                     Architecture, scoring contract, asset installation, va
 
 ## Verification
 
-Build 01.5 is prepared locally for a future **private** repository. Read [PRIVATE_REPOSITORY_SETUP.md](PRIVATE_REPOSITORY_SETUP.md) for exact repository creation, push, Actions activation, first-run and artifact-download steps. Read [WINDOWS_SETUP.md](WINDOWS_SETUP.md) to install official Swift for native Core tests.
+Build 01.5 verification runs in the private GitHub repository on pushes to main, pull requests and manual dispatch. Read [PRIVATE_REPOSITORY_SETUP.md](PRIVATE_REPOSITORY_SETUP.md) for setup and artifact-download steps. Read [WINDOWS_SETUP.md](WINDOWS_SETUP.md) to install official Swift for native Core tests.
 
 | Stage | Actual local result |
 |---|---|
@@ -63,6 +64,8 @@ Build 01.5 is prepared locally for a future **private** repository. Read [PRIVAT
 | FOUNDATION MODELS INFERENCE | NOT TESTED |
 
 The local Python infrastructure suite and source/project checks are separate from these results. They cannot validate Swift types, macro expansion, simulator behavior or appearance. No real screenshot has been produced locally.
+
+Remote Apple verification is available through Actions. Before Build 02, commit `b8797c4` passed the Xcode 27 compile, hosted unit tests, UI smoke and five screenshot stages in [run 37507146530](https://github.com/Avelicek/PROJECT-ASCEND/actions/runs/37507146530). The independent Windows Core job failed in that baseline run. For the current commit, use its own run and stage artifacts rather than treating previous evidence as current verification.
 
 On a Mac:
 

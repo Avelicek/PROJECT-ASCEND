@@ -8,7 +8,7 @@ struct DashboardNutritionView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: AppSpacing.md) {
             HStack {
-                SectionHeader(title: "Fuel your ascent")
+                SectionHeader(title: "Daily fuel")
                 Button("Log") { store.presentedSheet = .nutrition }.font(.subheadline.weight(.medium)).frame(minWidth: 44, minHeight: 44)
             }
             PremiumCard {
@@ -34,7 +34,7 @@ struct DashboardNutritionView: View {
         VStack(alignment: .leading, spacing: AppSpacing.md) {
             VStack(alignment: .leading, spacing: 5) {
                 Eyebrow(text: "DAILY ENERGY")
-                Text("of \(Int(store.profile.calorieGoal).formatted()) kcal").font(.caption).foregroundStyle(AppColor.muted)
+                Text("\(Int(store.profile.calorieGoal).formatted()) kcal target").font(.caption).foregroundStyle(AppColor.muted)
             }
             Rectangle().fill(AppColor.separator).frame(height: 1)
             VStack(alignment: .leading, spacing: 8) {
@@ -58,9 +58,12 @@ struct DashboardInsightView: View {
                     Eyebrow(text: "ASCEND INTELLIGENCE")
                     Spacer()
                 }
-                Text(store.insight.headline).font(.system(.title3, weight: .semibold))
-                Text(store.insight.summary).font(AppTypography.body).foregroundStyle(AppColor.muted).lineSpacing(4)
-                    .fixedSize(horizontal: false, vertical: true)
+                DisclosureGroup {
+                    Text(store.insight.summary).font(.subheadline).foregroundStyle(AppColor.muted).lineSpacing(3)
+                        .fixedSize(horizontal: false, vertical: true).padding(.top, 8)
+                } label: {
+                    Text(store.insight.headline).font(.system(.headline, weight: .semibold)).foregroundStyle(AppColor.text)
+                }
                 HStack {
                     PillStatus(title: store.insight.source == .onDevice ? "ON-DEVICE AI" : "LOCAL INSIGHT").accessibilityIdentifier("brain.source").accessibilityValue(store.insight.source.rawValue)
                     Text("\(store.insight.confidence.rawValue.capitalized) confidence").font(.caption2).foregroundStyle(AppColor.muted)

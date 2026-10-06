@@ -15,6 +15,9 @@ import XCTest
         let elo = app.staticTexts["dashboard.elo"]
         XCTAssertTrue(elo.waitForExistence(timeout: 10))
         XCTAssertEqual(elo.value as? String, "1084", "The screenshot fixture must contain seeded history")
+        let badge = app.descendants(matching: .any)["dashboard.rank.badge"].firstMatch
+        XCTAssertTrue(badge.exists)
+        XCTAssertEqual(badge.value as? String, "rank_platinum_2", "The real compiled badge must be loaded")
         return app
     }
 

@@ -3,44 +3,53 @@ import SwiftUI
 struct RankHeroView: View {
     @Environment(AppStore.self) private var store
     @Binding var showScore: Bool
-    @ScaledMetric(relativeTo: .largeTitle) private var eloSize: CGFloat = 66
+    @ScaledMetric(relativeTo: .largeTitle) private var eloSize: CGFloat = 54
+    @Environment(\.dynamicTypeSize) private var typeSize
+    private var tint: Color { AppColor.rank(store.rank.rank.tier) }
     var body: some View {
-        VStack(spacing: 0) {
+        VStack(spacing: 16) {
             HStack {
-                Eyebrow(text: "CURRENT STANDING")
+                HStack(spacing: 6) { Circle().fill(tint).frame(width: 5, height: 5); Eyebrow(text: "CURRENT RANK") }
                 Spacer()
-                Text("LVL \(store.lifetimeLevel)").font(.system(.caption2, weight: .medium)).foregroundStyle(AppColor.muted)
+                PillStatus(title: "LEVEL \(store.lifetimeLevel)", tint: tint)
             }
-            RankBadgeView(rank: store.rank.rank, size: 118).padding(.top, AppSpacing.md).padding(.bottom, 10)
-            Text(store.rank.rank.title).font(.system(.subheadline, design: .rounded, weight: .semibold))
-                .tracking(3).foregroundStyle(AppColor.rank(store.rank.rank.tier))
-            HStack(alignment: .firstTextBaseline, spacing: 8) {
-                Text(store.currentELO.formatted()).font(.system(size: eloSize, weight: .semibold, design: .rounded))
-                    .accessibilityIdentifier("dashboard.elo").accessibilityValue(String(store.currentELO))
-                    .tracking(-3).monospacedDigit().contentTransition(.numericText())
-                Text("ELO").font(.system(.caption, weight: .semibold)).tracking(2).foregroundStyle(AppColor.muted)
-            }.padding(.top, 6).minimumScaleFactor(0.65).lineLimit(1)
-            Button { showScore = true } label: {
-                HStack(spacing: 6) {
-                    Image(systemName: "arrow.up.right").font(.caption2)
-                    Text("\(store.projectedScore.delta.formatted(.number.sign(strategy: .always()))) ELO today · provisional")
-                        .font(.system(.caption, weight: .medium))
-                    Image(systemName: "info.circle").font(.caption2)
-                }.foregroundStyle(store.projectedScore.delta < 0 ? AppColor.warning : AppColor.positive)
-                    .padding(.horizontal, 14).frame(minHeight: 44)
-            }.buttonStyle(PremiumPressStyle()).accessibilityHint("Show score components and finalized history")
-            RankProgressView(status: store.rank).padding(.top, AppSpacing.lg)
-        }.padding(AppSpacing.lg)
+            Group {
+                if typeSize.isAccessibilitySize { VStack(spacing: 10) { emblem; standing } }
+                else { HStack(spacing: 14) { emblem; standing } }
+            }
+            RankProgressView(status: store.rank)
+        }.padding(20)
             .background {
                 RoundedRectangle(cornerRadius: AppRadius.hero, style: .continuous).fill(AppColor.surface)
                     .overlay {
                         RoundedRectangle(cornerRadius: AppRadius.hero, style: .continuous)
-                            .fill(RadialGradient(colors: [AppColor.rank(store.rank.rank.tier).opacity(0.10), .clear],
-                                center: .init(x: 0.5, y: 0.3), startRadius: 4, endRadius: 230))
+                            .fill(RadialGradient(colors: [tint.opacity(0.16), .clear],
+                                center: .init(x: 0.22, y: 0.45), startRadius: 4, endRadius: 280))
                     }
             }
-            .overlay { RoundedRectangle(cornerRadius: AppRadius.hero).strokeBorder(AppColor.rank(store.rank.rank.tier).opacity(0.17)) }
-            .shadow(color: AppShadow.color, radius: AppShadow.radius, y: 12)
+            .overlay { RoundedRectangle(cornerRadius: AppRadius.hero).strokeBorder(LinearGradient(colors: [tint.opacity(0.38), tint.opacity(0.07)], startPoint: .topLeading, endPoint: .bottomTrailing)) }
+            .shadow(color: .black.opacity(0.25), radius: 14, y: 8)
+    }
+    private var emblem: some View {
+        RankBadgeView(rank: store.rank.rank, size: 144, animated: true)
+            .accessibilityIdentifier("dashboard.rank.badge")
+    }
+    private var standing: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(store.rank.rank.title).font(.system(.caption, design: .rounded, weight: .semibold)).tracking(1.7).foregroundStyle(tint)
+            CountUpText(value: Double(store.currentELO)).font(.system(size: eloSize, weight: .semibold, design: .rounded))
+                .tracking(-2).lineLimit(1).minimumScaleFactor(0.65)
+                .accessibilityIdentifier("dashboard.elo").accessibilityValue(String(store.currentELO))
+            Text("ELO RATING").font(.system(.caption2, weight: .medium)).tracking(1.5).foregroundStyle(AppColor.muted)
+            Button { showScore = true } label: {
+                VStack(alignment: .leading, spacing: 3) {
+                    Label("\(store.projectedScore.delta.formatted(.number.sign(strategy: .always()))) today",
+                        systemImage: store.projectedScore.delta < 0 ? "arrow.down.right" : "arrow.up.right")
+                        .font(.caption.weight(.semibold)).foregroundStyle(store.projectedScore.delta < 0 ? AppColor.warning : AppColor.positive)
+                    Text("Provisional · view score").font(.system(size: 9)).foregroundStyle(AppColor.muted)
+                }.padding(.vertical, 5).frame(minHeight: 44, alignment: .leading)
+            }.buttonStyle(PremiumPressStyle()).accessibilityHint("Show score components and finalized history")
+        }.frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 struct ScoreBreakdownView: View {

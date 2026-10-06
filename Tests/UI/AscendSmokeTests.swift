@@ -10,6 +10,8 @@ final class AscendSmokeTests: XCTestCase {
             }
         }
         XCTAssertEqual(app.staticTexts["profile.name"].label, "Alex")
+        let badge = app.descendants(matching: .any)["profile.rank.badge"].firstMatch
+        XCTAssertEqual(badge.value as? String, "rank_platinum_2")
         app.terminate()
     }
 
@@ -29,6 +31,31 @@ final class AscendSmokeTests: XCTestCase {
         XCTAssertTrue(insight.exists)
         XCTAssertEqual(insight.value as? String, "deterministic")
         XCTAssertEqual(app.state, .runningForeground)
+        app.terminate()
+    }
+
+    @MainActor func testRecoveryRegionSelectionAndFrontBackControls() {
+        continueAfterFailure = false
+        let app = AscendUITestSupport.launchDemo()
+        AscendUITestSupport.navigate("recovery", in: app)
+        let screen = app.scrollViews["screen.recovery"]
+        let glutes = app.buttons["body.region.glutes"]
+        for _ in 0..<4 {
+            if glutes.isHittable { break }
+            screen.swipeUp()
+        }
+        XCTAssertTrue(glutes.isHittable)
+        glutes.tap()
+        XCTAssertEqual(glutes.value as? String, "Selected")
+        for _ in 0..<4 {
+            if app.segmentedControls["body.view"].isHittable { break }
+            screen.swipeDown()
+        }
+        let picker = app.segmentedControls["body.view"]
+        XCTAssertTrue(picker.exists)
+        XCTAssertTrue(picker.buttons["Back"].isSelected)
+        picker.buttons["Front"].tap()
+        XCTAssertTrue(picker.buttons["Front"].isSelected)
         app.terminate()
     }
 }

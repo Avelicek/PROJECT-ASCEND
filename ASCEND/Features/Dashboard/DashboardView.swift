@@ -15,29 +15,29 @@ struct DashboardView: View {
                 objectives
                 DashboardNutritionView()
                 DashboardInsightView()
-                Text("Built by your effort. Owned by you.")
-                    .font(.caption2).foregroundStyle(AppColor.muted.opacity(0.7)).frame(maxWidth: .infinity).padding(.vertical, AppSpacing.sm)
             }.padding(.horizontal, AppSpacing.page).padding(.bottom, AppSpacing.lg)
-                .opacity(appeared ? 1 : 0).offset(y: appeared || reduceMotion ? 0 : 10)
+                .opacity(appeared || AppMotion.snapshotMode ? 1 : 0).offset(y: appeared || reduceMotion || AppMotion.snapshotMode ? 0 : 10)
         }.accessibilityIdentifier("screen.dashboard").featureBackground().scrollIndicators(.hidden)
-            .onAppear { withAnimation(reduceMotion ? nil : AppAnimation.reveal) { appeared = true } }
+            .onAppear { withAnimation(reduceMotion || AppMotion.snapshotMode ? nil : AppAnimation.reveal) { appeared = true } }
             .sheet(isPresented: $showScore) { NavigationStack { ScoreBreakdownView().environment(store) }.preferredColorScheme(.dark) }
     }
     private var header: some View {
         HStack {
             VStack(alignment: .leading, spacing: 6) {
-                Eyebrow(text: "PROJECT ASCEND")
+                Text("ASCEND").font(.system(.title2, design: .rounded, weight: .bold)).tracking(4)
                 Text("Your ascent, \(store.profile.displayName).")
                     .font(.system(.subheadline, weight: .medium)).foregroundStyle(AppColor.muted)
             }
             Spacer()
             Button { store.presentedSheet = .weight } label: {
                 Image(systemName: "plus").font(.system(.headline, weight: .medium))
-                    .foregroundStyle(AppColor.text).frame(width: 44, height: 44).background(AppColor.elevated, in: Circle())
+                    .foregroundStyle(AppColor.text).frame(width: 44, height: 44)
+                    .background(LinearGradient(colors: [AppColor.accent.opacity(0.4), AppColor.blue.opacity(0.15)], startPoint: .topLeading, endPoint: .bottomTrailing), in: Circle())
+                    .overlay { Circle().strokeBorder(AppColor.accent.opacity(0.4)) }
             }.buttonStyle(PremiumPressStyle()).accessibilityLabel("Log body weight")
         }.padding(.top, AppSpacing.lg)
             .overlay(alignment: .bottomLeading) {
-                if store.isDemo { Text("IN-MEMORY DEMO").font(.system(size: 8, weight: .bold)).tracking(1.4).accessibilityIdentifier("demo.marker").foregroundStyle(AppColor.warning).offset(y: 16) }
+                if store.isDemo { Text("DEMO").font(.system(size: 8, weight: .bold)).tracking(1.4).accessibilityIdentifier("demo.marker").foregroundStyle(AppColor.warning).offset(y: 14) }
             }
     }
     private var readinessAndMomentum: some View {
@@ -47,25 +47,33 @@ struct DashboardView: View {
         }
     }
     private var readinessCard: some View {
-        MetricCard(title: "BODY READINESS", value: store.readiness.percent.map { String(Int($0.rounded())) } ?? "—", suffix: "%",
-            detail: store.readiness.state?.rawValue.uppercased() ?? "LOG TO DISCOVER", tint: AppColor.blue)
+        PremiumCard {
+            VStack(alignment: .leading, spacing: 12) {
+                Eyebrow(text: "READINESS")
+                ReadinessGauge(percent: store.readiness.percent, size: 70).frame(maxWidth: .infinity)
+                Text(store.readiness.state?.rawValue.capitalized ?? "Log to discover").font(.caption.weight(.medium)).foregroundStyle(AppColor.muted)
+            }.frame(maxWidth: .infinity, alignment: .leading)
+        }
     }
     private var momentumCard: some View {
-        MetricCard(title: "MOMENTUM · 7D", value: store.progress.momentumPercent.map { String(format: "%+.0f", $0) } ?? "—", suffix: "%",
-            detail: store.progress.momentumPercent.map { $0 < 0 ? "DOWNGRADE" : $0 > 0 ? "PROGRESS" : "STEADY" } ?? "BUILDING BASELINE",
-            tint: (store.progress.momentumPercent ?? 0) < 0 ? AppColor.warning : AppColor.positive)
+        MomentumCard(report: store.progress)
     }
     private var objectives: some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
             HStack {
-                SectionHeader(title: "Today's objectives", detail: "\(store.todayObjectives.filter { $0.completedAt != nil || $0.recoveryExempt }.count)/\(store.todayObjectives.count)")
+                let done = store.todayObjectives.filter { $0.completedAt != nil || $0.recoveryExempt }.count
+                ZStack {
+                    ProgressRing(progress: Double(done) / Double(max(1, store.todayObjectives.count)), tint: AppColor.positive, lineWidth: 3)
+                    Text("\(done)").font(.caption2.weight(.semibold))
+                }.frame(width: 29, height: 29).accessibilityLabel("\(done) of \(store.todayObjectives.count) objectives complete or recovery protected")
+                SectionHeader(title: "Today's objectives")
                 Button { store.presentedSheet = .objectives } label: {
                     Image(systemName: "slider.horizontal.3").frame(width: 44, height: 44).foregroundStyle(AppColor.muted)
                 }.accessibilityLabel("Manage objectives")
             }
             if store.todayObjectives.isEmpty {
                 Button { store.presentedSheet = .objectives } label: {
-                    EmptyStateCard(symbol: "scope", title: "Choose what matters.", detail: "Build your own daily rhythm. Add a goal for nutrition, training or a small habit.")
+                    EmptyStateCard(symbol: "scope", title: "Set your daily rhythm.", detail: "Add a training, fuel or habit goal.")
                 }.buttonStyle(PremiumPressStyle())
             } else {
                 ForEach(store.todayObjectives, id: \.occurrenceKey) { occurrence in
