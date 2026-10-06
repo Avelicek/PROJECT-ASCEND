@@ -24,6 +24,8 @@ The owner artwork importer, source/project checks and Python infrastructure test
 
 New tests cover the 18 compiled rank images, rank mapping/byte preservation, corrupt PNG rejection, fail-before-write behavior, unknown regional recovery and front/back interaction. The existing five-screen screenshot test remains intact.
 
+The pre-upgrade Windows job ran 36 successful XCTest cases but failed because serial SwiftPM execution did not emit the requested XML. The Windows command uses the parallel XCTest runner with one worker to generate the genuine report while retaining serial execution. Empty reports still fail verification.
+
 ## Outside this build
 
 Live rest timers, multi-exercise session expansion, catalog expansion, adaptive physiology, cloud/accounts, backup flows and final application icon remain deferred. No new data schema or network service is introduced.

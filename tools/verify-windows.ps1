@@ -42,8 +42,12 @@ try {
     Invoke-SwiftStage 'version' @('--version')
     Invoke-SwiftStage 'resolve' @('package', 'resolve')
     Invoke-SwiftStage 'build' @('build', '-Xswiftc', '-warnings-as-errors')
-    Invoke-SwiftStage 'test' @('test', '-Xswiftc', '-warnings-as-errors', '--xunit-output', (Join-Path $taskOutput 'core-tests.xml'))
-    [xml]$taskTestResults = Get-Content -LiteralPath (Join-Path $taskOutput 'core-tests.xml') -Raw
+    $taskXCTestReport = Join-Path $taskOutput 'core-tests.xml'
+    if (Test-Path -LiteralPath $taskXCTestReport) { Remove-Item -LiteralPath $taskXCTestReport -Force }
+    # SwiftPM's XCTest xUnit writer runs through its parallel runner. One worker
+    # retains serial execution while producing actual testcase XML on Windows.
+    Invoke-SwiftStage 'test' @('test', '-Xswiftc', '-warnings-as-errors', '--parallel', '--num-workers', '1', '--xunit-output', $taskXCTestReport)
+    [xml]$taskTestResults = Get-Content -LiteralPath $taskXCTestReport -Raw
     $taskCases = $taskTestResults.SelectNodes('//testcase')
     if ($taskCases.Count -eq 0) { throw 'Swift returned success without executed XCTest cases in its XML report' }
     if ($taskTestResults.SelectNodes('//failure | //error').Count -ne 0) { throw 'The XCTest XML report contains failures/errors' }
