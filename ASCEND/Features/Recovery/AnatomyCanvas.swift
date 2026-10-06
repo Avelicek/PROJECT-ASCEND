@@ -27,9 +27,9 @@ struct AnatomyCanvas: View {
                         y: artboard.minY + 312 / 460 * artboard.height, width: artboard.width * 0.05, height: artboard.height * 0.022)
                     context.fill(Path(ellipseIn: knee), with: .color(.white.opacity(0.09)))
                 }
-            }.onSpatialTapGesture { event in
+            }.gesture(SpatialTapGesture().onEnded { event in
                 if let patch = asset.patches(for: mode).last(where: { $0.path(in: artboard).contains(event.location) }) { onSelect(patch.region) }
-            }
+            })
         }.accessibilityHidden(true)
     }
     private func artboard(in size: CGSize) -> CGRect {
