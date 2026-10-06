@@ -6,12 +6,12 @@ struct RecoveryView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: AppSpacing.lg) {
                 FeatureHeader(eyebrow: "RECOVER TO RISE", title: "Body intelligence")
-                PremiumCard(accented: true) {
-                    HStack(spacing: 22) {
-                        ReadinessGauge(percent: store.readiness.percent, size: 88)
+                PremiumCard {
+                    HStack(spacing: 16) {
+                        ReadinessGauge(percent: store.readiness.percent, size: 60)
                         VStack(alignment: .leading, spacing: 8) {
                             Eyebrow(text: "BODY READINESS")
-                            Text(store.readiness.state?.rawValue.capitalized ?? "Learning").font(.title2.weight(.semibold))
+                            Text(store.readiness.state?.rawValue.capitalized ?? "Learning").font(.title3.weight(.semibold))
                             PillStatus(title: "\(store.readiness.confidence.rawValue.uppercased()) CONFIDENCE", tint: AppColor.muted)
                         }
                     }
@@ -21,7 +21,7 @@ struct RecoveryView: View {
                     SectionHeader(title: "Muscle detail")
                     Button("Log sleep") { store.presentedSheet = .sleep }.font(.caption).frame(minHeight: 44)
                 }
-                Text("Training + sleep + fuel · recovery estimates").font(.caption).foregroundStyle(AppColor.muted)
+                Text("Estimates from logged training, sleep and fuel.").font(.caption).foregroundStyle(AppColor.muted)
                 ForEach(BodyRegion.allCases) { region in
                     PremiumCard {
                         DisclosureGroup {
@@ -31,7 +31,7 @@ struct RecoveryView: View {
                                         HStack {
                                             Text(muscle.muscle.title).font(.caption)
                                             Spacer()
-                                            Text(muscle.lastTrainedAt == nil ? "Unlogged" : "\(Int(muscle.recoveryPercent))%")
+                                            Text(muscle.lastTrainedAt == nil ? "Unlogged" : "\(Int(muscle.recoveryPercent.rounded()))%")
                                                 .font(.caption).foregroundStyle(AppColor.muted).monospacedDigit()
                                         }
                                         LinearProgress(progress: muscle.lastTrainedAt == nil ? 0 : muscle.recoveryPercent / 100,
@@ -44,7 +44,7 @@ struct RecoveryView: View {
                                 HStack {
                                     Text(region.rawValue).font(.headline)
                                     Spacer()
-                                    Text(region.recovery(in: store.readiness).map { "\(Int($0))%" } ?? "—")
+                                    Text(region.recovery(in: store.readiness).map { "\(Int($0.rounded()))%" } ?? "—")
                                         .foregroundStyle(region.tint(in: store.readiness)).font(.subheadline).monospacedDigit()
                                 }
                                 LinearProgress(progress: (region.recovery(in: store.readiness) ?? 0) / 100, tint: region.tint(in: store.readiness), height: 4)

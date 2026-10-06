@@ -1,4 +1,4 @@
-# PROJECT ASCEND — Build 02
+# PROJECT ASCEND — Build 03
 
 Native, local-first personal fitness for iPhone / iOS 27. SwiftUI, SwiftData, Swift Charts and optional on-device Foundation Models. No account, backend, CloudKit, HealthKit or third-party UI dependencies.
 
@@ -18,8 +18,8 @@ Release builds ignore `--demo`. Demo data never enters the production store.
 - Five native navigation destinations with a custom accessible tab bar, dark reusable components, number/progress transitions, reduced-motion handling and contextual haptics.
 - Editable goals, timestamped weight entries, daily calorie/protein totals and sleep with optional bed/wake times.
 - Built-in catalog of 22 exercises, quick/full set logging, retroactive timestamps, previous performance, volume and PR engine.
-- Detailed muscle model, cumulative decaying load, confidence-aware readiness and a selectable front/back recovery map with honest unknown regions.
-- Training console with focus chips and numbered sets; composed goal/weight analytics; identity-based Profile with real rank and a responsive goals grid. See [Build02.md](Docs/Build02.md).
+- Detailed muscle model, cumulative decaying load, confidence-aware readiness and a layered, shaded front/back anatomy canvas with honest unknown regions, touch selection and load/fatigue details.
+- Training console with working-set muscle focus and numbered rows; weekly consistency and goal/weight analytics; identity control center with real rank and responsive target metrics. See [Build03.md](Docs/Build03.md).
 - Exact 18-rank ladder; no XP. Lifetime level accumulates positive finalized ELO without decreasing.
 - Rolling personal baselines for 7/14/28/90 days, weight smoothing, distinct goal progress and signed momentum.
 - User-defined one-time, daily, weekly or weekday objectives with three importance weights and explicit recovery exemption.

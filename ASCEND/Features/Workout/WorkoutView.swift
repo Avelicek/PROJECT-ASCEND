@@ -12,8 +12,7 @@ struct WorkoutView: View {
                         HStack {
                             VStack(alignment: .leading, spacing: 9) {
                                 Eyebrow(text: "TRAINING CONSOLE")
-                                Text("One session\ncloser.").font(.system(.largeTitle, design: .rounded, weight: .semibold))
-                                Text("Build strength. Earn your next rank.").font(.caption).foregroundStyle(AppColor.muted)
+                                Text("Build your\nnext level.").font(.system(.title, design: .rounded, weight: .semibold))
                             }
                             Spacer(minLength: 8)
                             ZStack {
@@ -22,10 +21,11 @@ struct WorkoutView: View {
                                 Image(systemName: "dumbbell.fill").font(.system(size: 38)).foregroundStyle(AppColor.blue)
                             }.frame(width: 88, height: 88).accessibilityHidden(true)
                         }
-                        HStack {
-                            StatBlock(title: "Sessions", value: "\(store.sessions.count)", symbol: "bolt.fill", tint: AppColor.blue)
-                            StatBlock(title: "Sets logged", value: "\(sets)", symbol: "square.stack", tint: AppColor.accent)
-                        }
+                        MetricStrip(metrics: [
+                            GlanceMetric(title: "Sessions", value: "\(store.sessions.count)", symbol: "bolt.fill"),
+                            GlanceMetric(title: "Sets logged", value: "\(sets)", symbol: "square.stack", tint: AppColor.accent),
+                            GlanceMetric(title: "Records", value: "\(store.records.count)", symbol: "trophy", tint: AppColor.warning)
+                        ])
                         PrimaryAction(title: "Log a workout", symbol: "plus") { store.presentedSheet = .workout }
                     }
                 }
@@ -41,13 +41,7 @@ struct WorkoutView: View {
 
 private struct WorkoutSessionCard: View {
     let session: WorkoutSession
-    private var focus: [String] { Array(Set(session.exercises.flatMap { $0.contributions.map { $0.muscle.group } })).sorted() }
-    private var workingSets: Int { session.exercises.reduce(0) { $0 + $1.sets.filter { !$0.isWarmup }.count } }
-    private var volume: Double {
-        session.exercises.filter { $0.trackingMode == .weightAndReps || $0.trackingMode == .reps }.reduce(0) { total, entry in
-            total + WorkoutEngine().volume(entry.sets.filter { !$0.isWarmup }.map(\.performance))
-        }
-    }
+    private var snapshot: SessionSnapshot { SessionSnapshot(session: session) }
     var body: some View {
         PremiumCard {
             VStack(alignment: .leading, spacing: 14) {
@@ -59,12 +53,22 @@ private struct WorkoutSessionCard: View {
                     Spacer()
                     PillStatus(title: session.isQuickLog ? "QUICK" : "FULL")
                 }
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 6) { ForEach(focus, id: \.self) { PillStatus(title: $0.uppercased(), tint: AppColor.muted) } }
-                }
                 HStack {
-                    StatBlock(title: "Working sets", value: "\(workingSets)")
-                    if volume > 0 { StatBlock(title: "Volume", value: "\(Int(volume).formatted()) kg", tint: AppColor.blue) }
+                    StatBlock(title: "Working sets", value: "\(snapshot.workingSets)")
+                    if snapshot.volumeKG > 0 { StatBlock(title: "Volume", value: "\(Int(snapshot.volumeKG).formatted()) kg", tint: AppColor.blue) }
+                    if let rpe = snapshot.exertion { StatBlock(title: "Avg RPE", value: rpe.formatted(.number.precision(.fractionLength(1))), tint: AppColor.warning) }
+                }
+                if !snapshot.focus.isEmpty {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Eyebrow(text: "SET FOCUS")
+                        ForEach(snapshot.focus.prefix(3)) { focus in
+                            HStack(spacing: 10) {
+                                Text(focus.group).font(.caption).foregroundStyle(AppColor.muted).frame(width: 68, alignment: .leading)
+                                LinearProgress(progress: focus.share, tint: AppColor.blue, height: 4)
+                                Text(focus.share.formatted(.percent.precision(.fractionLength(0)))).font(.caption2).monospacedDigit().frame(width: 32, alignment: .trailing)
+                            }
+                        }
+                    }.padding(12).background(AppColor.background.opacity(0.5), in: RoundedRectangle(cornerRadius: 14))
                 }
                 ForEach(session.exercises.sorted { $0.order < $1.order }, id: \.id) { entry in
                     VStack(alignment: .leading, spacing: 7) {
@@ -76,8 +80,11 @@ private struct WorkoutSessionCard: View {
                                 Text(setDescription(set, mode: entry.trackingMode)).font(.subheadline.weight(.medium)).monospacedDigit()
                                 Spacer()
                                 if set.isWarmup { Text("WARM-UP").font(.caption2).foregroundStyle(AppColor.muted) }
+                                else if let rpe = set.perceivedExertion { Text("RPE \(rpe.formatted())").font(.caption2).foregroundStyle(AppColor.blue) }
                                 else { Image(systemName: "checkmark").font(.caption).foregroundStyle(AppColor.positive).accessibilityHidden(true) }
-                            }.accessibilityElement(children: .combine)
+                            }.padding(.vertical, 5).padding(.horizontal, 8)
+                                .background(AppColor.elevated.opacity(index.isMultiple(of: 2) ? 0.32 : 0.08), in: RoundedRectangle(cornerRadius: 10))
+                                .accessibilityElement(children: .combine)
                         }
                     }
                 }

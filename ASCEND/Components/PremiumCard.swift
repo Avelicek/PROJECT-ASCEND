@@ -12,6 +12,7 @@ struct PremiumCard<Content: View>: View {
                     .strokeBorder(LinearGradient(colors: [accented ? AppColor.accent.opacity(0.32) : Color.white.opacity(0.13), AppColor.separator.opacity(0.25)],
                         startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1)
             }
+            .shadow(color: .black.opacity(accented ? 0.24 : 0.08), radius: accented ? 16 : 6, y: accented ? 8 : 3)
     }
 }
 struct SectionHeader: View {

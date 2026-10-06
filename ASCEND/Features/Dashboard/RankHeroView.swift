@@ -36,17 +36,17 @@ struct RankHeroView: View {
     }
     private var standing: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(store.rank.rank.title).font(.system(.caption, design: .rounded, weight: .semibold)).tracking(1.7).foregroundStyle(tint)
+            Text(store.rank.rank.title).font(.system(.headline, design: .rounded, weight: .semibold)).tracking(0.6).foregroundStyle(tint)
             CountUpText(value: Double(store.currentELO)).font(.system(size: eloSize, weight: .semibold, design: .rounded))
                 .tracking(-2).lineLimit(1).minimumScaleFactor(0.65)
                 .accessibilityIdentifier("dashboard.elo").accessibilityValue(String(store.currentELO))
             Text("ELO RATING").font(.system(.caption2, weight: .medium)).tracking(1.5).foregroundStyle(AppColor.muted)
             Button { showScore = true } label: {
                 VStack(alignment: .leading, spacing: 3) {
-                    Label("\(store.projectedScore.delta.formatted(.number.sign(strategy: .always()))) today",
+                    Label("\(store.projectedScore.delta.formatted(.number.sign(strategy: .always()))) ELO today",
                         systemImage: store.projectedScore.delta < 0 ? "arrow.down.right" : "arrow.up.right")
                         .font(.caption.weight(.semibold)).foregroundStyle(store.projectedScore.delta < 0 ? AppColor.warning : AppColor.positive)
-                    Text("Provisional · view score").font(.system(size: 9)).foregroundStyle(AppColor.muted)
+                    Text("Provisional · details").font(.caption2).foregroundStyle(AppColor.muted)
                 }.padding(.vertical, 5).frame(minHeight: 44, alignment: .leading)
             }.buttonStyle(PremiumPressStyle()).accessibilityHint("Show score components and finalized history")
         }.frame(maxWidth: .infinity, alignment: .leading)

@@ -18,3 +18,6 @@ The importer validates all source PNG chunks/checksums before writing any asset.
 Python checks verify the complete mapping, PNG integrity and byte identity. Hosted XCTest loads every compiled asset. UI tests assert Platinum II artwork loads on the seeded Dashboard and Profile.
 
 The AppIcon remains an empty slot because no final app icon was supplied. Add the owner's icon before distribution.
+# Build 03 artwork audit
+
+The Platinum II/III source filenames were reversed in the original owner pack (three versus two crown spires). Build 03 corrects those two filename associations, preserving both PNG byte streams, and reimports the catalog. The expected mapping remains Platinum II → `plat (2).png`, Platinum III → `plat (3).png`. `tools/rank_badges.lock.json` records the visually audited SHA-256 identity of all 18 images; import validates it before any writes. Update this lock intentionally when replacing artwork and re-audit its division markers.

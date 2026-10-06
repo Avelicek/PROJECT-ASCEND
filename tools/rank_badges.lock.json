@@ -1,0 +1,74 @@
+{
+  "rank_bronze_1": {
+    "source": "bronze (1).png",
+    "sha256": "64131fe5dac0866a16f59ca62f028165eab6405d4cf8f5953ab9c09ac65bf42d"
+  },
+  "rank_bronze_2": {
+    "source": "bronze (2).png",
+    "sha256": "b751f4a003ee9da6b062cf8179a7258b2f56652a07c34e3844e29473a1dd34e8"
+  },
+  "rank_bronze_3": {
+    "source": "bronze (3).png",
+    "sha256": "82bdee43dd709d03df98f3a752d70ab9bd1eb750cdc1067ca9225155fa9ee820"
+  },
+  "rank_silver_1": {
+    "source": "silver (1).png",
+    "sha256": "dac8773dc6fec2d5caa0b5a0609e1a4eed0150cb4e4ada3257d4b2ed95eb447e"
+  },
+  "rank_silver_2": {
+    "source": "silver (2).png",
+    "sha256": "a17dfccd4e2f280bdf9bf12ec7b5fcf24e094f8fe53a81804504fa97e0b19ba5"
+  },
+  "rank_silver_3": {
+    "source": "silver (3).png",
+    "sha256": "f9239d9ff16e71522535a0e5bf456de718868e8110bf00a00e88f33a8213ad20"
+  },
+  "rank_gold_1": {
+    "source": "gold (1).png",
+    "sha256": "5e479f7c76095778100affa2538dd4e64e48d1d9a7a34faf6f22fa3bf4704f72"
+  },
+  "rank_gold_2": {
+    "source": "gold (2).png",
+    "sha256": "5a51cbe9c6b3ffa24f955e77701fe50d3ee12964f0d558e875d138abd0161197"
+  },
+  "rank_gold_3": {
+    "source": "gold (3).png",
+    "sha256": "875839cd6846da258ae71eeff60de92ac337e098e3b7106eaeda73c9bfac1820"
+  },
+  "rank_platinum_1": {
+    "source": "plat (1).png",
+    "sha256": "364e2c0677199a1e779e6fa211fe890e9fdcec49f91c0facf3d7984b4bea02ca"
+  },
+  "rank_platinum_2": {
+    "source": "plat (2).png",
+    "sha256": "a47539b45373c66788c8013b38ac28d296aa3dcc1c75c1b5d2b9e5e51cec6951"
+  },
+  "rank_platinum_3": {
+    "source": "plat (3).png",
+    "sha256": "0f5913595734b50c5f9f37661b6a2cb66f708f6d8aaaa5cc8f8cb2f6dca77c45"
+  },
+  "rank_diamond_1": {
+    "source": "diamond (1).png",
+    "sha256": "3086c59d6480137d2e4f6ad1a640ad9f4c809488114d9e7ff712e3bbd9b37f29"
+  },
+  "rank_diamond_2": {
+    "source": "diamond (2).png",
+    "sha256": "49da24938511567170ecc85c132af65dbc0c6d565d5952d59a24b74827f2f859"
+  },
+  "rank_diamond_3": {
+    "source": "diamond (3).png",
+    "sha256": "b6684fcf03f4d7e6f8770e5369612148d2c5d5bc302385d1b7cc120a858b2cc8"
+  },
+  "rank_conqueror_1": {
+    "source": "conq1.png",
+    "sha256": "488f1f5eab2c7ff8e1a76b189224ef2a93fca25a9bf6e9096818d725c859ec79"
+  },
+  "rank_conqueror_2": {
+    "source": "conq2.png",
+    "sha256": "88caa599c9820bba409c4b987db710a541c1670d5442296da66ad4b8d49d19d8"
+  },
+  "rank_conqueror_3": {
+    "source": "conq3.png",
+    "sha256": "e1773fd6752bc9ea58a31bf999b00fd4d51d6885c79bee0b37730a30a5de1159"
+  }
+}

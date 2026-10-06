@@ -1,128 +1,92 @@
 import SwiftUI
 
-enum BodyRegion: String, CaseIterable, Identifiable, Sendable {
-    case chest = "Chest", shoulders = "Shoulders", arms = "Arms", back = "Back"
-    case core = "Core", glutes = "Glutes", legs = "Legs", calves = "Calves"
-    var id: String { rawValue.lowercased() }
-    func recovery(in report: ReadinessReport) -> Double? {
-        report.muscles.filter { $0.muscle.group == rawValue && $0.lastTrainedAt != nil }.map(\.recoveryPercent).min()
-    }
-    func tint(in report: ReadinessReport) -> Color {
-        guard let value = recovery(in: report) else { return AppColor.muted.opacity(0.25) }
-        return value < 50 ? AppColor.warning : value < 85 ? AppColor.blue : AppColor.positive
-    }
-}
-
 struct BodyMapView: View {
     let report: ReadinessReport
-    @State private var selected = BodyRegion.chest
-    @State private var back = false
+    @State private var presentation = AnatomyPresentation()
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    private var states: [RegionVisualization] { BodyRegion.allCases.map { $0.visualization(in: report) } }
+    private var selection: RegionVisualization { presentation.selected.visualization(in: report) }
     var body: some View {
-        PremiumCard {
-            VStack(alignment: .leading, spacing: 14) {
-                HStack { Eyebrow(text: "RECOVERY MAP"); Spacer(); PillStatus(title: "ESTIMATE", tint: AppColor.muted) }
-                Picker("Body view", selection: $back) {
-                    Text("Front").tag(false); Text("Back").tag(true)
-                }.pickerStyle(.segmented).accessibilityIdentifier("body.view")
-                HStack(spacing: 14) {
-                    ZStack {
-                        Ellipse().fill(RadialGradient(colors: [AppColor.blue.opacity(0.12), .clear], center: .center, startRadius: 1, endRadius: 140))
-                        BodySilhouette().fill(AppColor.elevated)
-                        BodySilhouette().stroke(AppColor.muted.opacity(0.35), lineWidth: 1)
-                        ForEach(BodyRegion.allCases) { region in
-                            MusclePatch(region: region, back: back).fill(region.tint(in: report).opacity(selected == region ? 0.85 : 0.4))
-                            if selected == region {
-                                MusclePatch(region: region, back: back).stroke(region.tint(in: report), lineWidth: 1.5)
-                            }
-                        }
-                    }.frame(width: 150, height: 290).accessibilityHidden(true)
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text(selected.rawValue).font(.title3.weight(.semibold))
-                        if let percent = selected.recovery(in: report) {
-                            HStack(alignment: .firstTextBaseline, spacing: 1) {
-                                CountUpText(value: percent).font(.system(.largeTitle, design: .rounded, weight: .semibold))
-                                Text("%").font(.caption).foregroundStyle(AppColor.muted)
-                            }
-                            LinearProgress(progress: percent / 100, tint: selected.tint(in: report))
-                            Text(percent < 50 ? "Recovering" : percent < 85 ? "Rebuilding" : "Ready")
-                                .font(.caption).foregroundStyle(selected.tint(in: report))
-                        } else {
-                            Text("—").font(.largeTitle)
-                            Text("No load logged").font(.caption).foregroundStyle(AppColor.muted)
-                        }
-                        Text("\(report.confidence.rawValue.capitalized) confidence").font(.caption2).foregroundStyle(AppColor.muted)
-                        Text("Lowest logged muscle\nin this region").font(.caption2).foregroundStyle(AppColor.muted)
-                    }.frame(maxWidth: .infinity, alignment: .leading).accessibilityIdentifier("body.selection")
-                }
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: 70), spacing: 6)], spacing: 7) {
-                    ForEach(BodyRegion.allCases) { region in
-                        Button {
-                            withAnimation(reduceMotion || AppMotion.snapshotMode ? nil : AppAnimation.interaction) {
-                                selected = region
-                                if region == .back || region == .glutes { back = true }
-                                if region == .chest || region == .core { back = false }
-                            }
-                        } label: {
-                            Text(region.rawValue).font(.caption.weight(.medium)).frame(maxWidth: .infinity, minHeight: 44)
-                                .background(selected == region ? AppColor.blue.opacity(0.13) : AppColor.elevated.opacity(0.7), in: RoundedRectangle(cornerRadius: 10))
-                                .overlay(RoundedRectangle(cornerRadius: 10).stroke(selected == region ? AppColor.blue.opacity(0.55) : .clear))
-                        }.buttonStyle(.plain).accessibilityIdentifier("body.region.\(region.id)")
-                            .accessibilityValue(selected == region ? "Selected" : "")
-                            .accessibilityHint(region.recovery(in: report).map { "\(Int($0)) percent estimated recovery" } ?? "No training load logged")
+        PremiumCard(accented: true) {
+            VStack(alignment: .leading, spacing: 16) {
+                HStack { Eyebrow(text: "ANATOMY LAB"); Spacer(); PillStatus(title: "ESTIMATED", tint: AppColor.muted) }
+                HStack(spacing: 4) {
+                    ForEach(BodyViewMode.allCases) { mode in
+                        Button { change { presentation.show(mode) } } label: {
+                            Text(mode.rawValue).font(.subheadline.weight(.semibold)).frame(maxWidth: .infinity, minHeight: 44)
+                                .background(presentation.mode == mode ? AppColor.blue.opacity(0.18) : .clear, in: RoundedRectangle(cornerRadius: 12))
+                                .overlay(RoundedRectangle(cornerRadius: 12).stroke(presentation.mode == mode ? AppColor.blue.opacity(0.4) : .clear))
+                        }.buttonStyle(.plain).accessibilityIdentifier("body.view.\(mode.id)")
+                            .accessibilityValue(presentation.mode == mode ? "Selected" : "")
+                            .accessibilityAddTraits(presentation.mode == mode ? .isSelected : [])
                     }
-                }
-                HStack(spacing: 12) {
-                    legend("Recovering", AppColor.warning); legend("Ready", AppColor.positive); legend("Unknown", AppColor.muted)
-                }
+                }.padding(4).background(AppColor.background.opacity(0.6), in: RoundedRectangle(cornerRadius: 16))
+                    .accessibilityIdentifier("body.view")
+                AnatomyCanvas(mode: presentation.mode, selected: presentation.selected, regions: states) { region in
+                    change { presentation.select(region) }
+                }.frame(height: 340).id(presentation.mode).transition(.opacity)
+                regionControls
+                selectionPanel
+                HStack(spacing: 10) {
+                    ForEach([RegionPhase.recovering, .rebuilding, .ready, .unknown], id: \.rawValue) { phase in
+                        HStack(spacing: 4) { Circle().fill(phase.tint).frame(width: 5, height: 5); Text(phase.rawValue).font(.caption2).foregroundStyle(AppColor.muted) }
+                    }
+                }.frame(maxWidth: .infinity, alignment: .center)
             }
         }.accessibilityIdentifier("recovery.bodymap")
-            .onChange(of: back) { _, showingBack in
-                if showingBack && (selected == .chest || selected == .core) { selected = .back }
-                if !showingBack && (selected == .back || selected == .glutes) { selected = .chest }
+    }
+    private var regionControls: some View {
+        LazyVGrid(columns: [GridItem(.adaptive(minimum: 74), spacing: 6)], spacing: 7) {
+            ForEach(states) { state in
+                Button { change { presentation.select(state.region) } } label: {
+                    HStack(spacing: 5) {
+                        Circle().fill(state.phase.tint).frame(width: 4, height: 4)
+                        Text(state.region.rawValue).font(.caption.weight(.medium))
+                    }.frame(maxWidth: .infinity, minHeight: 44)
+                        .foregroundStyle(presentation.selected == state.region ? AppColor.text : AppColor.muted)
+                        .background(presentation.selected == state.region ? state.phase.tint.opacity(0.15) : AppColor.elevated.opacity(0.6), in: RoundedRectangle(cornerRadius: 11))
+                        .overlay(RoundedRectangle(cornerRadius: 11).stroke(presentation.selected == state.region ? state.phase.tint.opacity(0.8) : .clear))
+                }.buttonStyle(.plain).accessibilityIdentifier("body.region.\(state.id)")
+                    .accessibilityValue(presentation.selected == state.region ? "Selected" : "")
+                    .accessibilityHint(state.accessibilitySummary)
             }
-    }
-    private func legend(_ label: String, _ tint: Color) -> some View {
-        HStack(spacing: 4) { Circle().fill(tint).frame(width: 5, height: 5); Text(label).font(.system(size: 9)).foregroundStyle(AppColor.muted) }
-    }
-}
-
-// Stylized, symmetric vector diagram. Coordinates are normalized to a 200 × 400 canvas.
-private struct BodySilhouette: Shape {
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-        path.addEllipse(in: CGRect(x: rect.width * 0.41, y: rect.height * 0.02, width: rect.width * 0.18, height: rect.height * 0.1))
-        let points: [[Double]] = [[88,48],[88,57],[61,67],[48,88],[42,129],[29,183],[31,204],[40,209],[50,193],[63,153],[67,124],[73,178],[68,205],[70,254],[78,295],[77,340],[72,376],[68,388],[91,388],[95,373],[96,332],[98,291],[100,236],[102,291],[104,332],[105,373],[109,388],[132,388],[128,376],[123,340],[122,295],[130,254],[132,205],[127,178],[133,124],[137,153],[150,193],[160,209],[169,204],[171,183],[158,129],[152,88],[139,67],[112,57],[112,48]]
-        path.addLines(points.map { CGPoint(x: rect.width * CGFloat($0[0]) / 200, y: rect.height * CGFloat($0[1]) / 400) })
-        path.closeSubpath()
-        return path
-    }
-}
-
-private struct MusclePatch: Shape {
-    let region: BodyRegion
-    let back: Bool
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-        for polygon in polygons {
-            path.addLines(polygon.map { CGPoint(x: rect.width * CGFloat($0[0]) / 200, y: rect.height * CGFloat($0[1]) / 400) })
-            path.closeSubpath()
-            // Mirror the left patch onto the right side.
-            path.addLines(polygon.map { CGPoint(x: rect.width * CGFloat(200 - $0[0]) / 200, y: rect.height * CGFloat($0[1]) / 400) })
-            path.closeSubpath()
         }
-        return path
     }
-    private var polygons: [[[Double]]] {
-        switch region {
-        case .chest: return back ? [] : [[[72,79],[97,77],[97,108],[76,117],[68,106]]]
-        case .shoulders: return [[[61,74],[70,76],[66,104],[53,110],[52,91]]]
-        case .arms: return [[[52,116],[63,113],[60,151],[47,163],[44,153]], [[44,164],[52,159],[43,189],[35,195],[34,183]]]
-        case .back: return back ? [[[73,73],[97,64],[97,117],[77,148],[69,110]], [[78,151],[97,126],[97,181],[79,179]]] : []
-        case .core: return back ? [] : [[[78,123],[97,116],[97,177],[82,179],[76,153]]]
-        case .glutes: return back ? [[[78,186],[97,185],[97,219],[75,227],[73,207]]] : []
-        case .legs: return [[[75,230],[96,230],[94,275],[87,291],[79,280],[74,253]]]
-        case .calves: return [[[81,305],[93,304],[92,342],[87,366],[80,342]]]
-        }
+    private var selectionPanel: some View {
+        VStack(alignment: .leading, spacing: 13) {
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 5) {
+                    Text(selection.region.rawValue).font(.title2.weight(.semibold))
+                    Text(selection.phase.rawValue).font(.caption.weight(.medium)).foregroundStyle(selection.phase.tint)
+                }
+                Spacer()
+                if let percent = selection.percent {
+                    HStack(alignment: .firstTextBaseline, spacing: 2) {
+                        CountUpText(value: percent).font(.system(.largeTitle, design: .rounded, weight: .semibold)).monospacedDigit()
+                        Text("%").font(.caption).foregroundStyle(AppColor.muted)
+                    }
+                } else { Text("—").font(.largeTitle).foregroundStyle(AppColor.muted) }
+            }
+            LinearProgress(progress: (selection.percent ?? 0) / 100, tint: selection.phase.tint, height: 5)
+            if let load = selection.load, let fatigue = selection.fatigue {
+                HStack {
+                    StatBlock(title: "Load index", value: load.formatted(.number.precision(.fractionLength(1))), tint: AppColor.blue)
+                    StatBlock(title: "Fatigue index", value: fatigue.formatted(.number.precision(.fractionLength(1))), tint: selection.phase.tint)
+                }
+                HStack {
+                    Text("\(selection.loggedMuscles)/\(selection.totalMuscles) muscles logged").font(.caption2).foregroundStyle(AppColor.muted)
+                    Spacer()
+                    PillStatus(title: "\((selection.confidence?.rawValue ?? "low").uppercased()) CONFIDENCE", tint: AppColor.muted)
+                }
+                if let limiting = selection.limitingMuscle { Text("Limiting · \(limiting)").font(.caption2).foregroundStyle(AppColor.muted) }
+            } else {
+                Text("Log training to reveal recovery, load and fatigue.").font(.caption).foregroundStyle(AppColor.muted)
+            }
+        }.padding(16).background(AppColor.background.opacity(0.6), in: RoundedRectangle(cornerRadius: 18))
+            .overlay(RoundedRectangle(cornerRadius: 18).stroke(selection.phase.tint.opacity(0.18)))
+            .accessibilityIdentifier("body.selection").accessibilityElement(children: .contain)
+    }
+    private func change(_ update: () -> Void) {
+        withAnimation(reduceMotion || AppMotion.snapshotMode ? nil : AppAnimation.interaction, update)
     }
 }

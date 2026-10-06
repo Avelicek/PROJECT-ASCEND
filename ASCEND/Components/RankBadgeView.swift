@@ -27,6 +27,7 @@ struct RankBadgeView: View {
                 .accessibilityHidden(true)
             if let artwork {
                 Image(uiImage: artwork).resizable().scaledToFit()
+                    .frame(width: size, height: size)
                     .shadow(color: AppColor.rank(rank.tier).opacity(0.18), radius: 12, y: 5)
             } else {
                 ZStack {

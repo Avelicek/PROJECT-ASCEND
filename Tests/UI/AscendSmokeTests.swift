@@ -47,19 +47,18 @@ final class AscendSmokeTests: XCTestCase {
         XCTAssertTrue(glutes.isHittable)
         glutes.tap()
         XCTAssertEqual(glutes.value as? String, "Selected")
-        let picker = app.descendants(matching: .any)["body.view"].firstMatch
         for _ in 0..<4 {
-            if picker.exists && picker.isHittable { break }
+            if app.buttons["body.view.front"].isHittable { break }
             screen.swipeDown()
         }
-        XCTAssertTrue(picker.waitForExistence(timeout: 5))
-        let backButton = picker.buttons["Back"].firstMatch
-        let frontButton = picker.buttons["Front"].firstMatch
-        XCTAssertTrue(backButton.waitForExistence(timeout: 5))
-        XCTAssertTrue(frontButton.waitForExistence(timeout: 5))
-        XCTAssertTrue(backButton.isSelected)
-        frontButton.tap()
-        XCTAssertTrue(frontButton.isSelected)
+        let front = app.buttons["body.view.front"]
+        let back = app.buttons["body.view.back"]
+        XCTAssertTrue(front.isHittable)
+        XCTAssertEqual(back.value as? String, "Selected")
+        front.tap()
+        XCTAssertEqual(front.value as? String, "Selected")
+        back.tap()
+        XCTAssertEqual(back.value as? String, "Selected")
         app.terminate()
     }
 }

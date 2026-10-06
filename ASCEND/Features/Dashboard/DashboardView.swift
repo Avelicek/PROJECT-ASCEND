@@ -11,6 +11,7 @@ struct DashboardView: View {
             VStack(alignment: .leading, spacing: AppSpacing.lg) {
                 header
                 RankHeroView(showScore: $showScore)
+                quickMetrics
                 readinessAndMomentum
                 objectives
                 DashboardNutritionView()
@@ -45,6 +46,13 @@ struct DashboardView: View {
             if typeSize.isAccessibilitySize { VStack(spacing: AppSpacing.md) { readinessCard; momentumCard } }
             else { HStack(alignment: .top, spacing: AppSpacing.sm) { readinessCard; momentumCard } }
         }
+    }
+    private var quickMetrics: some View {
+        MetricStrip(metrics: [
+            GlanceMetric(title: "Weight · kg", value: store.progress.actualWeight.map { $0.formatted(.number.precision(.fractionLength(1))) } ?? "—", symbol: "scalemass"),
+            GlanceMetric(title: "Sleep · h", value: store.todaySleep.map { $0.durationHours.formatted(.number.precision(.fractionLength(1))) } ?? "—", symbol: "moon", tint: AppColor.violet),
+            GlanceMetric(title: "Sessions · 7D", value: String(store.sessions.filter { $0.startedAt >= store.policy.adding(days: -6, to: store.policy.start(of: store.now)) && $0.startedAt <= store.now }.count), symbol: "dumbbell", tint: AppColor.positive)
+        ])
     }
     private var readinessCard: some View {
         PremiumCard {

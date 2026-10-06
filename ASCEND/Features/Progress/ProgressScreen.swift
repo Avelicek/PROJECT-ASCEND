@@ -13,6 +13,7 @@ struct ProgressScreen: View {
                 Picker("Evaluation window", selection: $window) {
                     Text("Day").tag(EvaluationWindow.day); Text("Week").tag(EvaluationWindow.week); Text("Month").tag(EvaluationWindow.month)
                 }.pickerStyle(.segmented).padding(5).background(AppColor.surface, in: RoundedRectangle(cornerRadius: 13))
+                weeklySummary
                 goalCard
                 momentumCard
                 weightCard
@@ -53,6 +54,21 @@ struct ProgressScreen: View {
         }.accessibilityIdentifier("screen.progress").featureBackground()
             .sheet(isPresented: $showELO) { NavigationStack { ScoreBreakdownView().environment(store) }.preferredColorScheme(.dark) }
     }
+    private var weeklySummary: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Eyebrow(text: "LAST 7 DAYS")
+                Spacer()
+                Text("Consistency snapshot").font(.caption2).foregroundStyle(AppColor.muted)
+            }
+            let baseline = store.personalModel.windows.first { $0.days == 7 }
+            MetricStrip(metrics: [
+                GlanceMetric(title: "Training days", value: "\(baseline?.trainingDays ?? 0)", symbol: "dumbbell", tint: AppColor.positive),
+                GlanceMetric(title: "Weigh-in days", value: "\(baseline?.observedWeightDays ?? 0)", symbol: "scalemass"),
+                GlanceMetric(title: "Fuel days", value: "\(baseline?.observedNutritionDays ?? 0)", symbol: "flame", tint: AppColor.warning)
+            ])
+        }
+    }
     private var goalCard: some View {
         PremiumCard(accented: true) {
             VStack(alignment: .leading, spacing: 20) {
@@ -74,11 +90,13 @@ struct ProgressScreen: View {
                         }
                     }
                 }
-                HStack {
+                HStack(spacing: 8) {
                     StatBlock(title: "Start", value: weight(store.profile.startingWeightKG))
+                    Image(systemName: "chevron.right").font(.caption2).foregroundStyle(AppColor.muted).accessibilityHidden(true)
                     StatBlock(title: "Trend", value: weight(report.trendWeight), tint: AppColor.blue)
+                    Image(systemName: "chevron.right").font(.caption2).foregroundStyle(AppColor.blue).accessibilityHidden(true)
                     StatBlock(title: "Target", value: weight(store.profile.targetWeightKG))
-                }
+                }.padding(12).background(AppColor.background.opacity(0.4), in: RoundedRectangle(cornerRadius: 16))
             }
         }
     }
@@ -120,7 +138,10 @@ struct ProgressScreen: View {
                             LineMark(x: .value("Date", point.date), y: .value("Trend kg", point.kilograms))
                                 .foregroundStyle(AppColor.blue).lineStyle(StrokeStyle(lineWidth: 2.5)).interpolationMethod(.monotone)
                         }
-                    }.chartYScale(domain: .automatic(includesZero: false)).frame(height: 180)
+                    }.chartYScale(domain: .automatic(includesZero: false)).frame(height: 190)
+                        .chartXAxis { AxisMarks(values: .automatic(desiredCount: 4)) }
+                        .chartYAxis { AxisMarks(position: .leading, values: .automatic(desiredCount: 4)) }
+                        .padding(12).background(AppColor.background.opacity(0.55), in: RoundedRectangle(cornerRadius: 16))
                         .accessibilityLabel("Body weight: individual measurements and seven-day smoothed trend")
                     HStack { Label("Measured", systemImage: "circle.fill").foregroundStyle(AppColor.muted); Spacer(); Label("7-day trend", systemImage: "minus").foregroundStyle(AppColor.blue) }.font(.caption2)
                 }

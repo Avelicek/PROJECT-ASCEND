@@ -23,9 +23,12 @@ struct ObjectiveRow: View {
                 }.frame(maxWidth: .infinity, alignment: .leading)
                 if complete {
                     Image(systemName: occurrence.recoveryExempt ? "leaf.fill" : "checkmark").font(.caption.weight(.semibold)).foregroundStyle(AppColor.positive)
-                } else { Image(systemName: "chevron.right").font(.caption2).foregroundStyle(AppColor.muted) }
+                } else {
+                    Text("\(Int(min(1, max(0, occurrence.value / max(1, occurrence.target))) * 100))%")
+                        .font(.caption.weight(.semibold)).monospacedDigit().foregroundStyle(AppColor.accent)
+                }
             }.padding(AppSpacing.md).background(AppColor.surface, in: RoundedRectangle(cornerRadius: 18))
-                .overlay { RoundedRectangle(cornerRadius: 20).strokeBorder(AppColor.separator) }
+                .overlay { RoundedRectangle(cornerRadius: 18).strokeBorder(complete ? AppColor.positive.opacity(0.18) : AppColor.separator) }
         }.buttonStyle(PremiumPressStyle()).accessibilityElement(children: .combine)
             .accessibilityHint(occurrence.kindRaw == "custom" ? "Toggle completion" : "Open the corresponding log")
     }
