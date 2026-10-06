@@ -66,7 +66,8 @@ def assert_tests_executed(path):
     passed, failed = data.get('passedTests', 0), data.get('failedTests', 0)
     if not isinstance(passed, int) or not isinstance(failed, int) or passed + failed < 1:
         raise ValueError('xcresult summary does not demonstrate executed tests. Inspect summary JSON and CLI help.')
-    if failed or data.get('testResult') != 'Passed': raise ValueError('xcresult reports failed/non-passing tests')
+    result = data.get('result', data.get('testResult'))
+    if failed or result != 'Passed': raise ValueError('xcresult reports failed/non-passing tests')
     return data
 
 class Verification:

@@ -35,6 +35,10 @@ if (-not $taskSwift) {
 $taskFailed = $false
 Push-Location $taskProject
 try {
+    Write-Host "SDKROOT=$env:SDKROOT"
+    if (-not $env:SDKROOT -or -not (Test-Path -LiteralPath $env:SDKROOT)) {
+        throw 'SDKROOT is missing or invalid. The Swift Windows SDK must be available before SwiftPM can compile the package manifest.'
+    }
     Invoke-SwiftStage 'version' @('--version')
     Invoke-SwiftStage 'resolve' @('package', 'resolve')
     Invoke-SwiftStage 'build' @('build', '-Xswiftc', '-warnings-as-errors')

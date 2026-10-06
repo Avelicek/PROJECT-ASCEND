@@ -86,13 +86,23 @@ class ResultTests(unittest.TestCase):
     def test_empty_run_cannot_pass(self):
         with temporary_directory() as temp:
             path = Path(temp) / 'summary.json'
-            path.write_text(json.dumps({'testResult': 'Passed', 'passedTests': 0, 'failedTests': 0}))
+            path.write_text(json.dumps({'result': 'Passed', 'passedTests': 0, 'failedTests': 0}))
             with self.assertRaises(ValueError): assert_tests_executed(path)
     def test_summary_with_failures_cannot_pass(self):
         with temporary_directory() as temp:
             path = Path(temp) / 'summary.json'
-            path.write_text(json.dumps({'testResult': 'Failed', 'passedTests': 2, 'failedTests': 1}))
+            path.write_text(json.dumps({'result': 'Failed', 'passedTests': 2, 'failedTests': 1}))
             with self.assertRaises(ValueError): assert_tests_executed(path)
+    def test_xcode_27_summary_schema_passes(self):
+        with temporary_directory() as temp:
+            path = Path(temp) / 'summary.json'
+            path.write_text(json.dumps({'result': 'Passed', 'passedTests': 44, 'failedTests': 0, 'totalTestCount': 44}))
+            self.assertEqual(assert_tests_executed(path)['passedTests'], 44)
+    def test_legacy_summary_schema_remains_supported(self):
+        with temporary_directory() as temp:
+            path = Path(temp) / 'summary.json'
+            path.write_text(json.dumps({'testResult': 'Passed', 'passedTests': 1, 'failedTests': 0}))
+            self.assertEqual(assert_tests_executed(path)['passedTests'], 1)
     def test_report_keeps_missing_stages_not_run(self):
         with temporary_directory() as temp:
             path = Path(temp) / 'status.json'
@@ -136,7 +146,7 @@ class FixtureVerification(Verification):
         if label == 'simulator-inventory': text = json.dumps(inventory())
         if '-resultBundlePath' in command: Path(command[command.index('-resultBundlePath') + 1]).mkdir()
         if json_file:
-            data = json.loads(text) if label == 'simulator-inventory' else {'testResult': 'Passed', 'passedTests': 1, 'failedTests': 0}
+            data = json.loads(text) if label == 'simulator-inventory' else {'result': 'Passed', 'passedTests': 1, 'failedTests': 0}
             (self.output / json_file).write_text(json.dumps(data))
         if label == 'export-attachments': attachments(self.output / 'attachments')
         return text, 0

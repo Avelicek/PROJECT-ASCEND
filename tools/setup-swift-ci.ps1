@@ -34,10 +34,51 @@ New-Item -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock' 
 New-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock' -Name AllowDevelopmentWithoutDevLicense -Value 1 -PropertyType DWord -Force | Out-Null
 winget install --id Swift.Toolchain --exact --source winget --accept-source-agreements --accept-package-agreements --silent
 if ($LASTEXITCODE -notin @(0, 3010)) { throw "Swift toolchain installation failed: $LASTEXITCODE" }
-$env:PATH = [Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' + [Environment]::GetEnvironmentVariable('Path', 'User') + ';' + $env:PATH
-# Some toolchain installers add SDKROOT as a machine variable.
-foreach ($taskName in @('SDKROOT', 'DEVELOPER_DIR')) {
-    $taskValue = [Environment]::GetEnvironmentVariable($taskName, 'Machine')
-    if ($taskValue) { [Environment]::SetEnvironmentVariable($taskName, $taskValue, 'Process') }
+$taskMachinePath = [Environment]::GetEnvironmentVariable('Path', 'Machine')
+$taskUserPath = [Environment]::GetEnvironmentVariable('Path', 'User')
+$env:PATH = $taskMachinePath + ';' + $taskUserPath + ';' + $env:PATH
+
+# WinGet installs Swift per-user on hosted runners. Environment-variable broadcasts from
+# the installer are not visible to the already-running PowerShell process, so discover
+# and apply the SDK/runtime explicitly before invoking SwiftPM.
+$taskSwiftRoot = Join-Path $env:LOCALAPPDATA 'Programs\Swift'
+$taskSDKCandidates = @()
+foreach ($taskScope in @('Process', 'User', 'Machine')) {
+    $taskValue = [Environment]::GetEnvironmentVariable('SDKROOT', $taskScope)
+    if ($taskValue) { $taskSDKCandidates += $taskValue }
 }
+$taskPlatforms = Join-Path $taskSwiftRoot 'Platforms'
+if (Test-Path -LiteralPath $taskPlatforms) {
+    $taskSDKCandidates += Get-ChildItem -LiteralPath $taskPlatforms -Directory -Recurse -ErrorAction SilentlyContinue |
+        Where-Object { $_.Name -in @('Windows.sdk', 'WindowsExperimental.sdk') } |
+        Sort-Object @{ Expression = { if ($_.Name -eq 'Windows.sdk') { 0 } else { 1 } } }, FullName |
+        Select-Object -ExpandProperty FullName
+}
+$taskSDKRoot = $taskSDKCandidates |
+    Where-Object { $_ -and (Test-Path -LiteralPath $_) } |
+    Select-Object -First 1
+if (-not $taskSDKRoot) {
+    throw "Swift installed but no Windows SDK was found under $taskPlatforms and SDKROOT is unset."
+}
+$env:SDKROOT = $taskSDKRoot
+Write-Host "Swift SDKROOT: $env:SDKROOT"
+
+$taskRuntimeRoot = Join-Path $taskSwiftRoot 'Runtimes'
+if (Test-Path -LiteralPath $taskRuntimeRoot) {
+    $taskRuntimeBins = Get-ChildItem -LiteralPath $taskRuntimeRoot -Directory -ErrorAction SilentlyContinue |
+        ForEach-Object { Join-Path $_.FullName 'usr\bin' } |
+        Where-Object { Test-Path -LiteralPath $_ }
+    if ($taskRuntimeBins) {
+        $env:PATH = ($taskRuntimeBins -join ';') + ';' + $env:PATH
+        Write-Host "Swift runtime PATH: $($taskRuntimeBins -join ';')"
+    }
+}
+
 if (-not (Get-Command swift -CommandType Application -ErrorAction SilentlyContinue)) { throw 'Installer completed but swift is absent from PATH' }
+if (-not (Get-Command swiftc -CommandType Application -ErrorAction SilentlyContinue)) { throw 'Installer completed but swiftc is absent from PATH' }
+
+# Fail during setup, with useful diagnostics, instead of later as a vague SwiftPM manifest error.
+$taskTargetInfo = & swiftc -print-target-info 2>&1
+$taskTargetExit = $LASTEXITCODE
+$taskTargetInfo | ForEach-Object { Write-Host $_ }
+if ($taskTargetExit -ne 0) { throw "swiftc -print-target-info failed with exit code $taskTargetExit" }
