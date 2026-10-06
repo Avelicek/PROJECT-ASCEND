@@ -1,0 +1,148 @@
+name: ASCEND Build 01.5 verification
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ascend-verification-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  windows-core:
+    name: Native Windows Core
+    runs-on: windows-2025
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Check native Windows verification orchestration
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path work/verification -Force | Out-Null
+          python -m unittest discover -s Tests/Infrastructure -v 2>&1 | Tee-Object -FilePath work/verification/infrastructure-windows.log
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+      - name: Install official Swift Windows toolchain and verify Core
+        shell: pwsh
+        run: |
+          $taskSetupFailed = $false
+          try {
+            & ./tools/setup-swift-ci.ps1 *>&1 | Tee-Object -FilePath swift-setup.log
+          } catch {
+            $taskSetupFailed = $true
+            Write-Host $_.Exception.Message
+          }
+          # Emit a Core status even when toolchain installation fails.
+          & ./tools/verify-windows.ps1
+          $taskVerificationExit = $LASTEXITCODE
+          if ($taskSetupFailed -or $taskVerificationExit -ne 0) { exit 1 }
+      - name: Windows result summary
+        if: always()
+        shell: pwsh
+        run: python tools/report_verification.py work/verification --output work/verification/windows-summary.md
+      - name: Upload Windows status
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: windows-status
+          path: work/verification/windows/status.json
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Upload Windows logs and XCTest XML
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: windows-core-results
+          path: |
+            work/verification/windows/
+            swift-setup.log
+            work/verification/windows-summary.md
+            work/verification/infrastructure-windows.log
+          if-no-files-found: warn
+          retention-days: 14
+
+  ios:
+    name: Xcode 27 compile, XCTest and screenshots
+    # Official public-preview image. Never assume macos-latest supplies Xcode 27.
+    runs-on: xcode-27
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Check verification infrastructure
+        run: |
+          set -o pipefail
+          mkdir -p work/verification
+          {
+            python3 -m unittest discover -s Tests/Infrastructure -v &&
+            python3 tools/validate_structure.py &&
+            python3 tools/check_delimiters.py
+          } 2>&1 | tee work/verification/infrastructure.log
+      - name: Real iOS compile, unit tests, UI smoke and screenshot capture
+        run: python3 tools/verify_ios.py
+      - name: iOS result summary
+        if: always()
+        run: python3 tools/report_verification.py work/verification --output work/verification/ios-summary.md
+      - name: Upload iOS status
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: ios-status
+          path: work/verification/ios/status.json
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Upload Apple build logs and test results, including on failure
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: ios-build-and-test-results
+          path: |
+            work/verification/ios/
+            !work/verification/ios/DerivedData/**
+            work/verification/ios-summary.md
+            work/verification/infrastructure.log
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Upload real simulator PNGs for Windows viewing
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: ascend-simulator-screenshots
+          path: work/verification/ios/screenshots/
+          if-no-files-found: warn
+          retention-days: 14
+
+  summary:
+    name: Six independent verification statuses
+    if: always()
+    needs: [windows-core, ios]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Download available execution status artifacts
+        uses: actions/download-artifact@v8
+        with:
+          pattern: '*-status'
+          path: work/received-status
+      - name: Publish combined status table
+        if: always()
+        run: python3 tools/report_verification.py work/received-status --output work/verification-summary.md
+      - name: Upload combined report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: verification-summary
+          path: work/verification-summary.*
+          if-no-files-found: warn
+          retention-days: 14

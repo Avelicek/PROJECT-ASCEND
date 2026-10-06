@@ -1,0 +1,10 @@
+.DS_Store
+.build/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+*.xcresult/
+.swiftpm/
+work/
+__pycache__/
+*.pyc
