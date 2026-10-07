@@ -20,7 +20,8 @@ final class DailyPresentationTests: XCTestCase {
     }
     #if DEBUG
     @MainActor func testScreenshotFixturesAreMemoryOnlyAndCreateRealSummaryAndRankBoundary() throws {
-        let store = try PreviewData.makeStore()
+        let date = Date(timeIntervalSince1970: 1_791_288_000)
+        let store = try AppStore(container: PersistenceController.makeContainer(inMemory: true), demo: true, now: date, clock: { date })
         try PreviewData.preparePresentationFixture(store: store, arguments: ["--ui-testing", "--capture-summary"])
         let summary = try XCTUnwrap(store.completedWorkout)
         XCTAssertEqual(summary.durationSeconds, 2778); XCTAssertEqual(summary.exerciseCount, 4); XCTAssertEqual(summary.workingSets, 13)
