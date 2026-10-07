@@ -21,6 +21,7 @@ extension View { func editor(title: String, save: @escaping () -> Void) -> some 
 struct NumericField: View {
     let title: String
     @Binding var value: Double
+    var identifier: String? = nil
     var body: some View {
         HStack {
             Text(title)
@@ -28,6 +29,7 @@ struct NumericField: View {
             TextField(title, value: $value, format: .number.precision(.fractionLength(0...2)))
                 .keyboardType(.decimalPad).multilineTextAlignment(.trailing).frame(maxWidth: 120)
                 .accessibilityLabel(title)
+                .accessibilityIdentifier(identifier ?? title)
         }
     }
 }

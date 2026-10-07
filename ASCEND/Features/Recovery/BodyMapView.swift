@@ -6,10 +6,14 @@ struct BodyMapView: View {
     @State private var presentation = AnatomyPresentation()
     @State private var metric = AnatomyMetricMode.recovery
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    private var states: [RegionVisualization] { BodyRegion.allCases.map { $0.visualization(in: report) } }
-    private var selection: RegionVisualization { presentation.selected.visualization(in: report) }
+    private let states: [RegionVisualization]
+    init(report: ReadinessReport) {
+        self.report = report
+        states = BodyRegion.allCases.map { $0.visualization(in: report) }
+    }
+    private var selection: RegionVisualization { states.first { $0.region == presentation.selected } ?? presentation.selected.visualization(in: report) }
     var body: some View {
-        PremiumCard(accented: true) {
+        PremiumCard(role: .ambient) {
             VStack(alignment: .leading, spacing: 16) {
                 HStack { Eyebrow(text: "BODY MAP"); Spacer(); PillStatus(title: "ESTIMATED", tint: AppColor.muted) }
                 HStack(spacing: 4) {
@@ -37,14 +41,14 @@ struct BodyMapView: View {
                 AnatomyCanvas(mode: presentation.mode, selected: presentation.selected, regions: states, metric: metric) { region in
                     change { presentation.select(region) }
                 }.frame(height: 320).id(presentation.mode).transition(.opacity)
-                regionControls
-                selectionPanel
-                if metric == .recovery { HStack(spacing: 10) {
-                    ForEach([RegionPhase.recovering, .rebuilding, .ready, .unknown], id: \.rawValue) { phase in
-                        HStack(spacing: 4) { Circle().fill(phase.tint).frame(width: 5, height: 5); Text(phase.rawValue).font(.caption2).foregroundStyle(AppColor.muted) }
+                if metric == .recovery { LazyVGrid(columns: [GridItem(.adaptive(minimum: 76))], alignment: .leading, spacing: 8) {
+                    ForEach(SemanticStatus.allCases, id: \.rawValue) { status in
+                        HStack(spacing: 4) { Circle().fill(status.gradient).frame(width: 5, height: 5); Text(status.title).font(.caption2).foregroundStyle(AppColor.muted) }
                     }
                 }.frame(maxWidth: .infinity, alignment: .center) }
-                else { Text(metric == .load ? "Load intensity relative to logged regions" : "Remaining modeled fatigue · warmer means higher").font(.caption2).foregroundStyle(AppColor.muted) }
+                else { Text(metric == .load ? "Relative exposure · high load needs attention" : "Fatigue · green is low, orange is elevated, red is high").font(.caption2).foregroundStyle(AppColor.muted) }
+                selectionPanel
+                regionControls
             }
         }.accessibilityIdentifier("recovery.bodymap")
     }
@@ -70,7 +74,7 @@ struct BodyMapView: View {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 5) {
                     Text(selection.region.rawValue).font(.title2.weight(.semibold))
-                    Text(metric == .recovery ? selection.phase.rawValue : metric == .load ? "Recent training" : "Remaining fatigue").font(.caption.weight(.medium)).foregroundStyle(AppColor.recovery)
+                    Text(metric == .recovery ? SemanticStatus.recovery(selection.percent).title : metric == .load ? "Recent training" : "Remaining fatigue").font(.caption.weight(.medium)).foregroundStyle(metric.tint(selection, maximumLoad: states.compactMap(\.load).max() ?? 1))
                 }
                 Spacer()
                 if let percent = metric.value(selection) {
@@ -96,12 +100,14 @@ struct BodyMapView: View {
                     StatBlock(title: "Last trained", value: selection.lastTrainedAt.map { elapsed($0) } ?? "—")
                     StatBlock(title: "Est. ready", value: readyEstimate, tint: AppColor.blue)
                 }
-                ContextExplanationView(focus: "Recovery explained", facts: [recoveryExplanation], confidence: selection.confidence ?? .low)
+                DisclosureGroup("How this estimate works") {
+                    ContextExplanationView(focus: "Recovery explained", facts: [recoveryExplanation], confidence: selection.confidence ?? .low).padding(.top, 10)
+                }.font(.caption).tint(AppColor.muted)
             } else {
                 Text("Log training to reveal recovery, load and fatigue.").font(.caption).foregroundStyle(AppColor.muted)
             }
         }.padding(16).background(AppColor.background.opacity(0.6), in: RoundedRectangle(cornerRadius: 18))
-            .overlay(RoundedRectangle(cornerRadius: 18).stroke(selection.phase.tint.opacity(0.18)))
+            .overlay(RoundedRectangle(cornerRadius: 18).stroke(metric.tint(selection, maximumLoad: states.compactMap(\.load).max() ?? 1).opacity(0.18)))
             .accessibilityIdentifier("body.selection").accessibilityElement(children: .contain)
     }
     private func change(_ update: () -> Void) {

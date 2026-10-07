@@ -14,9 +14,9 @@ enum AnatomyMetricMode: String, CaseIterable, Identifiable, Sendable {
     func tint(_ state: RegionVisualization, maximumLoad: Double) -> Color {
         guard let value = value(state) else { return AppColor.muted }
         switch self {
-        case .recovery: return state.phase.tint
-        case .load: return AppColor.strength.opacity(0.4 + 0.6 * min(1, value / max(1, maximumLoad)))
-        case .fatigue: return value >= 50 ? AppColor.negative : value >= 15 ? AppColor.warning : AppColor.recovery
+        case .recovery: return SemanticStatus.recovery(value).tint
+        case .load: return (value / max(1, maximumLoad) >= 0.7 ? SemanticStatus.watch : .good).tint
+        case .fatigue: return SemanticStatus.fatigue(value).tint
         }
     }
 }
@@ -33,7 +33,7 @@ enum BodyRegion: String, CaseIterable, Identifiable, Sendable {
         }
     }
     func recovery(in report: ReadinessReport) -> Double? { visualization(in: report).percent }
-    func tint(in report: ReadinessReport) -> Color { visualization(in: report).phase.tint }
+    func tint(in report: ReadinessReport) -> Color { SemanticStatus.recovery(visualization(in: report).percent).tint }
     func visualization(in report: ReadinessReport) -> RegionVisualization {
         let muscles = report.muscles.filter { $0.muscle.group == rawValue }
         let logged = muscles.filter { $0.lastTrainedAt != nil && $0.recoveryPercent.isFinite }
@@ -57,8 +57,8 @@ enum RegionPhase: String, Sendable {
     var tint: Color {
         switch self {
         case .unknown: AppColor.muted
-        case .recovering: AppColor.warning
-        case .rebuilding: AppColor.blue
+        case .recovering: AppColor.negative
+        case .rebuilding: AppColor.warning
         case .ready: AppColor.positive
         }
     }

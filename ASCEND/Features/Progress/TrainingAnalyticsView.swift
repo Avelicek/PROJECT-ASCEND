@@ -16,6 +16,7 @@ struct TrainingAnalyticsView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var page: AnalyticsPage = .elo
     @State private var exerciseID = "db_row"
+    init(exercises: Bool = false) { _page = State(initialValue: exercises ? .strength : .elo) }
     private var candidates: [Exercise] { store.exercises.filter { $0.trackingMode == .weightAndReps && !$0.bodyweightCapable } }
     private var points: [TrainingChartPoint] {
         let recent = store.sessions.filter { $0.hasWorkingSets && !$0.isQuickLog && $0.evaluationDate <= store.now }.prefix(60)

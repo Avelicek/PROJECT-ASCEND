@@ -5,13 +5,15 @@ struct DashboardNutritionView: View {
     @Environment(\.dynamicTypeSize) private var typeSize
     private var calories: Double { store.todayNutrition?.calories ?? 0 }
     private var protein: Double { store.todayNutrition?.proteinGrams ?? 0 }
+    private var energyStatus: SemanticStatus { .dailyCompletion(store.todayNutrition.map { $0.calories / max(1, store.profile.calorieGoal) }) }
+    private var proteinStatus: SemanticStatus { .dailyCompletion(store.todayNutrition.map { $0.proteinGrams / max(1, store.profile.proteinGoal) }) }
     var body: some View {
         VStack(alignment: .leading, spacing: AppSpacing.md) {
             HStack {
                 SectionHeader(title: "Daily fuel")
                 Button("Log") { store.presentedSheet = .nutrition }.font(.subheadline.weight(.medium)).frame(minWidth: 44, minHeight: 44)
             }
-            PremiumCard {
+            PremiumCard(role: .glass) {
                 Group {
                     if typeSize.isAccessibilitySize { VStack(alignment: .leading, spacing: AppSpacing.lg) { calorieRing; proteinDetail } }
                     else { HStack(spacing: AppSpacing.lg) { calorieRing; proteinDetail } }
@@ -21,10 +23,10 @@ struct DashboardNutritionView: View {
     }
     private var calorieRing: some View {
         ZStack {
-            ProgressRing(progress: calories / max(1, store.profile.calorieGoal), tint: AppColor.nutrition)
+            ProgressRing(progress: calories / max(1, store.profile.calorieGoal), tint: energyStatus.tint, gradient: energyStatus.gradient)
             VStack(spacing: 3) {
                 Text(store.todayNutrition == nil ? "—" : calories.formatted(.number.precision(.fractionLength(0))))
-                    .foregroundStyle(AppColor.nutrition)
+                    .foregroundStyle(energyStatus.tint)
                     .font(.system(.title3, design: .rounded, weight: .semibold)).monospacedDigit().contentTransition(.numericText())
                 Text("KCAL").font(.system(.caption2, weight: .medium)).tracking(1.4).foregroundStyle(AppColor.muted)
             }
@@ -44,32 +46,8 @@ struct DashboardNutritionView: View {
                     Spacer(minLength: 6)
                     Text("\(Int(protein)) / \(Int(store.profile.proteinGoal)) g").font(.caption).foregroundStyle(AppColor.muted).monospacedDigit()
                 }
-                LinearProgress(progress: protein / max(1, store.profile.proteinGoal), tint: AppColor.nutrition)
+                LinearProgress(progress: protein / max(1, store.profile.proteinGoal), tint: proteinStatus.tint, gradient: proteinStatus.gradient)
             }
         }.frame(maxWidth: .infinity, alignment: .leading)
-    }
-}
-struct DashboardInsightView: View {
-    @Environment(AppStore.self) private var store
-    var body: some View {
-        PremiumCard(role: .status, tint: AppColor.sleep) {
-            VStack(alignment: .leading, spacing: AppSpacing.md) {
-                HStack {
-                    Image(systemName: "sparkles").foregroundStyle(AppColor.accent)
-                    Eyebrow(text: "ASCEND BRAIN")
-                    Spacer()
-                }
-                DisclosureGroup {
-                    Text(store.insight.summary).font(.subheadline).foregroundStyle(AppColor.muted).lineSpacing(3)
-                        .fixedSize(horizontal: false, vertical: true).padding(.top, 8)
-                } label: {
-                    Text(store.insight.headline).font(.system(.subheadline, weight: .semibold)).foregroundStyle(AppColor.secondary)
-                }
-                HStack {
-                    PillStatus(title: store.insight.source == .onDevice ? "ON-DEVICE AI" : "LOCAL INSIGHT").accessibilityIdentifier("brain.source").accessibilityValue(store.insight.source.rawValue)
-                    Text("\(store.insight.confidence.rawValue.capitalized) confidence").font(.caption2).foregroundStyle(AppColor.muted)
-                }
-            }
-        }
     }
 }

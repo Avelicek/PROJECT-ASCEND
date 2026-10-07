@@ -48,8 +48,8 @@ struct RankBadgeView: View {
             .accessibilityValue(artwork == nil ? "fallback" : RankBadgeAsset.resolve(rank)?.rawValue ?? "fallback")
             .onAppear {
                 guard animated && !reduceMotion && !AppMotion.snapshotMode else { return }
-                // A bounded ambient pulse settles to idle for accessibility, energy use and UI automation.
-                withAnimation(.easeInOut(duration: 1.4).repeatCount(2, autoreverses: true)) { auraExpanded = true }
+                // One bounded reveal settles; no animation loop runs during training.
+                withAnimation(AppAnimation.reward) { auraExpanded = true }
             }
     }
 }

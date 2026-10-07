@@ -70,8 +70,8 @@ struct RootView: View {
                             .frame(width: 44, height: 27)
                             .background {
                                 if destination == item {
-                                    Capsule().fill(AppColor.accent.opacity(0.20)).matchedGeometryEffect(id: "selectedTab", in: tabHighlight)
-                                        .overlay { Capsule().strokeBorder(AppColor.accent.opacity(0.25)) }
+                                    Capsule().fill(AppColor.accent.opacity(0.08)).matchedGeometryEffect(id: "selectedTab", in: tabHighlight)
+                                        .shadow(color: AppColor.accent.opacity(0.16), radius: 8)
                                 }
                             }
                         Text(item.title).font(.system(.caption2, weight: .medium)).lineLimit(1).minimumScaleFactor(0.7)

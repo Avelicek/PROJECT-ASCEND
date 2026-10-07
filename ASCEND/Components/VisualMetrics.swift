@@ -59,33 +59,36 @@ struct TrendGraphic: View {
     let values: [Double]
     var tint: Color = AppColor.blue
     var body: some View {
+        let finite = values.filter(\.isFinite)
         ZStack {
-            VStack { ForEach(0..<3, id: \.self) { _ in Rectangle().fill(AppColor.separator).frame(height: 1); Spacer(minLength: 0) } }
-            if values.count > 1 {
-                Sparkline(values: values).stroke(tint.opacity(0.10), style: StrokeStyle(lineWidth: 9, lineCap: .round))
-                Sparkline(values: values).stroke(tint, style: StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round))
+            if finite.count > 1 {
+                VStack { ForEach(0..<3, id: \.self) { _ in Rectangle().fill(AppColor.separator).frame(height: 1); Spacer(minLength: 0) } }
+                Sparkline(values: finite).stroke(tint.opacity(0.10), style: StrokeStyle(lineWidth: 9, lineCap: .round))
+                Sparkline(values: finite).stroke(tint, style: StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round))
             } else {
-                Rectangle().fill(AppColor.muted.opacity(0.35)).frame(height: 1)
+                Text(finite.isEmpty ? "No trend yet" : "More history needed").font(.caption2).foregroundStyle(AppColor.muted)
             }
-        }.frame(height: 35).accessibilityHidden(true)
+        }.frame(height: 35).accessibilityElement(children: .ignore)
+            .accessibilityLabel(finite.count > 1 ? "Trend from \(finite.count) logged points" : "More recorded history needed for a trend")
     }
 }
 
 struct ReadinessGauge: View {
     let percent: Double?
     var size: CGFloat = 80
-    var tint: Color = AppColor.blue
+    private var status: SemanticStatus { .recovery(percent) }
+    private var tint: Color { status.tint }
     var body: some View {
         ZStack {
             ForEach(0..<24, id: \.self) { index in
                 Capsule().fill(tint.opacity(index % 6 == 0 ? 0.40 : 0.16)).frame(width: 2, height: index % 6 == 0 ? 6 : 3)
                     .offset(y: -size / 2).rotationEffect(.degrees(Double(index) * 15))
             }
-            ProgressRing(progress: (percent ?? 0) / 100, tint: tint, lineWidth: 5).padding(6)
+            ProgressRing(progress: (percent ?? 0) / 100, tint: tint, gradient: status.gradient, lineWidth: 5).padding(6)
             VStack(spacing: 1) {
                 if let percent { CountUpText(value: percent).font(.system(.title2, design: .rounded, weight: .semibold)) }
                 else { Text("—").font(.title2) }
-                Text("READY").font(.system(size: 8, weight: .semibold)).tracking(1).foregroundStyle(AppColor.muted)
+                Text(percent == nil ? "UNKNOWN" : status.title.uppercased()).font(.system(size: 8, weight: .semibold)).tracking(0.5).foregroundStyle(AppColor.muted)
             }
         }.frame(width: size, height: size).accessibilityElement(children: .ignore)
             .accessibilityLabel("Body readiness")
@@ -96,9 +99,9 @@ struct ReadinessGauge: View {
 struct MomentumCard: View {
     let report: ProgressReport
     var days = 7
-    private var tint: Color { (report.momentumPercent ?? 0) < 0 ? AppColor.warning : AppColor.positive }
+    private var tint: Color { SemanticStatus.momentum(report.momentumPercent).tint }
     var body: some View {
-        PremiumCard(role: .status, tint: tint) {
+        PremiumCard(role: .ambient, tint: tint) {
             VStack(alignment: .leading, spacing: 12) {
                 HStack { Eyebrow(text: "MOMENTUM"); Spacer(); Text("\(days)D").font(.caption2).foregroundStyle(AppColor.muted) }
                 HStack(alignment: .firstTextBaseline, spacing: 3) {
@@ -108,7 +111,7 @@ struct MomentumCard: View {
                     } else { Text("—").font(.largeTitle) }
                     Text("%").font(.subheadline).foregroundStyle(AppColor.muted)
                     Spacer(minLength: 0)
-                    Image(systemName: (report.momentumPercent ?? 0) < 0 ? "arrow.down.right" : "arrow.up.right")
+                    Image(systemName: (report.momentumPercent ?? 0) == 0 ? "minus" : (report.momentumPercent ?? 0) < 0 ? "arrow.down.right" : "arrow.up.right")
                         .font(.title3).foregroundStyle(tint).accessibilityHidden(true)
                 }
                 TrendGraphic(values: report.trend.suffix(14).map(\.kilograms), tint: tint)

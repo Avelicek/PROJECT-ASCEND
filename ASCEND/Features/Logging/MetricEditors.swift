@@ -29,8 +29,8 @@ struct NutritionEditor: View {
         Form {
             Section("Daily totals") {
                 DatePicker("Day", selection: $date, in: ...Date.now, displayedComponents: .date)
-                NumericField(title: "Calories · kcal", value: $calories)
-                NumericField(title: "Protein · g", value: $protein)
+                NumericField(title: "Calories · kcal", value: $calories, identifier: "nutrition.calories")
+                NumericField(title: "Protein · g", value: $protein, identifier: "nutrition.protein")
             }
             Section { Text("Save replaces the daily total for the selected day. It does not add a meal.").font(.subheadline) }
             Section { HistoricalLogNote() }

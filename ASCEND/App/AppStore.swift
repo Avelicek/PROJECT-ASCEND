@@ -31,7 +31,6 @@ enum InputError: LocalizedError {
     var progress: ProgressReport
     var readiness: ReadinessReport
     var personalModel: PersonalModel
-    var insight: BrainInsight
     var projectedScore: ELOResult = ELOEngine().evaluate(.init(), previousELO: 0)
     var activeWorkout: LiveWorkout?
     var liveWorkoutPresented = false
@@ -46,9 +45,6 @@ enum InputError: LocalizedError {
     @ObservationIgnored let workoutStorage: WorkoutDraftStorage?
     @ObservationIgnored let localPreferences: UserDefaults?
     @ObservationIgnored private let currentDate: () -> Date
-    @ObservationIgnored private var analysisTask: Task<Void, Never>?
-    @ObservationIgnored private var lastAnalyzedContext: Data?
-    @ObservationIgnored private var lastAnalysisAt: Date?
 
     var policy: DayPolicy { DayPolicy(timeZoneIdentifier: settings.timeZoneIdentifier) }
     var todayNutrition: NutritionEntry? { nutrition.first { $0.dayKey == policy.key(for: now) } }
@@ -83,8 +79,6 @@ enum InputError: LocalizedError {
         self.progress = ProgressEngine().report(samples: [], start: nil, target: nil, desiredWeeklyChange: 0.25, now: now, policy: dayPolicy)
         self.readiness = RecoveryEngine().evaluate(loads: [], context: .init(), now: now)
         self.personalModel = PersonalModel(weights: [], nutrition: [], sleep: [], workoutDates: [], now: now, policy: dayPolicy)
-        self.insight = DeterministicBrainProvider().insight(.init(trendWeight: nil, momentum: nil, readiness: nil, calories: nil,
-            protein: nil, confidence: .low, observedWeightDays: 0, allowedActions: RecommendedAction.allCases))
         self.brainStorage = try brainStorage ?? (memoryOnly ? nil : BrainStorage.production())
         do { self.brainArchive = try self.brainStorage?.read() ?? BrainArchive() }
         catch { self.brainStorageUnavailable = true; self.errorMessage = "Brain history file preserved: \(error.localizedDescription)" }
@@ -112,7 +106,6 @@ enum InputError: LocalizedError {
         deriveState()
         try context.save()
         revision += 1
-        scheduleAnalysis()
     }
 
     func refreshSafely() {
@@ -203,10 +196,7 @@ enum InputError: LocalizedError {
         readiness = RecoveryEngine().evaluate(loads: loads, context: context, now: now)
         projectedScore = ELOEngine().evaluate(evaluationInput(for: now, includeMisses: false), previousELO: currentELO)
         deriveBrain()
-        let value = brainContext()
-        if !settings.onDeviceAIEnabled || lastAnalyzedContext != Self.encodeContext(value) || insight.source != .onDevice {
-            insight = DeterministicBrainProvider().insight(value)
-        }
+
     }
 
     func report(window: EvaluationWindow) -> ProgressReport {
@@ -215,45 +205,4 @@ enum InputError: LocalizedError {
             window: window, now: now, policy: policy)
     }
 
-    private func brainContext() -> BrainContext {
-        BrainContext(trendWeight: progress.trendWeight, momentum: progress.momentumPercent, readiness: personalContext.recovery.percent,
-            calories: todayNutrition?.calories, protein: todayNutrition?.proteinGrams, confidence: brainDecision.confidence,
-            observedWeightDays: personalModel.windows.first(where: { $0.days == 28 })?.observedWeightDays ?? 0,
-            allowedActions: [], explanationFacts: brainDecision.facts, focus: brainDecision.focus)
-    }
-    private static func encodeContext(_ value: BrainContext) -> Data? {
-        let encoder = JSONEncoder(); encoder.outputFormatting = .sortedKeys
-        return try? encoder.encode(value)
-    }
-    private func scheduleAnalysis() {
-        let value = brainContext()
-        guard let encoded = Self.encodeContext(value) else { return }
-        guard settings.onDeviceAIEnabled && brainArchive.settings.enabled else {
-            analysisTask?.cancel(); analysisTask = nil; lastAnalyzedContext = nil
-            return
-        }
-        let retryDue = insight.source == .deterministic && now.timeIntervalSince(lastAnalysisAt ?? .distantPast) >= 900
-        guard lastAnalyzedContext != encoded || (analysisTask == nil && retryDue) else { return }
-        lastAnalyzedContext = encoded; lastAnalysisAt = now
-        analysisTask?.cancel()
-        let provider: (any BrainProvider)?
-        #if canImport(FoundationModels)
-        provider = FoundationModelsBrainProvider()
-        #else
-        provider = nil
-        #endif
-        analysisTask = Task { [weak self] in
-            let result = await FitnessBrain(provider: provider).analyze(value)
-            guard !Task.isCancelled, let self, self.settings.onDeviceAIEnabled, self.lastAnalyzedContext == encoded else { return }
-            self.analysisTask = nil
-            self.insight = result
-            if result.source == .onDevice {
-                do {
-                    let record = try BrainInsightRecord(insight: result, createdAt: self.now, contextFingerprint: encoded.base64EncodedString())
-                    self.context.insert(record)
-                    try self.context.save()
-                } catch { self.context.rollback(); self.errorMessage = error.localizedDescription }
-            }
-        }
-    }
 }

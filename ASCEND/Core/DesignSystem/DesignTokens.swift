@@ -2,9 +2,9 @@ import SwiftUI
 import UIKit
 
 enum AppColor {
-    static let background = Color(red: 0.016, green: 0.020, blue: 0.031)
-    static let surface = Color(red: 0.042, green: 0.050, blue: 0.068)
-    static let elevated = Color(red: 0.075, green: 0.086, blue: 0.112)
+    static let background = Color(red: 0.025, green: 0.029, blue: 0.043)
+    static let surface = Color(red: 0.052, green: 0.059, blue: 0.079)
+    static let elevated = Color(red: 0.083, green: 0.095, blue: 0.123)
     static let accent = Color(red: 0.48, green: 0.50, blue: 1)
     static let blue = Color(red: 0.38, green: 0.67, blue: 1)
     static let violet = Color(red: 0.64, green: 0.46, blue: 0.96)
@@ -19,11 +19,11 @@ enum AppColor {
     static let sleep = Color(red: 0.65, green: 0.59, blue: 0.85)
     static let bodyweight = Color(red: 0.56, green: 0.73, blue: 0.83)
     static let gold = Color(red: 0.89, green: 0.76, blue: 0.48)
-    static let negative = Color(red: 0.89, green: 0.53, blue: 0.52)
+    static let negative = SemanticStatus.low.tint
     static let eloGradient = LinearGradient(colors: [Color(red: 0.83, green: 0.89, blue: 0.95), elo, Color(red: 0.39, green: 0.47, blue: 0.61)], startPoint: .topLeading, endPoint: .bottomTrailing)
     static let goldGradient = LinearGradient(colors: [Color(red: 0.98, green: 0.88, blue: 0.66), gold], startPoint: .topLeading, endPoint: .bottomTrailing)
-    static let positive = Color(red: 0.43, green: 0.83, blue: 0.73)
-    static let warning = Color(red: 1, green: 0.69, blue: 0.45)
+    static let positive = SemanticStatus.good.tint
+    static let warning = SemanticStatus.watch.tint
     static let separator = Color.white.opacity(0.075)
     static func rank(_ tier: RankTier) -> Color {
         switch tier {
@@ -59,7 +59,7 @@ enum AppAnimation {
     static let micro = Animation.easeOut(duration: 0.16)
     static let interaction = Animation.spring(response: 0.28, dampingFraction: 0.88)
     static let reveal = Animation.easeOut(duration: 0.32)
-    static let reward = Animation.spring(response: 0.75, dampingFraction: 0.86)
+    static let reward = Animation.spring(response: 0.44, dampingFraction: 0.86)
 }
 enum AppMotion {
     static var snapshotMode: Bool {
@@ -80,7 +80,7 @@ struct PremiumPressStyle: ButtonStyle {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     func makeBody(configuration: Configuration) -> some View {
         configuration.label.opacity(configuration.isPressed ? 0.78 : 1)
-            .scaleEffect(configuration.isPressed && !reduceMotion ? 0.975 : 1)
+            .scaleEffect(configuration.isPressed && !reduceMotion && !AppMotion.snapshotMode ? 0.975 : 1)
             .animation(reduceMotion || AppMotion.snapshotMode ? nil : AppAnimation.micro, value: configuration.isPressed)
     }
 }

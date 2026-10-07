@@ -61,7 +61,7 @@ struct LiveWorkoutView: View {
                 VStack(alignment: .leading, spacing: 20) {
                     TextField("Session title", text: Binding(get: { store.activeWorkout?.title ?? "" }, set: { text in _ = store.updateWorkout { $0?.title = String(text.prefix(80)) } }))
                         .focused($inputFocused)
-                        .font(.title2.weight(.semibold)).accessibilityIdentifier("live.title")
+                        .font(.subheadline.weight(.medium)).foregroundStyle(AppColor.muted).accessibilityIdentifier("live.title")
                     HStack {
                         Label("\(draft.completedSets) sets complete", systemImage: "checkmark.circle").font(.caption).foregroundStyle(AppColor.muted)
                         Spacer()
@@ -81,7 +81,6 @@ struct LiveWorkoutView: View {
                             }
                         }
                         if let selected {
-                            if let hint = store.brainHint(selected) { Text(hint).font(.caption).foregroundStyle(AppColor.muted).accessibilityIdentifier("brain.live.hint") }
                             if !keptRecoveryExercises.contains(selected.id), let warning = store.brainRecoveryWarning(selected) {
                                 VStack(alignment: .leading, spacing: 8) {
                                     Text(warning).font(.caption).foregroundStyle(AppColor.warning)
@@ -97,6 +96,7 @@ struct LiveWorkoutView: View {
                             }
                             LiveExerciseCard(exercise: selected, focus: $setFocus).id(selected.id)
                                 .transition(.opacity).animation(reduceMotion || AppMotion.snapshotMode ? nil : AppAnimation.micro, value: draft.selectedExerciseID)
+                            if let hint = store.brainHint(selected) { Text(hint).font(.caption).foregroundStyle(AppColor.muted).accessibilityIdentifier("brain.live.hint") }
                             HStack {
                                 Button("Earlier", systemImage: "arrow.left") { move(selected.id, by: -1) }
                                     .disabled(draft.exercises.first?.id == selected.id)

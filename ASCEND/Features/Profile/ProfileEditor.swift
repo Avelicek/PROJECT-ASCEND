@@ -30,15 +30,6 @@ struct ProfileEditor: View {
                 NumericField(title: "Protein · g", value: $draft.protein)
                 NumericField(title: "Sleep · hours", value: $draft.sleepHours)
             }
-            Section {
-                Toggle("On-device AI insights", isOn: $draft.aiEnabled)
-                Toggle("Haptic feedback", isOn: $draft.haptics)
-                LabeledContent("Appearance", value: "Midnight")
-            } header: {
-                Text("Experience")
-            } footer: {
-                Text("AI is optional. If the system model is unavailable or a response fails validation, ASCEND uses local deterministic insights. Metrics and ELO always come from your data and fitness engines.")
-            }
         }.editor(title: "Profile & goals") {
             draft.deadline = hasDeadline ? deadline : nil
             if store.saveProfile(draft) { AppHaptics.success(enabled: store.settings.hapticsEnabled); dismiss() }

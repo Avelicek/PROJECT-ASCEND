@@ -1,5 +1,9 @@
 import SwiftUI
 
+private extension DailyResult {
+    var semanticStatus: SemanticStatus { grade == "A" ? .excellent : grade == "B" ? .good : grade == "C" ? .watch : .low }
+}
+
 struct DailyCommandCard: View {
     @Environment(AppStore.self) private var store
     let showDetails: () -> Void
@@ -16,7 +20,7 @@ struct DailyCommandCard: View {
                             .font(.caption).foregroundStyle(AppColor.muted)
                     }
                     Spacer(minLength: 0)
-                    CountUpText(value: Double(result.elo.delta), signed: true).font(.title2.weight(.semibold)).foregroundStyle(result.elo.delta < 0 ? AppColor.negative : AppColor.positive)
+                    CountUpText(value: Double(result.elo.delta), signed: true).font(.title2.weight(.semibold)).foregroundStyle(SemanticStatus.momentum(Double(result.elo.delta)).tint)
                 }
                 if let reason = result.explanation.first { Text(reason).font(.caption).foregroundStyle(AppColor.muted) }
                 let incomplete = store.todayObjectives.filter { $0.completedAt == nil && !$0.recoveryExempt }.count
@@ -52,9 +56,9 @@ struct DailyEvaluationView: View {
                 }
                 PremiumCard(role: .hero, tint: result.elo.delta < 0 ? AppColor.negative : AppColor.elo) {
                     HStack(spacing: 20) {
-                        Text(result.grade).font(.system(size: 64, weight: .semibold, design: .rounded)).foregroundStyle(AppColor.blue)
+                        Text(result.grade).font(.system(size: 64, weight: .semibold, design: .rounded)).foregroundStyle(result.semanticStatus.gradient)
                         VStack(alignment: .leading, spacing: 8) {
-                            CountUpText(value: Double(result.elo.delta), signed: true).font(.largeTitle.weight(.semibold)).foregroundStyle(result.elo.delta < 0 ? AppColor.negative : AppColor.positive)
+                            CountUpText(value: Double(result.elo.delta), signed: true).font(.largeTitle.weight(.semibold)).foregroundStyle(SemanticStatus.momentum(Double(result.elo.delta)).tint)
                             Text(finalized ? "FINALIZED ELO" : "PENDING ELO").font(.caption).foregroundStyle(AppColor.muted)
                             if let momentum = result.momentum { Text("Momentum \(momentum.formatted(.number.precision(.fractionLength(0)).sign(strategy: .always())))%").font(.caption) }
                         }

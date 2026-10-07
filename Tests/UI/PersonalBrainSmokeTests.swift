@@ -8,8 +8,7 @@ final class PersonalBrainSmokeTests: XCTestCase {
         return app
     }
     @MainActor private func reveal(_ element: XCUIElement, in app: XCUIApplication) {
-        for _ in 0..<5 { if element.isHittable { break }; app.scrollViews["screen.dashboard"].swipeUp() }
-        XCTAssertTrue(element.isHittable)
+        AscendUITestSupport.reveal(element, screen: "screen.dashboard", in: app)
     }
     @MainActor func testBrainHeroDetailAndStartRecommendedSession() {
         let app = launch()
@@ -34,9 +33,9 @@ final class PersonalBrainSmokeTests: XCTestCase {
         XCTAssertEqual(app.staticTexts["brain.focus"].label, "RECOVERY")
         AscendUITestSupport.navigate("profile", in: app)
         let settings = app.buttons["profile.brain"]
-        for _ in 0..<4 { if settings.isHittable { break }; app.scrollViews["screen.profile"].swipeUp() }
+        AscendUITestSupport.reveal(settings, screen: "screen.profile", in: app)
         XCTAssertTrue(settings.isHittable); settings.tap()
-        XCTAssertTrue(app.scrollViews["screen.brainsettings"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.descendants(matching: .any)["screen.brainsettings"].firstMatch.waitForExistence(timeout: 10))
         let sleep = app.descendants(matching: .any)["brain.settings.sleep"].firstMatch
         XCTAssertTrue(sleep.waitForExistence(timeout: 10)); sleep.tap()
         app.buttons["Done"].firstMatch.tap()

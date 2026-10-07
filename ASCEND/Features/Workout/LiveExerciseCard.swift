@@ -13,11 +13,14 @@ struct LiveExerciseCard: View {
         return ProgressionEngine().suggest(store.exerciseHistory, exercise: exercise, now: store.actionDate(), recoveryLimited: limited)
     }
     var body: some View {
+        let previous = self.previous
+        let suggestion = self.suggestion
         VStack(alignment: .leading, spacing: 14) {
+            Text(exercise.name).font(.title2.weight(.semibold)).foregroundStyle(AppColor.text)
             HStack { Text(metadata?.required.map(\.title).sorted().joined(separator: " · ") ?? "Personal exercise").font(.caption2).foregroundStyle(ExerciseIdentity.tint(metadata)); Spacer(); if !store.missingEquipment(exercise.catalogID).isEmpty { PillStatus(title: "EQUIPMENT UNAVAILABLE", tint: AppColor.warning) } }
             Text(Array(Set(exercise.contributions.filter { $0.fraction >= 0.1 }.map { $0.muscle.group })).sorted().joined(separator: " · "))
                 .font(.caption).foregroundStyle(AppColor.strength)
-            comparison
+            comparison(previous: previous, suggestion: suggestion)
             if exercise.bodyweight && exercise.addedWeight && exercise.mode == .reps {
                 Toggle("Bodyweight + added load", isOn: Binding(get: { exercise.allowsWeight }, set: { enabled in
                     focus.wrappedValue = nil
@@ -27,19 +30,19 @@ struct LiveExerciseCard: View {
                     }
                 })).font(.caption).tint(AppColor.recovery).disabled(exercise.sets.contains { $0.completedAt != nil && $0.kilograms > 0 }).accessibilityIdentifier("live.added.load")
             }
-            if suggestion.additionalSetSuggested { Text("Three consistent sessions. Consider one extra working set if recovery permits.").font(.caption).foregroundStyle(AppColor.recovery) }
-            if let metadata, let variation = TrainingSystem().harderVariation(for: metadata, history: store.exerciseHistory, state: store.training, now: store.actionDate()) {
-                Text("Variation to consider · \(variation.name)").font(.caption).foregroundStyle(AppColor.recovery)
-            }
-            if let record = store.pendingRecords.first(where: { $0.exerciseID == exercise.catalogID }) { RecordCelebration(record: record, pending: true) }
             HStack { Eyebrow(text: "WORKING SETS"); Spacer(); Text("\(exercise.completedWorkingSets.count) / \(exercise.sets.filter { !$0.isWarmup }.count)").font(.caption).foregroundStyle(AppColor.strength) }
             ForEach(Array(exercise.sets.enumerated()), id: \.element.id) { index, liveSet in
                 LiveSetRow(exercise: exercise, liveSet: liveSet, number: index + 1, focus: focus)
             }
             PrimaryAction(title: "Add set", symbol: "plus", tint: AppColor.strength) { store.addLiveSet(exerciseID: exercise.id) }.accessibilityIdentifier("live.add.set")
+            if suggestion.additionalSetSuggested { Text("Three consistent sessions. Consider one extra working set if recovery permits.").font(.caption).foregroundStyle(AppColor.recovery) }
+            if let metadata, let variation = TrainingSystem().harderVariation(for: metadata, history: store.exerciseHistory, state: store.training, now: store.actionDate()) {
+                Text("Variation to consider · \(variation.name)").font(.caption).foregroundStyle(AppColor.recovery)
+            }
+            if let record = store.pendingRecords.first(where: { $0.exerciseID == exercise.catalogID }) { RecordCelebration(record: record, pending: true) }
         }
     }
-    private var comparison: some View {
+    private func comparison(previous: ExerciseHistory?, suggestion: ProgressionSuggestion) -> some View {
         PremiumCard(role: .metric, tint: AppColor.strength) {
             VStack(alignment: .leading, spacing: 12) {
                 HStack(alignment: .top, spacing: 14) {
@@ -50,16 +53,16 @@ struct LiveExerciseCard: View {
                                 .buttonStyle(.plain).frame(minHeight: 44, alignment: .leading).accessibilityIdentifier("live.copy.previous").accessibilityHint("Copy to the next unfinished set")
                         } else { Text("First session").font(.subheadline).foregroundStyle(AppColor.muted) }
                     }.frame(maxWidth: .infinity, alignment: .leading)
-                    Image(systemName: suggestion.target == nil ? "equal" : "arrow.up.right").font(.caption).foregroundStyle(AppColor.strength).padding(.top, 26)
+                    Image(systemName: suggestion.target == nil ? "equal" : "arrow.up.right").font(.caption).foregroundStyle(suggestion.target == nil ? AppColor.muted : SemanticStatus.excellent.tint).padding(.top, 26)
                     VStack(alignment: .leading, spacing: 7) {
                         Eyebrow(text: suggestion.target == nil ? "MATCH / HOLD" : "OPTIONAL TARGET")
                         if let target = suggestion.target {
-                            Button { copyPrevious(target) } label: { Text(performance(target)).font(.headline).foregroundStyle(AppColor.strength) }
+                            Button { copyPrevious(target) } label: { Text(performance(target)).font(.headline).foregroundStyle(SemanticStatus.excellent.gradient) }
                                 .buttonStyle(.plain).frame(minHeight: 44, alignment: .leading).accessibilityHint("Use the optional target for the next unfinished set")
                         } else { Text(previous?.working.first.map { performance($0.performance) } ?? "Build a baseline").font(.subheadline).foregroundStyle(AppColor.muted).frame(minHeight: 44, alignment: .leading) }
                     }.frame(maxWidth: .infinity, alignment: .leading)
                 }
-                HStack { PillStatus(title: suggestion.confidence.rawValue.uppercased(), tint: AppColor.muted); Spacer(); if let date = previous?.date { Text(date.formatted(date: .abbreviated, time: .omitted)).font(.caption2).foregroundStyle(AppColor.muted) } }
+                HStack { StatusPill(status: .confidence(suggestion.confidence), title: suggestion.confidence.rawValue.uppercased()); Spacer(); if let date = previous?.date { Text(date.formatted(date: .abbreviated, time: .omitted)).font(.caption2).foregroundStyle(AppColor.muted) } }
                 if let opportunity = repOpportunity { Label(opportunity, systemImage: "trophy").font(.caption).foregroundStyle(AppColor.gold) }
                 DisclosureGroup("Performance & explanation") {
                     VStack(alignment: .leading, spacing: 12) {

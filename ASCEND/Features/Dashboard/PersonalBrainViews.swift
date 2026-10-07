@@ -1,5 +1,27 @@
 import SwiftUI
 
+private extension BrainDecision {
+    var status: SemanticStatus {
+        switch action {
+        case .train: intensity == .progressIfReady ? .excellent : .good
+        case .trainLight: .watch
+        case .recover: .low
+        case .maintain: .good
+        }
+    }
+    var shortReasons: [String] {
+        (warnings + reasons).prefix(2).map {
+            $0.replacingOccurrences(of: "Some muscle history is unknown. Establish a familiar, easy baseline.", with: "Some muscles are unknown. Start light.")
+                .replacingOccurrences(of: "matches your equipment and current recorded recovery.", with: "fits your equipment and recovery logs.")
+                .replacingOccurrences(of: "Lowest relevant muscle estimate:", with: "Lowest relevant estimate:")
+                .replacingOccurrences(of: "Recent sleep duration or quality is low; reduce intensity.", with: "Recent sleep is low. Reduce intensity.")
+        }
+    }
+    var shortStatus: String {
+        switch action { case .train: "READY"; case .trainLight: "TRAIN LIGHT"; case .recover: "RECOVER"; case .maintain: "MAINTAIN" }
+    }
+}
+
 struct BrainSignal: View {
     let confidence: Confidence
     var body: some View {
@@ -7,7 +29,7 @@ struct BrainSignal: View {
             Image(systemName: "waveform.path").foregroundStyle(AppColor.recovery).accessibilityHidden(true)
             Eyebrow(text: "ASCEND INTELLIGENCE")
             Spacer(minLength: 0)
-            Text(confidence == .low ? "LEARNING" : "READY").font(.caption2).foregroundStyle(AppColor.muted)
+            Text(confidence == .low ? "LEARNING" : "LOCAL").font(.caption2).foregroundStyle(AppColor.muted)
         }
     }
 }
@@ -24,31 +46,31 @@ struct BrainHeroView: View {
                     Eyebrow(text: "TODAY")
                     Text(decision.focus.uppercased()).font(.system(.largeTitle, design: .rounded, weight: .semibold))
                         .foregroundStyle(AppColor.text).accessibilityIdentifier("brain.focus")
-                    Text(decision.action.title.uppercased()).font(.caption.weight(.medium)).tracking(1).foregroundStyle(AppColor.recovery)
+                    StatusPill(status: decision.status, title: decision.shortStatus)
                 }
                 Spacer(minLength: 6)
                 Button("Why", systemImage: "arrow.up.right", action: showDetails).font(.caption).frame(minHeight: 44).accessibilityIdentifier("brain.detail")
             }
             if let session = decision.session {
-                HStack { Text(session.name).font(.subheadline); Spacer(); Text("~\(decision.duration ?? 0) min · \(decision.intensity.title)").font(.caption).foregroundStyle(AppColor.muted) }
-                PrimaryAction(title: store.activeWorkout == nil ? "Start \(decision.focus)" : "Resume workout", symbol: "play.fill", tint: AppColor.recovery) { store.startBrainSession() }
+                HStack { Text(session.name).font(.subheadline); Spacer(); Text("~\(decision.duration ?? 0) min").font(.caption).foregroundStyle(AppColor.muted) }
+                PrimaryAction(title: store.activeWorkout == nil ? "Start \(decision.focus)" : "Resume workout", symbol: "play.fill", tint: decision.status.tint) { store.startBrainSession() }
                     .accessibilityIdentifier("brain.start")
             }
             HStack(spacing: 14) {
                 ForEach(decision.muscles.prefix(3)) { muscle in
                     VStack(alignment: .leading, spacing: 4) {
                         Text(muscle.name).font(.caption2).foregroundStyle(AppColor.muted)
-                        Text(muscle.recovery.map { "\(Int($0.rounded()))%" } ?? "Unknown").font(.caption.weight(.medium)).foregroundStyle(AppColor.secondary)
+                        Text(muscle.recovery.map { "\(Int($0.rounded()))%" } ?? "Unknown").font(.caption.weight(.medium)).foregroundStyle(SemanticStatus.recovery(muscle.recovery).tint)
                     }.accessibilityElement(children: .combine)
                 }
                 Spacer(minLength: 0)
             }
-            Text((decision.warnings + decision.reasons).prefix(2).joined(separator: " "))
+            Text("Why · " + decision.shortReasons.joined(separator: " "))
                 .font(.caption).foregroundStyle(AppColor.secondary).fixedSize(horizontal: false, vertical: true)
             if decision.warnings.isEmpty, let opportunity = decision.opportunities.first(where: { $0.suggestion.target != nil }) {
-                Text("\(opportunity.recordWindow ? "PR window" : "Optional progression") · \(opportunity.name)").font(.caption2).foregroundStyle(AppColor.recovery)
+                Text("\(opportunity.recordWindow ? "PR window" : "Optional progression") · \(opportunity.name)").font(.caption2).foregroundStyle(SemanticStatus.excellent.tint)
             }
-            Text("\(decision.confidence.rawValue.capitalized) confidence · estimates from local logs")
+            Text("\(decision.confidence.rawValue.capitalized) confidence · local estimates")
                 .font(.caption2).foregroundStyle(AppColor.muted).accessibilityIdentifier("brain.confidence")
         }.padding(22).frame(maxWidth: .infinity, alignment: .leading)
             .background {
@@ -56,7 +78,7 @@ struct BrainHeroView: View {
                 RoundedRectangle(cornerRadius: AppRadius.hero).fill(LinearGradient(colors: [AppColor.recovery.opacity(0.055), AppColor.background.opacity(0.6)], startPoint: .topLeading, endPoint: .bottomTrailing))
             }.overlay(alignment: .top) {
                 Capsule().fill(LinearGradient(colors: [.clear, AppColor.recovery.opacity(0.3), .clear], startPoint: .leading, endPoint: .trailing)).frame(height: 1).padding(.horizontal, 30)
-            }.shadow(color: .black.opacity(0.3), radius: 22, y: 12).accessibilityElement(children: .contain).accessibilityIdentifier("brain.hero")
+            }.shadow(color: AppColor.recovery.opacity(0.06), radius: 16).shadow(color: .black.opacity(0.3), radius: 22, y: 12).accessibilityElement(children: .contain).accessibilityIdentifier("brain.hero")
     }
 }
 
@@ -68,76 +90,106 @@ struct BrainDetailView: View {
     private var decision: BrainDecision { store.brainDecision }
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 26) {
-                FeatureHeader(eyebrow: "PERSONAL BRAIN · TODAY", title: decision.focus)
-                HStack { Text(decision.action.title).foregroundStyle(AppColor.recovery); Spacer(); Text(decision.intensity.title).foregroundStyle(AppColor.muted) }.font(.subheadline)
-                if let session = decision.session {
-                    VStack(alignment: .leading, spacing: 12) {
-                        Eyebrow(text: decision.routineID == nil ? "SUGGESTED SESSION" : "SAVED ROUTINE")
-                        ForEach(session.exercises) { item in
-                            HStack { Text(store.trainingMetadata(item.exerciseID)?.name ?? item.exerciseID); Spacer(); Text("\(item.sets) sets").foregroundStyle(AppColor.muted) }.font(.subheadline)
-                        }
-                        PrimaryAction(title: "Start session", symbol: "play.fill", tint: AppColor.recovery) { startSession(); dismiss() }.accessibilityIdentifier("brain.detail.start")
-                    }
-                }
-                VStack(alignment: .leading, spacing: 10) {
-                    Eyebrow(text: "WHY THIS DECISION")
-                    ForEach(Array((decision.warnings + decision.reasons).enumerated()), id: \.offset) { _, reason in Text(reason).font(.subheadline).foregroundStyle(AppColor.secondary) }
-                    ContextExplanationView(focus: "Interpretation", facts: decision.facts, confidence: decision.confidence)
-                }
-                PremiumCard(role: .glass) {
-                    VStack(alignment: .leading, spacing: 12) {
-                        Eyebrow(text: "RECOVERY · ESTIMATES")
-                        ForEach(decision.muscles) { muscle in HStack { Text(muscle.name); Spacer(); Text(muscle.recovery.map { "\(Int($0.rounded()))%" } ?? "Unknown") }.font(.subheadline) }
-                        Text("Unknown means no relevant training load was recorded. These are model estimates, never measured readiness.").font(.caption).foregroundStyle(AppColor.muted)
-                    }
-                }
-                if !decision.opportunities.isEmpty {
-                    VStack(alignment: .leading, spacing: 14) {
-                        Eyebrow(text: "PROGRESSION")
-                        ForEach(decision.opportunities) { opportunity in
-                            VStack(alignment: .leading, spacing: 6) {
-                                Text(opportunity.name).font(.subheadline.weight(.medium))
-                                if let previous = opportunity.previous { Text("Last · \(performance(previous))").font(.caption).foregroundStyle(AppColor.muted) }
-                                if let target = opportunity.suggestion.target { Text("Optional · \(performance(target))").font(.caption).foregroundStyle(AppColor.recovery) }
-                                if opportunity.recordWindow { Text("PR window · optional target exceeds a recorded comparable best.").font(.caption2).foregroundStyle(AppColor.gold) }
-                                Text(opportunity.suggestion.explanation).font(.caption).foregroundStyle(AppColor.secondary)
-                                if opportunity.improved { Text("Progress observed at comparable load and effort.").font(.caption).foregroundStyle(AppColor.positive) }
-                                if opportunity.plateau { Text("Plateau signal · four comparable exposures at the same load and best reps with high effort. Consider an easier load or another available variation.").font(.caption).foregroundStyle(AppColor.warning) }
-                            }
-                        }
-                    }
-                }
-                WeeklyTrainingBalance()
-                VStack(alignment: .leading, spacing: 10) {
-                    Eyebrow(text: "DATA CONFIDENCE · \(decision.confidence.rawValue.uppercased())")
-                    Text("Known: \(store.personalContext.sessionDates.count) full sessions · \(store.personalContext.nutritionDays) recent closed nutrition days · \(store.training.profile.resolvedEquipment.count) available equipment types.").font(.caption)
-                    if let sleep = store.personalContext.sleepHours { Text("Recent sleep · \(sleep.formatted()) h · \(store.personalContext.sleepConfidence.rawValue) input confidence").font(.caption) }
-                    if let calories = store.personalContext.calories, let protein = store.personalContext.protein {
-                        Text("Today · \(Int(calories.rounded())) / \(Int(store.personalContext.calorieGoal.rounded())) kcal · \(Int(protein.rounded())) / \(Int(store.personalContext.proteinGoal.rounded())) g protein").font(.caption)
-                    }
-                    Text("Goal · \(store.training.profile.goal.rawValue.replacingOccurrences(of: "([a-z])([A-Z])", with: "$1 $2", options: .regularExpression).capitalized)").font(.caption)
-                    if let weight = store.personalContext.weight { Text("Body weight · \(weight.formatted()) kg" + (store.personalContext.targetWeight.map { " → \($0.formatted()) kg target" } ?? "")).font(.caption) }
-                    ForEach(decision.missing, id: \.self) { Text("Missing · \($0)").font(.caption).foregroundStyle(AppColor.muted) }
-                    if decision.confidence == .low { Text("Learning your baseline. Use familiar loads; another workout and supported sleep / nutrition logs improve guidance.").font(.caption).foregroundStyle(AppColor.secondary) }
-                }
+            VStack(alignment: .leading, spacing: AppSpacing.lg) {
+                FeatureHeader(eyebrow: "TODAY", title: decision.focus)
+                HStack { StatusPill(status: decision.status, title: decision.shortStatus); Spacer(); Text(decision.intensity.title).font(.caption).foregroundStyle(AppColor.muted) }
+                why
+                session
+                recovery
+                progression
+                confidence
+                DisclosureGroup("Training balance") { WeeklyTrainingBalance().padding(.top, 12) }.font(.subheadline)
                 HStack {
                     Button("Not today") { store.respondToBrain(.rejected) }.accessibilityIdentifier("brain.reject")
                     Spacer()
                     Button("Dismiss advice") { store.respondToBrain(.ignored) }
                 }.font(.caption).frame(minHeight: 44)
-                Text("Responses modestly rerank compatible routines. Dismiss is an explicit ignored signal; time passing never counts as acceptance.").font(.caption2).foregroundStyle(AppColor.muted)
                 DisclosureGroup("Recent recommendations") {
                     ForEach(store.brainArchive.history.suffix(7).reversed()) { entry in
                         HStack { Text(entry.date, style: .date); Text(entry.focus); Spacer(); Text(entry.response?.rawValue ?? "Shown") }.font(.caption2).padding(.vertical, 6)
                     }
+                    Text("Explicit responses modestly adjust compatible routines.").font(.caption2).foregroundStyle(AppColor.muted)
                 }.font(.caption)
-            }.padding(20)
+            }.padding(AppSpacing.page)
         }.featureBackground(tint: AppColor.recovery).accessibilityIdentifier("screen.braindetail")
             .toolbar(.visible, for: .navigationBar)
             .navigationTitle("ASCEND Intelligence").navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } }; ToolbarItem(placement: .topBarLeading) { Button("Settings") { settings = true } } }
             .sheet(isPresented: $settings) { NavigationStack { BrainSettingsView().environment(store) }.preferredColorScheme(.dark) }
+    }
+    private var why: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Eyebrow(text: "WHY")
+            ForEach(Array(decision.shortReasons.enumerated()), id: \.offset) { _, reason in
+                Text(reason).font(.subheadline).foregroundStyle(AppColor.secondary)
+            }
+            DisclosureGroup("More context") {
+                VStack(alignment: .leading, spacing: 10) {
+                    ForEach(Array((decision.warnings + decision.reasons).dropFirst(2).enumerated()), id: \.offset) { _, reason in Text(reason).font(.caption) }
+                    ContextExplanationView(focus: "Interpretation", facts: decision.facts, confidence: decision.confidence)
+                }.padding(.top, 10)
+            }.font(.caption).tint(AppColor.muted)
+        }
+    }
+    @ViewBuilder private var session: some View {
+        if let session = decision.session {
+            PremiumCard(role: .glass) {
+                VStack(alignment: .leading, spacing: 12) {
+                    Eyebrow(text: "SESSION · " + (decision.routineID == nil ? "SUGGESTED" : "SAVED ROUTINE"))
+                    HStack { Text(session.name).font(.headline).foregroundStyle(AppColor.text); Spacer(); Text("~\(decision.duration ?? 0) min").font(.caption).foregroundStyle(AppColor.muted) }
+                    DisclosureGroup("\(session.exercises.count) exercises") {
+                        ForEach(session.exercises) { item in
+                            HStack { Text(store.trainingMetadata(item.exerciseID)?.name ?? item.exerciseID); Spacer(); Text("\(item.sets) sets").foregroundStyle(AppColor.muted) }.font(.caption).padding(.vertical, 5)
+                        }
+                    }.font(.subheadline)
+                    PrimaryAction(title: store.activeWorkout == nil ? "Start session" : "Resume workout", symbol: "play.fill", tint: decision.status.tint) { startSession(); dismiss() }.accessibilityIdentifier("brain.detail.start")
+                }
+            }
+        }
+    }
+    private var recovery: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Eyebrow(text: "RECOVERY · ESTIMATES")
+            ForEach(decision.muscles.prefix(3)) { muscle in RecoveryStatusRow(name: muscle.name, percent: muscle.recovery) }
+            DisclosureGroup("All muscles") {
+                VStack(spacing: 14) { ForEach(decision.muscles.dropFirst(3)) { muscle in RecoveryStatusRow(name: muscle.name, percent: muscle.recovery) } }.padding(.top, 12)
+            }.font(.caption)
+            Text("Unknown = no relevant training logged. Recovery is estimated.").font(.caption2).foregroundStyle(AppColor.muted)
+        }
+    }
+    @ViewBuilder private var progression: some View {
+        if !decision.opportunities.isEmpty {
+            DisclosureGroup("Progression · \(decision.opportunities.count) exercises") {
+                VStack(alignment: .leading, spacing: 18) {
+                    ForEach(decision.opportunities) { opportunity in
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text(opportunity.name).font(.subheadline.weight(.medium)).foregroundStyle(AppColor.text)
+                            if let previous = opportunity.previous { Text("Last · \(performance(previous))").font(.caption).foregroundStyle(AppColor.muted) }
+                            if let target = opportunity.suggestion.target { Text("Optional · \(performance(target))").font(.caption).foregroundStyle(SemanticStatus.excellent.tint) }
+                            if opportunity.recordWindow { StatusPill(status: .excellent, title: "PR WINDOW · OPTIONAL") }
+                            Text(opportunity.suggestion.explanation).font(.caption)
+                            if opportunity.improved { Text("Progress observed.").font(.caption).foregroundStyle(AppColor.positive) }
+                            if opportunity.plateau { Text("Watch · four comparable sessions without improvement. Consider a lighter load or another variation.").font(.caption).foregroundStyle(AppColor.warning) }
+                        }
+                    }
+                }.padding(.top, 14)
+            }.font(.subheadline)
+        }
+    }
+    private var confidence: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack { Eyebrow(text: "DATA CONFIDENCE"); Spacer(); StatusPill(status: .confidence(decision.confidence), title: decision.confidence.rawValue.uppercased()) }
+            if decision.confidence == .low { Text("Learning your baseline. Use familiar loads.").font(.caption).foregroundStyle(AppColor.secondary) }
+            DisclosureGroup("Inputs & missing data") {
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("\(store.personalContext.sessionDates.count) full sessions · \(store.personalContext.nutritionDays) recent nutrition days").font(.caption)
+                    if let sleep = store.personalContext.sleepHours { Text("Recent sleep · \(sleep.formatted()) h").font(.caption) }
+                    Text("\(store.training.profile.resolvedEquipment.count) available equipment types").font(.caption)
+                    ForEach(decision.missing, id: \.self) { Text("Missing · \($0)").font(.caption).foregroundStyle(AppColor.muted) }
+                    Text("Local logs guide estimates. Your condition takes priority.").font(.caption2).foregroundStyle(AppColor.muted)
+                }.padding(.top, 10)
+            }.font(.caption)
+        }
     }
     private func performance(_ value: SetPerformance) -> String { (value.kilograms > 0 ? value.kilograms.formatted() + " kg × " : "") + "\(value.reps) reps" }
 }

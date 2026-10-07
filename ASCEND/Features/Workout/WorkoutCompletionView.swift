@@ -6,16 +6,16 @@ struct RecordCelebration: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var appeared = false
     var body: some View {
-        PremiumCard(role: .hero, tint: AppColor.gold) {
+        PremiumCard(role: .hero, tint: SemanticStatus.excellent.tint) {
             VStack(alignment: .leading, spacing: 12) {
-                HStack { Image(systemName: "trophy.fill").foregroundStyle(AppColor.gold); Eyebrow(text: pending ? "PR · SAVE ON FINISH" : "NEW PERSONAL RECORD") }
+                HStack { Image(systemName: "trophy.fill").foregroundStyle(SemanticStatus.excellent.tint); Eyebrow(text: pending ? "PR · SAVE ON FINISH" : "NEW PERSONAL RECORD") }
                 Text(record.exerciseName).font(.subheadline.weight(.medium)).foregroundStyle(AppColor.secondary)
                 Text("\(record.value.formatted(.number.precision(.fractionLength(0...1)))) \(record.unit)")
-                    .font(.system(.largeTitle, design: .rounded, weight: .semibold)).foregroundStyle(AppColor.goldGradient).monospacedDigit()
+                    .font(.system(.largeTitle, design: .rounded, weight: .semibold)).foregroundStyle(SemanticStatus.excellent.gradient).monospacedDigit()
                 HStack {
                     Text(record.title).font(.caption).foregroundStyle(AppColor.muted)
                     Spacer(minLength: 4)
-                    Text("+\((record.value - record.previous).formatted(.number.precision(.fractionLength(0...1))))").font(.headline).foregroundStyle(AppColor.gold)
+                    Text("+\((record.value - record.previous).formatted(.number.precision(.fractionLength(0...1))))").font(.headline).foregroundStyle(SemanticStatus.excellent.tint)
                 }
                 Text("Previous · \(record.previous.formatted(.number.precision(.fractionLength(0...1)))) \(record.unit)").font(.caption2).foregroundStyle(AppColor.muted)
             }
@@ -65,11 +65,7 @@ struct WorkoutCompletionView: View {
                     VStack(alignment: .leading, spacing: 16) {
                         Eyebrow(text: "MUSCLE LOAD")
                         ForEach(summary.muscles) { muscle in
-                            HStack(spacing: 12) {
-                                Text(muscle.name).font(.caption).foregroundStyle(AppColor.secondary).frame(width: 72, alignment: .leading)
-                                LinearProgress(progress: muscle.setLoad / max(1, summary.muscles.map(\.setLoad).max() ?? 1), tint: AppColor.recovery, height: 5)
-                                Text(muscle.label).font(.caption2).foregroundStyle(AppColor.recovery).frame(width: 42, alignment: .trailing)
-                            }
+                            MuscleLoadRow(name: muscle.name, load: muscle.setLoad, maximum: summary.muscles.map(\.setLoad).max() ?? 1)
                         }
                         if summary.muscles.isEmpty { Text("No working load recorded.").font(.caption).foregroundStyle(AppColor.muted) }
                         HStack { Text("Recovery estimates updated").font(.caption2).foregroundStyle(AppColor.muted); Spacer(); Text("\(summary.progressedExercises) progressed").font(.caption2).foregroundStyle(AppColor.positive) }

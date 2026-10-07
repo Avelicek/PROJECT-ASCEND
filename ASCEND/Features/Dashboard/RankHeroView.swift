@@ -46,8 +46,8 @@ struct RankHeroView: View {
             Button { showScore = true } label: {
                 VStack(alignment: .leading, spacing: 3) {
                     Label("\(store.projectedScore.delta.formatted(.number.sign(strategy: .always()))) ELO today",
-                        systemImage: store.projectedScore.delta < 0 ? "arrow.down.right" : "arrow.up.right")
-                        .font(.caption.weight(.semibold)).foregroundStyle(store.projectedScore.delta < 0 ? AppColor.negative : AppColor.positive)
+                        systemImage: store.projectedScore.delta == 0 ? "minus" : store.projectedScore.delta < 0 ? "arrow.down.right" : "arrow.up.right")
+                        .font(.caption.weight(.semibold)).foregroundStyle(SemanticStatus.momentum(Double(store.projectedScore.delta)).tint)
                     PillStatus(title: "PENDING", tint: AppColor.muted)
                 }.padding(.vertical, 5).frame(minHeight: 44, alignment: .leading)
             }.buttonStyle(PremiumPressStyle()).accessibilityHint("Show score components and finalized history")

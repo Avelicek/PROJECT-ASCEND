@@ -40,6 +40,8 @@ struct RoutineDetailView: View {
                     }
                     if let error = store.errorMessage { Text(error).font(.caption).foregroundStyle(AppColor.warning) }
                 }.padding(20)
+            } else {
+                EmptyStateCard(symbol: "dumbbell", title: "Routine unavailable", detail: "Choose another saved routine in Workout.").padding(AppSpacing.page)
             }
         }.accessibilityIdentifier("screen.routine").background(AppColor.background).navigationTitle("Routine").navigationBarTitleDisplayMode(.inline)
             .toolbar {

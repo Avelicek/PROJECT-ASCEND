@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ProfileView: View {
     @Environment(AppStore.self) private var store
+    @Environment(\.dynamicTypeSize) private var typeSize
     @State private var editing = false
     @State private var trainingProfile = false
     @State private var brainSettings = false
@@ -11,18 +12,9 @@ struct ProfileView: View {
                 FeatureHeader(eyebrow: "OWNER", title: "Your system")
                 PremiumCard(role: .hero, tint: AppColor.bodyweight) {
                     VStack(alignment: .leading, spacing: 18) {
-                        HStack(spacing: 12) {
-                            Text(String(store.profile.displayName.prefix(1)).uppercased())
-                                .font(.system(.largeTitle, design: .rounded, weight: .semibold))
-                                .frame(width: 62, height: 62)
-                                .background(LinearGradient(colors: [AppColor.blue.opacity(0.3), AppColor.accent.opacity(0.2)], startPoint: .topLeading, endPoint: .bottomTrailing), in: Circle())
-                                .overlay(Circle().stroke(AppColor.blue.opacity(0.35))).accessibilityHidden(true)
-                            VStack(alignment: .leading, spacing: 6) {
-                                Text(store.profile.displayName).accessibilityIdentifier("profile.name").font(.title2.weight(.semibold))
-                                PillStatus(title: "LEVEL \(store.lifetimeLevel)")
-                            }
-                            Spacer(minLength: 0)
-                            RankBadgeView(rank: store.rank.rank, size: 108).accessibilityIdentifier("profile.rank.badge")
+                        Group {
+                            if typeSize.isAccessibilitySize { VStack(alignment: .leading, spacing: 16) { identity; rankBadge } }
+                            else { HStack(spacing: 12) { identity; Spacer(minLength: 0); rankBadge } }
                         }
                         HStack {
                             VStack(alignment: .leading, spacing: 4) {
@@ -35,42 +27,40 @@ struct ProfileView: View {
                         RankProgressView(status: store.rank)
                     }
                 }
-                PremiumCard(role: .action, tint: AppColor.bodyweight) {
-                    VStack(spacing: 2) {
-                        settingsAction("Personal Brain", symbol: "waveform.path") { brainSettings = true }.accessibilityIdentifier("profile.brain")
-                        settingsAction("My Gym · training profile", symbol: "dumbbell") { trainingProfile = true }
-                            .accessibilityIdentifier("profile.training")
-                        Text(store.training.profile.resolvedEquipment.map(\.title).sorted().joined(separator: " · ")).font(.caption2).foregroundStyle(AppColor.muted).frame(maxWidth: .infinity, alignment: .leading).padding(.bottom, 10)
-                        Rectangle().fill(AppColor.separator).frame(height: 1)
+                SectionHeader(title: "Training")
+                PremiumCard(role: .glass) {
+                    VStack(alignment: .leading, spacing: 6) {
+                        settingsAction("My Gym · training profile", symbol: "dumbbell") { trainingProfile = true }.accessibilityIdentifier("profile.training")
+                        Text("\(store.training.profile.resolvedEquipment.count) equipment types available").font(.caption2).foregroundStyle(AppColor.muted)
+                    }
+                }
+                SectionHeader(title: "Intelligence")
+                settingsAction("Personal Brain", symbol: "waveform.path") { brainSettings = true }.accessibilityIdentifier("profile.brain")
+                SectionHeader(title: "Goals")
+                PremiumCard(role: .glass) {
+                    VStack(alignment: .leading, spacing: 16) {
                         settingsAction("Profile & goals", symbol: "slider.horizontal.3") { editing = true }
-                        Rectangle().fill(AppColor.separator).frame(height: 1)
+                        HStack {
+                            StatBlock(title: "Target weight", value: weight(store.profile.targetWeightKG), tint: AppColor.bodyweight)
+                            StatBlock(title: "Weekly pace", value: "\(store.profile.desiredWeeklyChangeKG.formatted()) kg")
+                        }
+                        MetricStrip(metrics: [
+                            GlanceMetric(title: "Energy · kcal", value: "\(Int(store.profile.calorieGoal).formatted())", symbol: "flame", tint: AppColor.nutrition),
+                            GlanceMetric(title: "Protein · g", value: "\(Int(store.profile.proteinGoal))", symbol: "fork.knife", tint: AppColor.nutrition),
+                            GlanceMetric(title: "Sleep · h", value: store.profile.sleepTargetHours.formatted(), symbol: "moon", tint: AppColor.sleep)
+                        ])
                         settingsAction("Daily objectives", symbol: "scope") { store.presentedSheet = .objectives }
                     }
                 }
-                PremiumCard {
-                    VStack(alignment: .leading, spacing: 20) {
-                        SectionHeader(title: "Direction")
-                        LazyVGrid(columns: [GridItem(.adaptive(minimum: 125), spacing: 16)], alignment: .leading, spacing: 22) {
-                            StatBlock(title: "Current", value: weight(store.progress.actualWeight), symbol: "scalemass", tint: AppColor.bodyweight)
-                            StatBlock(title: "Target", value: weight(store.profile.targetWeightKG), symbol: "scope", tint: AppColor.blue)
-                            StatBlock(title: "Weekly pace", value: "\(store.profile.desiredWeeklyChangeKG.formatted()) kg")
-                        }
-                    }
-                }
-                VStack(alignment: .leading, spacing: 12) {
-                    SectionHeader(title: "Daily foundation")
-                    MetricStrip(metrics: [
-                        GlanceMetric(title: "Energy · kcal", value: "\(Int(store.profile.calorieGoal).formatted())", symbol: "flame", tint: AppColor.nutrition),
-                        GlanceMetric(title: "Protein · g", value: "\(Int(store.profile.proteinGoal))", symbol: "fork.knife", tint: AppColor.nutrition),
-                        GlanceMetric(title: "Sleep · h", value: store.profile.sleepTargetHours.formatted(), symbol: "moon", tint: AppColor.sleep)
-                    ])
-                }
-                PremiumCard {
+                SectionHeader(title: "System")
+                PremiumCard(role: .inline) {
                     VStack(alignment: .leading, spacing: 12) {
                         HStack { Image(systemName: "lock.shield").foregroundStyle(AppColor.blue); Eyebrow(text: "LOCAL BY DESIGN") }
-                        HStack { PillStatus(title: "OFFLINE"); PillStatus(title: "NO ACCOUNT", tint: AppColor.muted) }
-                        Text(store.settings.onDeviceAIEnabled ? "On-device insights · local fallback available" : "Private insights on your iPhone")
+                        HStack { PillStatus(title: "OFFLINE", tint: AppColor.muted); PillStatus(title: "NO ACCOUNT", tint: AppColor.muted) }
+                        Text(store.settings.onDeviceAIEnabled ? "On-device interpretation enabled" : "On-device interpretation off")
                             .font(.caption).foregroundStyle(AppColor.muted)
+                        Toggle("Haptics", isOn: Binding(get: { store.settings.hapticsEnabled }, set: { enabled in _ = store.perform { store.settings.hapticsEnabled = enabled } })).font(.subheadline).tint(AppColor.accent)
+                        Text("Your training and goals stay on this iPhone.").font(.caption2).foregroundStyle(AppColor.muted)
                     }
                 }
             }.padding(.horizontal, AppSpacing.page).padding(.bottom, AppSpacing.lg)
@@ -79,6 +69,18 @@ struct ProfileView: View {
             .sheet(isPresented: $trainingProfile) { NavigationStack { TrainingProfileView().environment(store) }.preferredColorScheme(.dark) }
             .sheet(isPresented: $brainSettings) { NavigationStack { BrainSettingsView().environment(store) }.preferredColorScheme(.dark) }
     }
+    private var identity: some View {
+        HStack(spacing: 12) {
+            Text(String(store.profile.displayName.prefix(1)).uppercased())
+                .font(.system(.largeTitle, design: .rounded, weight: .semibold)).frame(width: 62, height: 62)
+                .background(AppColor.blue.opacity(0.12), in: Circle()).accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 6) {
+                Text(store.profile.displayName).accessibilityIdentifier("profile.name").font(.title2.weight(.semibold)).foregroundStyle(AppColor.text)
+                PillStatus(title: "LEVEL \(store.lifetimeLevel)")
+            }
+        }
+    }
+    private var rankBadge: some View { RankBadgeView(rank: store.rank.rank, size: 108).accessibilityIdentifier("profile.rank.badge") }
     private func weight(_ value: Double?) -> String { value.map { "\($0.formatted(.number.precision(.fractionLength(1)))) kg" } ?? "—" }
     private func settingsAction(_ title: String, symbol: String, action: @escaping () -> Void) -> some View {
         Button(action: action) { HStack(spacing: 12) { Image(systemName: symbol).foregroundStyle(AppColor.bodyweight).frame(width: 24); Text(title).font(.subheadline).foregroundStyle(AppColor.secondary); Spacer(); Image(systemName: "chevron.right").font(.caption2).foregroundStyle(AppColor.muted) }.frame(minHeight: 48) }.buttonStyle(PremiumPressStyle())

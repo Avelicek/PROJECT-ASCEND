@@ -7,25 +7,23 @@ struct ProgressScreen: View {
     @State private var showELO = false
     @State private var showRecap = false
     @State private var showAnalytics = false
-    private var report: ProgressReport { store.report(window: window) }
+    @State private var showExercises = false
+    @State private var showRecords = false
     var body: some View {
+        let report = store.report(window: window)
         ScrollView {
             VStack(alignment: .leading, spacing: AppSpacing.lg) {
                 FeatureHeader(eyebrow: "THE LONG GAME", title: "Progress")
                 Picker("Evaluation window", selection: $window) {
                     Text("Day").tag(EvaluationWindow.day); Text("Week").tag(EvaluationWindow.week); Text("Month").tag(EvaluationWindow.month)
                 }.pickerStyle(.segmented).padding(5).background(AppColor.surface, in: RoundedRectangle(cornerRadius: 13))
+                SectionHeader(title: "Current direction")
+                momentumCard(report)
+                goalCard(report)
+                SectionHeader(title: "Week & recent history")
                 weeklySummary
-                Button { showAnalytics = true } label: {
-                    PremiumCard(role: .action, tint: AppColor.elo) {
-                        HStack {
-                            VStack(alignment: .leading, spacing: 8) { Eyebrow(text: "RATING & TRAINING"); TrendGraphic(values: store.history.suffix(28).map { Double($0.elo) }, tint: AppColor.elo) }
-                            Spacer(); Image(systemName: "arrow.up.right").foregroundStyle(AppColor.elo)
-                        }
-                    }
-                }.buttonStyle(PremiumPressStyle()).accessibilityLabel("Explore ELO, volume, strength, consistency and PR trends")
                 Button { showRecap = true } label: {
-                    PremiumCard(accented: true) {
+                    PremiumCard(role: .inline) {
                         HStack {
                             VStack(alignment: .leading, spacing: 7) {
                                 Eyebrow(text: "WEEKLY RECAP")
@@ -35,24 +33,37 @@ struct ProgressScreen: View {
                         }
                     }
                 }.buttonStyle(PremiumPressStyle())
-                goalCard
-                momentumCard
-                weightCard
+                SectionHeader(title: "Long-term trends")
+                Button { showAnalytics = true } label: {
+                    PremiumCard(role: .action, tint: AppColor.elo) {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 8) { Eyebrow(text: "RATING & TRAINING"); TrendGraphic(values: store.history.suffix(28).map { Double($0.elo) }, tint: AppColor.elo) }
+                            Spacer(); Image(systemName: "arrow.up.right").foregroundStyle(AppColor.elo)
+                        }
+                    }
+                }.buttonStyle(PremiumPressStyle()).accessibilityLabel("Explore ELO, volume, strength, consistency and PR trends")
+                weightCard(report)
                 PrimaryAction(title: "Log body weight", symbol: "plus") { store.presentedSheet = .weight }
                 Button { showELO = true } label: {
-                    PremiumCard {
+                    PremiumCard(role: .inline) {
                         HStack(spacing: 14) {
                             RankBadgeView(rank: store.rank.rank, size: 55)
                             VStack(alignment: .leading, spacing: 7) {
                                 Eyebrow(text: "ELO HISTORY")
                                 Text("\(store.currentELO) ELO").font(.title3.weight(.semibold))
-                                TrendGraphic(values: store.history.suffix(28).map { Double($0.elo) }, tint: AppColor.rank(store.rank.rank.tier)).frame(maxWidth: 180)
                             }
                             Spacer(minLength: 0)
                             Image(systemName: "chevron.right").foregroundStyle(AppColor.muted)
                         }
                     }
                 }.buttonStyle(PremiumPressStyle()).accessibilityLabel("ELO history, \(store.currentELO) ELO")
+                SectionHeader(title: "Exercises & records")
+                Button { showExercises = true } label: {
+                    Label("Exercise progress", systemImage: "chart.line.uptrend.xyaxis").frame(maxWidth: .infinity, minHeight: 48, alignment: .leading)
+                }.buttonStyle(PremiumPressStyle())
+                Button { showRecords = true } label: {
+                    Label("Personal record history", systemImage: "trophy").frame(maxWidth: .infinity, minHeight: 48, alignment: .leading)
+                }.buttonStyle(PremiumPressStyle())
                 PremiumCard {
                     DisclosureGroup {
                         VStack(spacing: 16) {
@@ -76,6 +87,8 @@ struct ProgressScreen: View {
             .sheet(isPresented: $showELO) { NavigationStack { ScoreBreakdownView().environment(store) }.preferredColorScheme(.dark) }
             .sheet(isPresented: $showRecap) { NavigationStack { WeeklyRecapView().environment(store) }.preferredColorScheme(.dark) }
             .sheet(isPresented: $showAnalytics) { NavigationStack { TrainingAnalyticsView().environment(store) }.preferredColorScheme(.dark) }
+            .sheet(isPresented: $showExercises) { NavigationStack { TrainingAnalyticsView(exercises: true).environment(store) }.preferredColorScheme(.dark) }
+            .sheet(isPresented: $showRecords) { NavigationStack { RecordHistoryView().environment(store) }.preferredColorScheme(.dark) }
     }
     private var weeklySummary: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -92,8 +105,8 @@ struct ProgressScreen: View {
             ])
         }
     }
-    private var goalCard: some View {
-        PremiumCard(accented: true) {
+    private func goalCard(_ report: ProgressReport) -> some View {
+        PremiumCard(role: .glass) {
             VStack(alignment: .leading, spacing: 20) {
                 HStack(spacing: 20) {
                     ZStack {
@@ -123,28 +136,27 @@ struct ProgressScreen: View {
             }
         }
     }
-    private var momentumCard: some View {
+    private func momentumCard(_ report: ProgressReport) -> some View {
         PremiumCard {
             HStack(spacing: 20) {
                 VStack(alignment: .leading, spacing: 8) {
                     Eyebrow(text: "MOMENTUM · \(window.rawValue)D")
                     HStack(alignment: .firstTextBaseline, spacing: 2) {
-                        if let value = report.momentumPercent { CountUpText(value: value, signed: true).font(.title.weight(.semibold)).foregroundStyle(value < 0 ? AppColor.negative : AppColor.positive) }
+                        if let value = report.momentumPercent { CountUpText(value: value, signed: true).font(.title.weight(.semibold)).foregroundStyle(SemanticStatus.momentum(value).tint) }
                         else { Text("—").font(.title) }
                         Text("%").font(.caption).foregroundStyle(AppColor.muted)
                     }
                     Text(report.momentumPercent.map { $0 < 0 ? "Away from goal" : $0 > 0 ? "Toward your goal" : "Holding steady" } ?? "Building baseline")
                         .font(.caption).foregroundStyle(AppColor.muted)
                 }
-                TrendGraphic(values: report.trend.suffix(max(2, window.rawValue)).map(\.kilograms),
-                    tint: (report.momentumPercent ?? 0) < 0 ? AppColor.negative : AppColor.positive).frame(maxWidth: 100)
+
             }
         }
     }
-    private var weightCard: some View {
+    private func weightCard(_ report: ProgressReport) -> some View {
         PremiumCard {
             VStack(alignment: .leading, spacing: 18) {
-                HStack { Text("Weight trend").font(.headline); Spacer(); PillStatus(title: report.confidence.rawValue.uppercased(), tint: AppColor.muted) }
+                HStack { Text("Weight trend").font(.headline); Spacer(); StatusPill(status: .confidence(report.confidence), title: report.confidence.rawValue.uppercased()) }
                 HStack {
                     StatBlock(title: "Measured", value: weight(report.actualWeight), symbol: "circle.fill", tint: AppColor.muted)
                     StatBlock(title: "7-day trend", value: weight(report.trendWeight), symbol: "waveform.path", tint: AppColor.blue)

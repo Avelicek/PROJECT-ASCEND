@@ -32,4 +32,16 @@ import XCTest
         XCTAssertEqual(tab.value as? String, "Selected")
         XCTAssertEqual(app.state, .runningForeground)
     }
+
+    static func reveal(_ element: XCUIElement, screen: String, in app: XCUIApplication) {
+        let scroll = app.scrollViews[screen]
+        let bottom = app.buttons["tab.dashboard"].frame.minY - 16
+        for _ in 0..<8 {
+            if element.isHittable && element.frame.minY > scroll.frame.minY + 8 && element.frame.maxY < bottom { break }
+            if element.exists && element.frame.minY <= scroll.frame.minY + 8 { scroll.swipeDown() }
+            else { scroll.swipeUp() }
+        }
+        XCTAssertTrue(element.isHittable)
+        XCTAssertLessThan(element.frame.maxY, bottom, "Reveal the entire control above navigation before tapping")
+    }
 }

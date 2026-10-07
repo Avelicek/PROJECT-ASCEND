@@ -21,8 +21,12 @@ struct DashboardView: View {
             VStack(alignment: .leading, spacing: AppSpacing.lg) {
                 header
                 RankHeroView(showScore: $showScore)
-                if store.brainArchive.settings.enabled { BrainHeroView { showBrain = true }.id("brain.hero.anchor") }
-                NextActionCard { dailyPresentation = .pending }
+                VStack(spacing: 4) {
+                    if store.brainArchive.settings.enabled { BrainHeroView { showBrain = true }.id("brain.hero.anchor") }
+                    if !store.brainArchive.settings.enabled || store.brainDecision.session == nil || (store.nextAction.kind != .train && store.nextAction.kind != .resume) {
+                        NextActionCard { dailyPresentation = .pending }
+                    }
+                }
                 readinessAndMomentum
                 quickMetrics
                 DailyCommandCard { dailyPresentation = .pending }
@@ -85,7 +89,7 @@ struct DashboardView: View {
     private var quickMetrics: some View {
         MetricStrip(metrics: [
             GlanceMetric(title: "Weight · kg", value: store.progress.actualWeight.map { $0.formatted(.number.precision(.fractionLength(1))) } ?? "—", symbol: "scalemass", tint: AppColor.bodyweight),
-            GlanceMetric(title: "Sleep · h", value: store.todaySleep.map { $0.durationHours.formatted(.number.precision(.fractionLength(1))) } ?? "—", symbol: "moon", tint: AppColor.sleep),
+            GlanceMetric(title: "Sleep · h", value: store.todaySleep.map { $0.durationHours.formatted(.number.precision(.fractionLength(1))) } ?? "—", symbol: "moon", tint: SemanticStatus.sleep(hours: store.todaySleep?.durationHours, target: store.profile.sleepTargetHours, quality: store.todaySleep?.quality).tint),
             GlanceMetric(title: "Sessions · 7D", value: String(store.sessions.filter { $0.startedAt >= store.policy.adding(days: -6, to: store.policy.start(of: store.now)) && $0.startedAt <= store.now }.count), symbol: "dumbbell", tint: AppColor.strength)
         ])
     }
@@ -94,7 +98,7 @@ struct DashboardView: View {
             VStack(alignment: .leading, spacing: 12) {
                 Eyebrow(text: "READINESS")
                 ReadinessGauge(percent: store.readiness.percent, size: 70).frame(maxWidth: .infinity)
-                Text(store.readiness.state?.rawValue.capitalized ?? "Log to discover").font(.caption.weight(.medium)).foregroundStyle(AppColor.muted)
+                Text(SemanticStatus.recovery(store.readiness.percent).title).font(.caption.weight(.medium)).foregroundStyle(SemanticStatus.recovery(store.readiness.percent).tint)
             }.frame(maxWidth: .infinity, alignment: .leading)
         }
     }

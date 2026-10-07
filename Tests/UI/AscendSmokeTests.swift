@@ -6,9 +6,9 @@ final class AscendSmokeTests: XCTestCase {
         let app = AscendUITestSupport.launchDemo()
         let dashboard = app.scrollViews["screen.dashboard"]
         let next = app.buttons["dashboard.next.action"]
-        for _ in 0..<4 { if next.isHittable { break }; dashboard.swipeUp() }
+        AscendUITestSupport.reveal(next, screen: "screen.dashboard", in: app)
         XCTAssertTrue(next.isHittable); XCTAssertEqual(next.value as? String, "fuel"); next.tap()
-        XCTAssertTrue(app.textFields["Calories · kcal"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.textFields["nutrition.calories"].waitForExistence(timeout: 10))
         app.buttons["Cancel"].tap()
         let details = app.buttons["daily.open"]
         for _ in 0..<5 { if details.isHittable { break }; dashboard.swipeUp() }

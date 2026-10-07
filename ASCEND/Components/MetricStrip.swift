@@ -10,8 +10,9 @@ struct GlanceMetric: Identifiable {
 
 struct MetricStrip: View {
     let metrics: [GlanceMetric]
+    @Environment(\.dynamicTypeSize) private var typeSize
     var body: some View {
-        LazyVGrid(columns: [GridItem(.adaptive(minimum: 90), spacing: 8)], alignment: .leading, spacing: 8) {
+        LazyVGrid(columns: [GridItem(.adaptive(minimum: typeSize.isAccessibilitySize ? 150 : 90), spacing: 8)], alignment: .leading, spacing: 8) {
             ForEach(metrics) { metric in
                 VStack(alignment: .leading, spacing: 9) {
                     Image(systemName: metric.symbol).font(.caption).foregroundStyle(metric.tint).accessibilityHidden(true)
@@ -19,7 +20,7 @@ struct MetricStrip: View {
                         .foregroundStyle(metric.tint)
                         .lineLimit(1).minimumScaleFactor(0.7)
                     Text(metric.title).font(.caption2).foregroundStyle(AppColor.muted)
-                }.frame(maxWidth: .infinity, alignment: .leading).padding(12)
+                }.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading).padding(12)
                     .background(AppColor.elevated.opacity(0.45), in: RoundedRectangle(cornerRadius: 16))
                     .accessibilityElement(children: .combine)
             }

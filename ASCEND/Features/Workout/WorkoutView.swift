@@ -10,7 +10,6 @@ struct WorkoutView: View {
     @State private var historyRoute: ExerciseRoute?
     @State private var pendingStart: WorkoutRoutine?
     @State private var capturePrepared = false
-    private var sets: Int { store.sessions.reduce(0) { $0 + $1.exercises.reduce(0) { $0 + $1.sets.count } } }
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: AppSpacing.lg) {
@@ -29,30 +28,26 @@ struct WorkoutView: View {
                                 Image(systemName: "dumbbell.fill").font(.system(size: 26)).foregroundStyle(AppColor.strength)
                             }.frame(width: 64, height: 64).accessibilityHidden(true)
                         }
-                        MetricStrip(metrics: [
-                            GlanceMetric(title: "Sessions", value: "\(store.sessions.count)", symbol: "bolt.fill", tint: AppColor.strength),
-                            GlanceMetric(title: "Sets logged", value: "\(sets)", symbol: "square.stack", tint: AppColor.strength),
-                            GlanceMetric(title: "Records", value: "\(store.records.count)", symbol: "trophy", tint: AppColor.gold)
-                        ])
                         PrimaryAction(title: store.activeWorkout == nil ? "Start workout" : "Resume workout", symbol: "play.fill", tint: AppColor.strength) { store.startLiveWorkout() }
                             .accessibilityIdentifier("workout.start")
-                        HStack {
-                            Button("Log previous workout") { store.presentedSheet = .workout }
-                            Spacer()
-                            Button("PR history") { showRecords = true }
-                        }.font(.caption).frame(minHeight: 44)
+
                     }
                 }
-                HStack {
-                    Button("Exercise library", systemImage: "books.vertical") { showLibrary = true }.accessibilityIdentifier("workout.library")
-                    Spacer(); Button("My Gym", systemImage: "slider.horizontal.3") { showGym = true }.accessibilityIdentifier("workout.gym")
-                }.font(.caption.weight(.medium)).tint(AppColor.blue).frame(minHeight: 44)
-                if let recommendation = store.recommendedRoutine {
+                if !store.brainArchive.settings.enabled, let recommendation = store.recommendedRoutine {
                     Button { routineRoute = .init(id: recommendation.routineID) } label: {
                         PremiumCard(role: .status, tint: AppColor.recovery) {
                             VStack(alignment: .leading, spacing: 8) { Eyebrow(text: "SUGGESTED FOCUS · OPTIONAL"); Text(recommendation.title).font(.headline).foregroundStyle(AppColor.recovery); Text(recommendation.reason).font(.caption).foregroundStyle(AppColor.muted) }
                         }
                     }.buttonStyle(PremiumPressStyle())
+                }
+                if store.brainArchive.settings.enabled, let session = store.brainDecision.session {
+                    PremiumCard(role: .inline, tint: AppColor.recovery) {
+                        VStack(alignment: .leading, spacing: 10) {
+                            Eyebrow(text: "TODAY'S RECOMMENDATION")
+                            HStack { Text(session.name).font(.headline).foregroundStyle(AppColor.text); Spacer(); Text("~\(store.brainDecision.duration ?? 0) min").font(.caption).foregroundStyle(AppColor.muted) }
+                            PrimaryAction(title: "Start \(store.brainDecision.focus)", symbol: "play.fill", tint: AppColor.recovery) { store.startBrainSession() }.accessibilityIdentifier("workout.brain.start")
+                        }
+                    }
                 }
                 HStack { SectionHeader(title: "Routines"); Spacer(); Button("Create", systemImage: "plus") { createRoutine = true }.font(.caption).frame(minHeight: 44).accessibilityIdentifier("workout.routine.create") }
                 ScrollView(.horizontal, showsIndicators: false) {
@@ -71,12 +66,27 @@ struct WorkoutView: View {
                         }
                     }
                 }
-                WeeklyTrainingBalance()
+                SectionHeader(title: "Equipment & exercises")
+                HStack {
+                    Button("Exercise library", systemImage: "books.vertical") { showLibrary = true }.accessibilityIdentifier("workout.library")
+                    Spacer(); Button("My Gym", systemImage: "slider.horizontal.3") { showGym = true }.accessibilityIdentifier("workout.gym")
+                }.font(.caption.weight(.medium)).tint(AppColor.blue).frame(minHeight: 44)
+                DisclosureGroup("Training balance") { WeeklyTrainingBalance().padding(.top, 12) }.font(.subheadline)
+                HStack {
+                    Button("Log previous workout") { store.presentedSheet = .workout }
+                    Spacer()
+                    Button("PR history") { showRecords = true }
+                }.font(.caption).frame(minHeight: 44)
                 SectionHeader(title: "Recent sessions", detail: "\(store.sessions.count) total")
                 if store.sessions.isEmpty {
                     EmptyStateCard(symbol: "dumbbell", title: "Your first session awaits.", detail: "Choose an exercise and log your sets.")
                 }
-                ForEach(store.sessions.prefix(20), id: \.id) { session in WorkoutSessionCard(session: session) }
+                ForEach(store.sessions.prefix(3), id: \.id) { session in WorkoutSessionCard(session: session) }
+                if store.sessions.count > 3 {
+                    DisclosureGroup("Earlier sessions") {
+                        VStack(spacing: 16) { ForEach(store.sessions.dropFirst(3).prefix(17), id: \.id) { session in WorkoutSessionCard(session: session) } }.padding(.top, 12)
+                    }.font(.subheadline)
+                }
             }.padding(.horizontal, AppSpacing.page).padding(.bottom, AppSpacing.lg)
         }.accessibilityIdentifier("screen.workout").featureBackground(tint: AppColor.strength)
             .sheet(isPresented: $showRecords) { NavigationStack { RecordHistoryView().environment(store) }.preferredColorScheme(.dark) }
@@ -104,8 +114,8 @@ struct WorkoutView: View {
 
 private struct WorkoutSessionCard: View {
     let session: WorkoutSession
-    private var snapshot: SessionSnapshot { SessionSnapshot(session: session) }
     var body: some View {
+        let snapshot = SessionSnapshot(session: session)
         PremiumCard {
             VStack(alignment: .leading, spacing: 14) {
                 HStack(alignment: .top) {
@@ -133,6 +143,7 @@ private struct WorkoutSessionCard: View {
                         }
                     }.padding(12).background(AppColor.background.opacity(0.5), in: RoundedRectangle(cornerRadius: 14))
                 }
+                DisclosureGroup("Exercises & sets") {
                 ForEach(session.exercises.sorted { $0.order < $1.order }, id: \.id) { entry in
                     VStack(alignment: .leading, spacing: 7) {
                         Text(entry.exerciseName).font(.subheadline.weight(.medium))
@@ -151,15 +162,8 @@ private struct WorkoutSessionCard: View {
                         }
                     }
                 }
+                }.font(.caption)
             }
-        }
-    }
-    private func setDescription(_ set: WorkoutSet, mode: TrackingMode) -> String {
-        switch mode {
-        case .reps: "\(set.reps) reps" + (set.weightKG > 0 ? " · +\(set.weightKG.formatted()) kg" : "")
-        case .weightAndReps: "\(set.weightKG.formatted()) kg × \(set.reps)"
-        case .duration: "\((set.durationSeconds / 60).formatted(.number.precision(.fractionLength(0...1)))) min"
-        case .distance: "\((set.distanceMeters / 1000).formatted()) km · \(Int(set.durationSeconds / 60)) min"
         }
     }
 }

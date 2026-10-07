@@ -3,6 +3,7 @@ import SwiftUI
 struct ProgressRing: View {
     let progress: Double
     var tint: Color = AppColor.accent
+    var gradient: LinearGradient? = nil
     var lineWidth: CGFloat = 8
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var appeared = false
@@ -10,7 +11,7 @@ struct ProgressRing: View {
         ZStack {
             Circle().stroke(tint.opacity(0.12), lineWidth: lineWidth)
             Circle().trim(from: 0, to: appeared || reduceMotion || AppMotion.snapshotMode ? FitnessMath.clamp(progress, 0...1) : 0)
-                .stroke(LinearGradient(colors: [tint.opacity(0.65), tint], startPoint: .topLeading, endPoint: .bottomTrailing),
+                .stroke(gradient ?? LinearGradient(colors: [tint.opacity(0.65), tint], startPoint: .topLeading, endPoint: .bottomTrailing),
                     style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
                 .rotationEffect(.degrees(-90))
         }.onAppear { appeared = true }
@@ -22,6 +23,7 @@ struct ProgressRing: View {
 struct LinearProgress: View {
     let progress: Double
     var tint: Color = AppColor.accent
+    var gradient: LinearGradient? = nil
     var height: CGFloat = 5
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var appeared = false
@@ -29,7 +31,7 @@ struct LinearProgress: View {
         GeometryReader { geometry in
             Capsule().fill(tint.opacity(0.12))
                 .overlay(alignment: .leading) {
-                    Capsule().fill(LinearGradient(colors: [tint.opacity(0.6), tint], startPoint: .leading, endPoint: .trailing))
+                    Capsule().fill(gradient ?? LinearGradient(colors: [tint.opacity(0.6), tint], startPoint: .leading, endPoint: .trailing))
                         .frame(width: geometry.size.width * (appeared || reduceMotion || AppMotion.snapshotMode ? FitnessMath.clamp(progress, 0...1) : 0))
                 }
         }.frame(height: height).onAppear { appeared = true }

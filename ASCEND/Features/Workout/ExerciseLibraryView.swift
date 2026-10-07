@@ -41,6 +41,8 @@ struct ExerciseLibraryView: View {
     }
     private var entries: [Exercise] { store.library(query) }
     var body: some View {
+        let entries = self.entries
+        let recommendations = self.recommendations
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 12) {
                 TextField("Find an exercise", text: $query.search).padding(14).background(AppColor.elevated, in: RoundedRectangle(cornerRadius: 14))
@@ -233,7 +235,10 @@ struct ExerciseHistoryView: View {
                             }
                         } else { LineMark(x: .value("Date", session.date), y: .value("Load", session.working.map { $0.performance.kilograms }.max() ?? 0)).foregroundStyle(tint) }
                     }
-                }.frame(height: 145)
+                }.chartYScale(domain: .automatic(includesZero: false)).frame(height: 145)
+                    .chartXAxis { AxisMarks(values: .automatic(desiredCount: 4)) }
+                    .chartYAxis { AxisMarks(position: .leading, values: .automatic(desiredCount: 4)) }
+                    .accessibilityLabel(bodyweight ? "Best recorded reps, added loads kept separate" : "Best recorded load per full session")
             }
         }
     }

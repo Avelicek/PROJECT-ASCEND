@@ -7,7 +7,7 @@ struct ContextExplanationView: View {
     let confidence: Confidence
     @State private var explanation: BrainInsight?
     @State private var expanded = false
-    private var fingerprint: String { "\(store.settings.onDeviceAIEnabled):\(confidence.rawValue):\(focus):" + facts.joined(separator: "|") }
+    private var fingerprint: String { "\(store.brainArchive.settings.enabled):\(store.settings.onDeviceAIEnabled):\(confidence.rawValue):\(focus):" + facts.joined(separator: "|") }
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
@@ -17,7 +17,7 @@ struct ContextExplanationView: View {
             }
             Button { expanded.toggle() } label: {
                 Text(explanation?.summary ?? facts.prefix(2).joined(separator: " ")).font(.caption).foregroundStyle(AppColor.secondary)
-                    .lineLimit(expanded ? nil : 2).frame(maxWidth: .infinity, alignment: .leading)
+                    .lineLimit(expanded ? nil : 2).frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
             }.buttonStyle(.plain).accessibilityHint("Tap to expand the explanation")
         }.task(id: fingerprint) {
             let result = await store.explain(facts: facts, focus: focus, confidence: confidence)
