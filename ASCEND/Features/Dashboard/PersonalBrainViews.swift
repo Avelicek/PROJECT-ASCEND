@@ -159,7 +159,7 @@ struct BrainSettingsView: View {
                 Toggle("On-device interpretation", isOn: Binding(get: { store.settings.onDeviceAIEnabled }, set: { enabled in _ = store.perform { store.settings.onDeviceAIEnabled = enabled } }))
                 Text("Optional Apple on-device interpretation explains fixed engine facts. Decisions, confidence, targets and ELO always come from local rules. If unavailable, the same facts remain visible.").font(.caption).foregroundStyle(AppColor.muted)
             }.padding(20)
-        }.featureBackground().navigationTitle("Brain settings").navigationBarTitleDisplayMode(.inline)
+        }.accessibilityIdentifier("screen.brainsettings").featureBackground().navigationTitle("Brain settings").navigationBarTitleDisplayMode(.inline)
             .toolbar(.visible, for: .navigationBar)
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
     }
