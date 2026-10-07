@@ -1,6 +1,47 @@
 import XCTest
 
 final class AscendSmokeTests: XCTestCase {
+    @MainActor func testLiveWorkoutSetRestResumeAndSummary() {
+        continueAfterFailure = false
+        let app = AscendUITestSupport.launchDemo()
+        AscendUITestSupport.navigate("workout", in: app)
+        let start = app.buttons["workout.start"]
+        XCTAssertTrue(start.waitForExistence(timeout: 10)); start.tap()
+        let add = app.buttons["live.add.exercise"]
+        XCTAssertTrue(add.waitForExistence(timeout: 10)); add.tap()
+        let bench = app.buttons["live.choose.bench_press"]
+        XCTAssertTrue(bench.waitForExistence(timeout: 10)); bench.tap()
+        let screen = app.scrollViews["screen.liveworkout"]
+        let kg = app.textFields["live.set.kg"].firstMatch
+        for _ in 0..<6 { if kg.isHittable { break }; screen.swipeUp() }
+        XCTAssertTrue(kg.isHittable)
+        kg.tap()
+        let old = kg.value as? String ?? ""
+        kg.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: old.count) + "55")
+        let complete = app.buttons["live.set.complete"].firstMatch
+        for _ in 0..<6 { if complete.isHittable { break }; screen.swipeUp() }
+        XCTAssertTrue(complete.isHittable); complete.tap()
+        let pause = app.buttons["live.rest.pause"]
+        XCTAssertTrue(pause.waitForExistence(timeout: 10)); pause.tap()
+        XCTAssertEqual(pause.label, "Resume")
+        app.buttons["live.minimize"].tap()
+        AscendUITestSupport.navigate("dashboard", in: app)
+        AscendUITestSupport.navigate("workout", in: app)
+        app.buttons["workout.start"].tap()
+        XCTAssertTrue(app.buttons["live.rest.pause"].waitForExistence(timeout: 10))
+        XCTAssertEqual(app.buttons["live.rest.pause"].label, "Resume")
+        app.buttons["live.rest.skip"].tap()
+        XCTAssertEqual(app.staticTexts["live.rest.state"].label, "Ready")
+        app.buttons["live.finish"].tap()
+        let confirm = app.buttons.matching(NSPredicate(format: "label == %@ AND identifier != %@", "Finish workout", "live.finish")).firstMatch
+        XCTAssertTrue(confirm.waitForExistence(timeout: 10)); confirm.tap()
+        XCTAssertTrue(app.scrollViews["screen.workoutsummary"].waitForExistence(timeout: 10))
+        let done = app.buttons["live.summary.done"]
+        for _ in 0..<6 { if done.isHittable { break }; app.scrollViews["screen.workoutsummary"].swipeUp() }
+        XCTAssertTrue(done.isHittable); done.tap()
+        XCTAssertTrue(app.scrollViews["screen.workout"].waitForExistence(timeout: 10))
+        app.terminate()
+    }
     @MainActor func testDemoLaunchAndAllFiveDestinations() {
         continueAfterFailure = false
         let app = AscendUITestSupport.launchDemo()

@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct BodyMapView: View {
+    @Environment(AppStore.self) private var store
     let report: ReadinessReport
     @State private var presentation = AnatomyPresentation()
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -79,6 +80,11 @@ struct BodyMapView: View {
                     PillStatus(title: "\((selection.confidence?.rawValue ?? "low").uppercased()) CONFIDENCE", tint: AppColor.muted)
                 }
                 if let limiting = selection.limitingMuscle { Text("Limiting · \(limiting)").font(.caption2).foregroundStyle(AppColor.muted) }
+                HStack {
+                    StatBlock(title: "Last trained", value: selection.lastTrainedAt.map { elapsed($0) } ?? "—")
+                    StatBlock(title: "Est. ready", value: readyEstimate, tint: AppColor.blue)
+                }
+                ContextExplanationView(focus: "Recovery explained", facts: [recoveryExplanation], confidence: selection.confidence ?? .low)
             } else {
                 Text("Log training to reveal recovery, load and fatigue.").font(.caption).foregroundStyle(AppColor.muted)
             }
@@ -88,5 +94,22 @@ struct BodyMapView: View {
     }
     private func change(_ update: () -> Void) {
         withAnimation(reduceMotion || AppMotion.snapshotMode ? nil : AppAnimation.interaction, update)
+    }
+    private func elapsed(_ date: Date) -> String {
+        let hours = max(0, Int(store.now.timeIntervalSince(date) / 3600))
+        return hours < 1 ? "Under 1h ago" : hours < 48 ? "\(hours)h ago" : "\(hours / 24)d ago"
+    }
+    private var readyEstimate: String {
+        guard let ready = selection.estimatedReadyAt else { return "Unlogged" }
+        if ready <= store.now { return "Model ready" }
+        guard selection.confidence != .low else { return "Low confidence" }
+        let day = store.policy.sameDay(ready, store.now) ? "Today" : store.policy.sameDay(ready, store.policy.adding(days: 1, to: store.now)) ? "Tomorrow" : ready.formatted(.dateTime.weekday(.abbreviated))
+        let hour = store.policy.calendar.component(.hour, from: ready)
+        let phase = hour < 6 ? "overnight" : hour < 12 ? "morning" : hour < 18 ? "afternoon" : "evening"
+        return "\(day) \(phase)"
+    }
+    private var recoveryExplanation: String {
+        if selection.confidence == .low { return "Training load is estimated from completed working sets and effort. Recovery inputs or training history are limited; avoid treating this estimate as a precise deadline." }
+        return selection.phase == .ready ? "Logged load has decayed below the model's readiness threshold. Sleep, fuel and training history support this estimate; use your own condition before training." : "Recent working sets and effort still contribute fatigue. Logged sleep, sleep quality and fuel adjust its estimated decay; the ready window is approximate."
     }
 }

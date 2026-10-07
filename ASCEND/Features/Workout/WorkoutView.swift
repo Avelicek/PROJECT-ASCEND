@@ -2,6 +2,7 @@ import SwiftUI
 
 struct WorkoutView: View {
     @Environment(AppStore.self) private var store
+    @State private var showRecords = false
     private var sets: Int { store.sessions.reduce(0) { $0 + $1.exercises.reduce(0) { $0 + $1.sets.count } } }
     var body: some View {
         ScrollView {
@@ -26,7 +27,13 @@ struct WorkoutView: View {
                             GlanceMetric(title: "Sets logged", value: "\(sets)", symbol: "square.stack", tint: AppColor.accent),
                             GlanceMetric(title: "Records", value: "\(store.records.count)", symbol: "trophy", tint: AppColor.warning)
                         ])
-                        PrimaryAction(title: "Log a workout", symbol: "plus") { store.presentedSheet = .workout }
+                        PrimaryAction(title: store.activeWorkout == nil ? "Start workout" : "Resume workout", symbol: "play.fill") { store.startLiveWorkout() }
+                            .accessibilityIdentifier("workout.start")
+                        HStack {
+                            Button("Log previous workout") { store.presentedSheet = .workout }
+                            Spacer()
+                            Button("PR history") { showRecords = true }
+                        }.font(.caption).frame(minHeight: 44)
                     }
                 }
                 SectionHeader(title: "Recent sessions", detail: "\(store.sessions.count) total")
@@ -36,6 +43,7 @@ struct WorkoutView: View {
                 ForEach(store.sessions.prefix(20), id: \.id) { session in WorkoutSessionCard(session: session) }
             }.padding(.horizontal, AppSpacing.page).padding(.bottom, AppSpacing.lg)
         }.accessibilityIdentifier("screen.workout").featureBackground()
+            .sheet(isPresented: $showRecords) { NavigationStack { RecordHistoryView().environment(store) }.preferredColorScheme(.dark) }
     }
 }
 

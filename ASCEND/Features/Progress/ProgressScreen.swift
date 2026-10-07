@@ -5,6 +5,7 @@ struct ProgressScreen: View {
     @Environment(AppStore.self) private var store
     @State private var window: EvaluationWindow = .week
     @State private var showELO = false
+    @State private var showRecap = false
     private var report: ProgressReport { store.report(window: window) }
     var body: some View {
         ScrollView {
@@ -14,6 +15,17 @@ struct ProgressScreen: View {
                     Text("Day").tag(EvaluationWindow.day); Text("Week").tag(EvaluationWindow.week); Text("Month").tag(EvaluationWindow.month)
                 }.pickerStyle(.segmented).padding(5).background(AppColor.surface, in: RoundedRectangle(cornerRadius: 13))
                 weeklySummary
+                Button { showRecap = true } label: {
+                    PremiumCard(accented: true) {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 7) {
+                                Eyebrow(text: "WEEKLY RECAP")
+                                Text("\(store.weeklyRecap.eloDelta.formatted(.number.sign(strategy: .always()))) ELO · \(store.weeklyRecap.workouts) workouts").font(.headline)
+                            }
+                            Spacer(); Image(systemName: "arrow.up.right").foregroundStyle(AppColor.blue)
+                        }
+                    }
+                }.buttonStyle(PremiumPressStyle())
                 goalCard
                 momentumCard
                 weightCard
@@ -53,6 +65,7 @@ struct ProgressScreen: View {
             }.padding(.horizontal, AppSpacing.page).padding(.bottom, AppSpacing.lg)
         }.accessibilityIdentifier("screen.progress").featureBackground()
             .sheet(isPresented: $showELO) { NavigationStack { ScoreBreakdownView().environment(store) }.preferredColorScheme(.dark) }
+            .sheet(isPresented: $showRecap) { NavigationStack { WeeklyRecapView().environment(store) }.preferredColorScheme(.dark) }
     }
     private var weeklySummary: some View {
         VStack(alignment: .leading, spacing: 10) {

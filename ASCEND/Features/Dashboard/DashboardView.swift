@@ -6,6 +6,9 @@ struct DashboardView: View {
     @Environment(\.dynamicTypeSize) private var typeSize
     @State private var appeared = false
     @State private var showScore = false
+    @State private var showDaily = false
+    @State private var showLatestResult = false
+    @State private var keptObjectives: Set<String> = []
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: AppSpacing.lg) {
@@ -13,6 +16,7 @@ struct DashboardView: View {
                 RankHeroView(showScore: $showScore)
                 quickMetrics
                 readinessAndMomentum
+                DailyCommandCard { showLatestResult = false; showDaily = true }
                 objectives
                 DashboardNutritionView()
                 DashboardInsightView()
@@ -21,6 +25,10 @@ struct DashboardView: View {
         }.accessibilityIdentifier("screen.dashboard").featureBackground().scrollIndicators(.hidden)
             .onAppear { withAnimation(reduceMotion || AppMotion.snapshotMode ? nil : AppAnimation.reveal) { appeared = true } }
             .sheet(isPresented: $showScore) { NavigationStack { ScoreBreakdownView().environment(store) }.preferredColorScheme(.dark) }
+            .sheet(isPresented: $showDaily, onDismiss: { store.acknowledgeEvaluation() }) {
+                NavigationStack { DailyEvaluationView(preferFinalized: showLatestResult).environment(store) }.preferredColorScheme(.dark)
+            }
+            .onChange(of: store.unseenEvaluation, initial: true) { _, unseen in if unseen { showLatestResult = true; showDaily = true } }
     }
     private var header: some View {
         HStack {
@@ -90,9 +98,22 @@ struct DashboardView: View {
                         switch ObjectiveKind(rawValue: occurrence.kindRaw) {
                         case .calories, .protein: store.presentedSheet = .nutrition
                         case .bodyWeight: store.presentedSheet = .weight
-                        case .workout, .exercise: store.presentedSheet = .workout
+                        case .workout, .exercise: store.startLiveWorkout()
                         default:
                             if store.toggleObjective(occurrence) { AppHaptics.success(enabled: store.settings.hapticsEnabled) }
+                        }
+                    }
+                    if !keptObjectives.contains(occurrence.occurrenceKey), let alternative = store.recoveryAlternative(for: occurrence) {
+                        PremiumCard {
+                            VStack(alignment: .leading, spacing: 10) {
+                                Eyebrow(text: "RECOVERY ALTERNATIVE")
+                                Text("\(alternative.0) · \(Int(alternative.1.rounded()))% estimated recovery").font(.subheadline.weight(.medium))
+                                HStack {
+                                    Button("Recovery day") { if store.chooseRecoveryAlternative(occurrence) { AppHaptics.success(enabled: store.settings.hapticsEnabled) } }
+                                    Spacer()
+                                    Button("Keep objective") { keptObjectives.insert(occurrence.occurrenceKey) }
+                                }.font(.caption.weight(.semibold)).frame(minHeight: 44)
+                            }
                         }
                     }
                 }

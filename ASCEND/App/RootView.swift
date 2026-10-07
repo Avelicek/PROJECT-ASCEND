@@ -25,6 +25,9 @@ struct RootView: View {
             NavigationStack { ProfileView() }.tag(AppDestination.profile).toolbar(.hidden, for: .tabBar)
         }.safeAreaInset(edge: .bottom, spacing: 0) { tabBar }
             .background(AppColor.background)
+            .fullScreenCover(isPresented: $store.liveWorkoutPresented) {
+                LiveWorkoutView().environment(store).preferredColorScheme(.dark).tint(AppColor.accent)
+            }
             .sheet(item: $store.presentedSheet) { route in
                 NavigationStack {
                     switch route {

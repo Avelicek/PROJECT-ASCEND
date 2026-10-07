@@ -85,3 +85,9 @@ import SwiftData
         self.value = value; self.achievedAt = achievedAt; self.sessionID = sessionID
     }
 }
+
+// Derived properties keep the existing SwiftData schema unchanged.
+extension WorkoutSession {
+    var evaluationDate: Date { completedAt ?? startedAt }
+    var hasWorkingSets: Bool { completedAt != nil && exercises.contains { $0.sets.contains { !$0.isWarmup } } }
+}

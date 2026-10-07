@@ -50,7 +50,7 @@ public struct WorkoutEngine: Sendable {
     }
     public func load(sets: [SetPerformance], mode: TrackingMode, quick: Bool) -> Double {
         switch mode {
-        case .reps: return min(10, Double(sets.map(\.reps).reduce(0, +)) / 15)
+        case .reps: return quick ? min(10, Double(sets.map(\.reps).reduce(0, +)) / 15) : Double(sets.filter { $0.reps > 0 }.count)
         case .weightAndReps: return Double(sets.filter { $0.reps > 0 }.count)
         case .duration, .distance: return min(10, sets.map(\.seconds).reduce(0, +) / 600)
         }

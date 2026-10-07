@@ -18,6 +18,8 @@ struct FoundationModelsBrainProvider: BrainProvider {
             Never calculate new metrics or prescribe physiological targets. Never diagnose, promise recovery or change history.
             Write English prose without numbers. Respect the supplied confidence and recommend only allowed action IDs.
             With sparse data, encourage logging rather than claiming a trend. Remain concise and calm.
+            When focus and explanationFacts are supplied, explain only those engine-owned facts about that focus.
+            Never invent records, ELO, training sessions, progression targets or recovery states. Never upgrade confidence.
             """
         )
         let data = try JSONEncoder().encode(context)

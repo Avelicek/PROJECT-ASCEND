@@ -168,15 +168,19 @@ extension AppStore {
                 loggedExercise.sets.append(set); set.workoutExercise = loggedExercise
             }
             context.insert(session)
-            let priorSessions = sessions.filter { $0.startedAt < date }.flatMap(\.exercises).filter { $0.exercise?.catalogID == exercise.catalogID }
-            let priorCandidates = priorSessions.flatMap { WorkoutEngine().recordCandidates($0.sets.filter { !$0.isWarmup }.map(\.performance)) }
-            var previous: [RecordKind: Double] = [:]
-            for record in priorCandidates { previous[record.kind] = max(previous[record.kind, default: 0], record.value) }
-            // First performance establishes the baseline. A PR requires an earlier comparable session.
-            if !priorSessions.isEmpty {
-                for record in WorkoutEngine().newRecords(sets: sets, previous: previous) {
-                    context.insert(PersonalRecord(exerciseCatalogID: exercise.catalogID, kind: record.kind, value: record.value,
-                        achievedAt: date, sessionID: session.id))
+            if !quick {
+                let liveSets = sets.map { performance -> LiveSet in
+                    var set = LiveSet(); set.reps = performance.reps; set.kilograms = performance.kilograms
+                    set.seconds = performance.seconds; set.distanceMeters = performance.distanceMeters
+                    set.rpe = exertion; set.completedAt = date; return set
+                }
+                let live = LiveExercise(catalogID: exercise.catalogID, name: exercise.name, mode: exercise.trackingMode,
+                    bodyweight: exercise.bodyweightCapable, addedWeight: exercise.additionalWeightAllowed,
+                    contributions: exercise.contributions, sets: liveSets)
+                for improvement in PersonalRecordEngine().detect(exercise: live, history: exerciseHistory, at: date) {
+                    let record = PersonalRecord(exerciseCatalogID: exercise.catalogID, kind: improvement.kind,
+                        value: improvement.value, achievedAt: date, sessionID: session.id)
+                    record.kindRaw = improvement.storageKey; context.insert(record)
                 }
             }
         }

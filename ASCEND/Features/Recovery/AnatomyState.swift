@@ -27,7 +27,8 @@ enum BodyRegion: String, CaseIterable, Identifiable, Sendable {
         return RegionVisualization(region: self, percent: percent, confidence: confidence,
             load: logged.isEmpty ? nil : logged.reduce(0) { $0 + max(0, $1.load.isFinite ? $1.load : 0) },
             fatigue: logged.isEmpty ? nil : logged.map { max(0, $0.fatigue.isFinite ? $0.fatigue : 0) }.max(),
-            loggedMuscles: logged.count, totalMuscles: muscles.count, limitingMuscle: weakest?.muscle.title)
+            loggedMuscles: logged.count, totalMuscles: muscles.count, limitingMuscle: weakest?.muscle.title,
+            lastTrainedAt: logged.compactMap(\.lastTrainedAt).max(), estimatedReadyAt: logged.compactMap(\.estimatedRecoveryTime).max())
     }
 }
 
@@ -56,6 +57,8 @@ struct RegionVisualization: Identifiable, Sendable {
     let loggedMuscles: Int
     let totalMuscles: Int
     let limitingMuscle: String?
+    let lastTrainedAt: Date?
+    let estimatedReadyAt: Date?
     var id: String { region.id }
     var phase: RegionPhase {
         guard let percent else { return .unknown }

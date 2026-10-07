@@ -23,11 +23,14 @@ public struct BrainContext: Codable, Sendable {
     public let confidence: Confidence
     public let observedWeightDays: Int
     public let allowedActions: [RecommendedAction]
+    public let explanationFacts: [String]
+    public let focus: String?
     public init(trendWeight: Double?, momentum: Double?, readiness: Double?, calories: Double?, protein: Double?,
-                confidence: Confidence, observedWeightDays: Int, allowedActions: [RecommendedAction]) {
+                confidence: Confidence, observedWeightDays: Int, allowedActions: [RecommendedAction], explanationFacts: [String] = [], focus: String? = nil) {
         self.trendWeight = trendWeight; self.momentum = momentum; self.readiness = readiness
         self.calories = calories; self.protein = protein; self.confidence = confidence
         self.observedWeightDays = observedWeightDays; self.allowedActions = allowedActions
+        self.explanationFacts = explanationFacts; self.focus = focus
     }
 }
 public struct BrainRecommendation: Codable, Sendable, Identifiable {
@@ -52,6 +55,10 @@ public protocol BrainProvider: Sendable { func analyze(_ context: BrainContext) 
 public struct DeterministicBrainProvider: BrainProvider {
     public init() {}
     public func insight(_ context: BrainContext) -> BrainInsight {
+        if let focus = context.focus, !context.explanationFacts.isEmpty {
+            return BrainInsight(headline: focus, summary: context.explanationFacts.prefix(2).joined(separator: " "),
+                confidence: context.confidence, recommendations: [], source: .deterministic)
+        }
         let headline: String
         let summary: String
         let action: RecommendedAction

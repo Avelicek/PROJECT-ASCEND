@@ -32,6 +32,11 @@ enum InputError: LocalizedError {
     var personalModel: PersonalModel
     var insight: BrainInsight
     var projectedScore: ELOResult = ELOEngine().evaluate(.init(), previousELO: 0)
+    var activeWorkout: LiveWorkout?
+    var liveWorkoutPresented = false
+    var completedWorkout: CompletedWorkoutSummary?
+    @ObservationIgnored let workoutStorage: WorkoutDraftStorage?
+    @ObservationIgnored let localPreferences: UserDefaults?
     @ObservationIgnored private let currentDate: () -> Date
     @ObservationIgnored private var analysisTask: Task<Void, Never>?
     @ObservationIgnored private var lastAnalyzedContext: Data?
@@ -45,7 +50,7 @@ enum InputError: LocalizedError {
     var rank: RankStatus { RankEngine().status(elo: currentELO) }
     var lifetimeLevel: Int { ELOEngine().lifetimeLevel(credits: profile.lifetimeCredits) }
 
-    init(container: ModelContainer, demo: Bool = false, now: Date = .now, clock: @escaping () -> Date = { .now }) throws {
+    init(container: ModelContainer, demo: Bool = false, now: Date = .now, clock: @escaping () -> Date = { .now }, workoutStorage: WorkoutDraftStorage? = nil) throws {
         let modelContext = ModelContext(container)
         modelContext.autosaveEnabled = false
         if demo {
@@ -61,6 +66,9 @@ enum InputError: LocalizedError {
         let dayPolicy = DayPolicy(timeZoneIdentifier: preferences.timeZoneIdentifier)
         self.container = container; self.context = modelContext; self.isDemo = demo; self.now = now; self.currentDate = clock
         self.profile = owner; self.settings = preferences
+        let memoryOnly = container.configurations.allSatisfy { $0.isStoredInMemoryOnly }
+        self.workoutStorage = try workoutStorage ?? (memoryOnly ? nil : WorkoutDraftStorage.production())
+        self.localPreferences = memoryOnly ? nil : UserDefaults.standard
         self.progress = ProgressEngine().report(samples: [], start: nil, target: nil, desiredWeeklyChange: 0.25, now: now, policy: dayPolicy)
         self.readiness = RecoveryEngine().evaluate(loads: [], context: .init(), now: now)
         self.personalModel = PersonalModel(weights: [], nutrition: [], sleep: [], workoutDates: [], now: now, policy: dayPolicy)
@@ -68,6 +76,9 @@ enum InputError: LocalizedError {
             protein: nil, confidence: .low, observedWeightDays: 0, allowedActions: RecommendedAction.allCases))
         try ExerciseCatalog.seed(in: modelContext)
         try refresh(at: now)
+        do {
+            if let restored = try self.workoutStorage?.read(), !sessions.contains(where: { $0.id == restored.id }) { activeWorkout = restored }
+        } catch { errorMessage = "Unfinished workout file preserved: \(error.localizedDescription)" }
     }
 
     func refresh(at date: Date = .now) throws {
@@ -86,6 +97,7 @@ enum InputError: LocalizedError {
     func refreshSafely() {
         do { try refresh(at: currentDate()) } catch { recover(from: error) }
     }
+    func actionDate() -> Date { currentDate() }
 
     func perform(_ change: () throws -> Void) -> Bool {
         do { now = currentDate(); try refresh(at: now); try change(); try refresh(at: now); return true }
@@ -127,14 +139,14 @@ enum InputError: LocalizedError {
         for occurrence in todayObjectives where !occurrence.recoveryExempt {
             let kind = ObjectiveKind(rawValue: occurrence.kindRaw) ?? .custom
             if kind == .exercise, let id = occurrence.objective?.exerciseCatalogID {
-                occurrence.value = sessions.filter { policy.sameDay($0.startedAt, now) && $0.completedAt != nil }
+                occurrence.value = sessions.filter { policy.sameDay($0.evaluationDate, now) && $0.hasWorkingSets }
                     .flatMap(\.exercises).filter { $0.exercise?.catalogID == id }.flatMap(\.sets)
                     .filter { !$0.isWarmup }.reduce(0) { $0 + Double($1.reps) }
             } else {
                 occurrence.value = ObjectiveEngine().value(kind: kind, manual: occurrence.value,
                     calories: todayNutrition?.calories, protein: todayNutrition?.proteinGrams,
                     weighed: weights.contains { policy.sameDay($0.measuredAt, now) },
-                    workedOut: sessions.contains { policy.sameDay($0.startedAt, now) && $0.completedAt != nil })
+                    workedOut: sessions.contains { policy.sameDay($0.evaluationDate, now) && $0.hasWorkingSets })
             }
             occurrence.completedAt = occurrence.value >= occurrence.target ? occurrence.completedAt ?? now : nil
         }
@@ -147,7 +159,7 @@ enum InputError: LocalizedError {
         progress = ProgressEngine().report(samples: weightSamples, start: profile.startingWeightKG, target: profile.targetWeightKG,
             desiredWeeklyChange: profile.desiredWeeklyChangeKG, now: now, policy: policy)
         personalModel = PersonalModel(weights: weightSamples, nutrition: nutritionSamples, sleep: sleepSamples,
-            workoutDates: sessions.filter { $0.completedAt != nil }.map(\.startedAt), now: now, policy: policy)
+            workoutDates: sessions.filter { $0.hasWorkingSets }.map(\.evaluationDate), now: now, policy: policy)
         let recentStart = policy.adding(days: -2, to: policy.start(of: now))
         let recentNutrition = nutrition.filter { $0.date >= recentStart && $0.date <= now }
         let recentSleep = sleep.last { $0.date <= now && $0.date >= policy.adding(days: -1, to: policy.start(of: now)) }
@@ -156,12 +168,13 @@ enum InputError: LocalizedError {
             calorieAdherence: FitnessMath.average(recentNutrition.map { $0.calories / max(1, $0.calorieGoal) }),
             proteinAdherence: FitnessMath.average(recentNutrition.map { $0.proteinGrams / max(1, $0.proteinGoal) }),
             tolerance: personalModel.recoveryTolerance,
-            historyDays: personalModel.windows.last?.trainingDays ?? 0)
+            historyDays: sessions.filter { $0.hasWorkingSets }.last.map { max(0, Int(now.timeIntervalSince($0.startedAt) / 86400)) } ?? 0,
+            trainingSessions: sessions.filter { $0.hasWorkingSets }.count)
         let loads = sessions.filter { $0.completedAt != nil }.flatMap { session in
             session.exercises.map { exercise in
                 let sets = exercise.sets.filter { !$0.isWarmup }
                 let exertion = FitnessMath.average(sets.compactMap(\.perceivedExertion)) ?? 7
-                return TrainingLoad(date: session.startedAt, contributions: exercise.contributions,
+                return TrainingLoad(date: session.evaluationDate, contributions: exercise.contributions,
                     challengingSets: WorkoutEngine().load(sets: sets.map(\.performance), mode: exercise.trackingMode, quick: session.isQuickLog),
                     intensity: exertion / 8)
             }
@@ -184,7 +197,7 @@ enum InputError: LocalizedError {
         BrainContext(trendWeight: progress.trendWeight, momentum: progress.momentumPercent, readiness: readiness.percent,
             calories: todayNutrition?.calories, protein: todayNutrition?.proteinGrams, confidence: progress.confidence,
             observedWeightDays: personalModel.windows.first(where: { $0.days == 28 })?.observedWeightDays ?? 0,
-            allowedActions: RecommendedAction.allCases)
+            allowedActions: RecommendedAction.allCases, explanationFacts: dailyResult.explanation + [weeklyExplanation])
     }
     private static func encodeContext(_ value: BrainContext) -> Data? {
         let encoder = JSONEncoder(); encoder.outputFormatting = .sortedKeys
