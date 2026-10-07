@@ -15,7 +15,7 @@ struct TrainingAnalyticsView: View {
     @Environment(AppStore.self) private var store
     @Environment(\.dismiss) private var dismiss
     @State private var page: AnalyticsPage = .elo
-    @State private var exerciseID = "bench_press"
+    @State private var exerciseID = "db_row"
     private var candidates: [Exercise] { store.exercises.filter { $0.trackingMode == .weightAndReps && !$0.bodyweightCapable } }
     private var points: [TrainingChartPoint] {
         let recent = store.sessions.filter { $0.hasWorkingSets && !$0.isQuickLog && $0.evaluationDate <= store.now }.prefix(60)
@@ -116,11 +116,11 @@ struct TrainingAnalyticsView: View {
                     Circle().fill(AppColor.gold).frame(width: 6, height: 6)
                     VStack(alignment: .leading, spacing: 5) {
                         Text(store.exercises.first { $0.catalogID == record.exerciseCatalogID }?.name ?? record.exerciseCatalogID).font(.subheadline).foregroundStyle(AppColor.secondary)
-                        Text(record.kindRaw.hasPrefix("reps@") ? "Reps at \(record.kindRaw.dropFirst(5)) kg" : record.kindRaw == RecordKind.estimatedOneRepMax.rawValue ? "Estimated 1RM" : record.kindRaw.capitalized).font(.caption2).foregroundStyle(AppColor.muted)
+                        Text(RecordPresentation.title(record.kindRaw, bodyweight: store.exercises.first { $0.catalogID == record.exerciseCatalogID }?.bodyweightCapable ?? false)).font(.caption2).foregroundStyle(AppColor.muted)
                     }
                     Spacer()
                     VStack(alignment: .trailing, spacing: 5) {
-                        Text(record.value.formatted(.number.precision(.fractionLength(0...1)))).font(.headline).foregroundStyle(AppColor.gold)
+                        Text("\(record.value.formatted(.number.precision(.fractionLength(0...1)))) \(RecordPresentation.unit(record.kindRaw))").font(.headline).foregroundStyle(AppColor.gold)
                         Text(record.achievedAt.formatted(date: .abbreviated, time: .omitted)).font(.caption2).foregroundStyle(AppColor.muted)
                     }
                 }.padding(.vertical, 10)

@@ -13,7 +13,7 @@ public enum ObjectiveKind: String, Codable, CaseIterable, Hashable, Sendable {
 public enum TrackingMode: String, Codable, CaseIterable, Hashable, Sendable { case reps, weightAndReps, duration, distance }
 public enum ExerciseCategory: String, Codable, Sendable { case strength, bodyweight, cardio, mobility }
 public enum Equipment: String, Codable, Sendable { case none, barbell, dumbbell, cable, machine, kettlebell, band }
-public enum RecordKind: String, Codable, CaseIterable, Hashable, Sendable { case weight, reps, volume, estimatedOneRepMax }
+public enum RecordKind: String, Codable, CaseIterable, Hashable, Sendable { case weight, reps, volume, estimatedOneRepMax, totalReps, addedWeightPerformance }
 
 public struct DayPolicy: Sendable {
     public let timeZoneIdentifier: String

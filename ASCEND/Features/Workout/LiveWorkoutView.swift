@@ -1,4 +1,4 @@
-import SwiftUI
+﻿import SwiftUI
 
 struct LiveWorkoutView: View {
     @Environment(AppStore.self) private var store
@@ -7,6 +7,8 @@ struct LiveWorkoutView: View {
     @State private var discarding = false
     @State private var removing = false
     @State private var finishing = false
+    @State private var replacing = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @FocusState private var inputFocused: Bool
     @FocusState private var setFocus: LiveSetFocus?
     private var selected: LiveExercise? {
@@ -19,15 +21,23 @@ struct LiveWorkoutView: View {
             else if let draft = store.activeWorkout { training(draft) }
             else { Text("No active workout").task { dismiss() } }
         }.preferredColorScheme(.dark).tint(AppColor.blue).background(AppColor.background)
+            .onChange(of: store.activeWorkout?.selectedExerciseID) { _, _ in setFocus = nil; inputFocused = false }
             .interactiveDismissDisabled().toolbar(.hidden, for: .navigationBar)
-            .toolbar {
-                ToolbarItemGroup(placement: .keyboard) {
-                    if let keyboardTarget = setFocus, let selected {
-                        LiveWorkoutKeyboard(exercise: selected, target: keyboardTarget, focus: $setFocus)
-                    } else if inputFocused { Button("Done") { inputFocused = false } }
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                if let keyboardTarget = setFocus, let selected {
+                    LiveWorkoutKeyboard(exercise: selected, target: keyboardTarget, focus: $setFocus)
+                        .padding(.horizontal, 18).frame(minHeight: 48).background(.regularMaterial)
+                } else if inputFocused {
+                    HStack { Spacer(); Button("Done") { inputFocused = false }.frame(minHeight: 48) }.padding(.horizontal, 18).background(.regularMaterial)
                 }
             }
-            .sheet(isPresented: $choosing) { LiveExercisePicker().environment(store) }
+            .sheet(isPresented: $choosing) { NavigationStack { ExerciseLibraryView(onSelect: { exercise in
+                store.addLiveExercise(exercise)
+                if let id = store.activeWorkout?.exercises.last?.id { _ = store.updateWorkout { $0?.selectedExerciseID = id } }
+            }).environment(store) }.preferredColorScheme(.dark) }
+            .sheet(isPresented: $replacing) {
+                if let selected { NavigationStack { ExerciseLibraryView(onSelect: { exercise in _ = store.replaceLiveExercise(selected.id, with: exercise) }, replacing: selected.catalogID).environment(store) }.preferredColorScheme(.dark) }
+            }
             .confirmationDialog("Discard this workout? Completed history will be preserved.", isPresented: $discarding, titleVisibility: .visible) {
                 Button("Discard workout", role: .destructive) { store.discardLiveWorkout() }
                 Button("Keep training", role: .cancel) {}
@@ -70,13 +80,15 @@ struct LiveWorkoutView: View {
                             }
                         }
                         if let selected {
-                            LiveExerciseCard(exercise: selected, focus: $setFocus)
+                            LiveExerciseCard(exercise: selected, focus: $setFocus).id(selected.id)
+                                .transition(.opacity).animation(reduceMotion || AppMotion.snapshotMode ? nil : AppAnimation.micro, value: draft.selectedExerciseID)
                             HStack {
                                 Button("Earlier", systemImage: "arrow.left") { move(selected.id, by: -1) }
                                     .disabled(draft.exercises.first?.id == selected.id)
                                 Button("Later", systemImage: "arrow.right") { move(selected.id, by: 1) }
                                     .disabled(draft.exercises.last?.id == selected.id)
                                 Spacer()
+                                Button("Replace") { setFocus = nil; replacing = true }.disabled(selected.sets.contains { $0.completedAt != nil }).accessibilityIdentifier("live.replace")
                                 Button("Remove") { removing = true }.foregroundStyle(AppColor.muted)
                             }.font(.caption).frame(minHeight: 44)
                         }
@@ -105,36 +117,3 @@ struct LiveWorkoutView: View {
     }
 }
 
-private struct LiveExercisePicker: View {
-    @Environment(AppStore.self) private var store
-    @Environment(\.dismiss) private var dismiss
-    @State private var search = ""
-    var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: 10) {
-                    TextField("Find an exercise", text: $search).padding(14).background(AppColor.elevated, in: RoundedRectangle(cornerRadius: 14))
-                    ForEach(store.exercises.filter { search.isEmpty || $0.name.localizedCaseInsensitiveContains(search) }, id: \.catalogID) { exercise in
-                        Button {
-                            store.addLiveExercise(exercise)
-                            if let id = store.activeWorkout?.exercises.last?.id { _ = store.updateWorkout { $0?.selectedExerciseID = id } }
-                            dismiss()
-                        } label: {
-                            PremiumCard {
-                                HStack {
-                                    VStack(alignment: .leading, spacing: 5) {
-                                        Text(exercise.name).font(.headline)
-                                        Text(exercise.equipmentRaw.capitalized).font(.caption).foregroundStyle(AppColor.muted)
-                                    }
-                                    Spacer(); Image(systemName: "plus.circle").foregroundStyle(AppColor.blue)
-                                }
-                            }
-                        }.buttonStyle(PremiumPressStyle()).accessibilityIdentifier("live.choose.\(exercise.catalogID)")
-                            .disabled(store.activeWorkout?.exercises.contains { $0.catalogID == exercise.catalogID } ?? false)
-                    }
-                }.padding(20)
-            }.background(AppColor.background).navigationTitle("Add exercise").navigationBarTitleDisplayMode(.inline)
-                .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
-        }.preferredColorScheme(.dark)
-    }
-}

@@ -36,6 +36,8 @@ enum InputError: LocalizedError {
     var activeWorkout: LiveWorkout?
     var liveWorkoutPresented = false
     var completedWorkout: CompletedWorkoutSummary?
+    var training = PersonalTrainingState()
+    @ObservationIgnored let trainingStorage: PersonalTrainingStorage?
     @ObservationIgnored let workoutStorage: WorkoutDraftStorage?
     @ObservationIgnored let localPreferences: UserDefaults?
     @ObservationIgnored private let currentDate: () -> Date
@@ -51,7 +53,7 @@ enum InputError: LocalizedError {
     var rank: RankStatus { RankEngine().status(elo: currentELO) }
     var lifetimeLevel: Int { ELOEngine().lifetimeLevel(credits: profile.lifetimeCredits) }
 
-    init(container: ModelContainer, demo: Bool = false, now: Date = .now, clock: @escaping () -> Date = { .now }, workoutStorage: WorkoutDraftStorage? = nil) throws {
+    init(container: ModelContainer, demo: Bool = false, now: Date = .now, clock: @escaping () -> Date = { .now }, workoutStorage: WorkoutDraftStorage? = nil, trainingStorage: PersonalTrainingStorage? = nil) throws {
         let modelContext = ModelContext(container)
         modelContext.autosaveEnabled = false
         if demo {
@@ -70,11 +72,18 @@ enum InputError: LocalizedError {
         let memoryOnly = container.configurations.allSatisfy { $0.isStoredInMemoryOnly }
         self.workoutStorage = try workoutStorage ?? (memoryOnly ? nil : WorkoutDraftStorage.production())
         self.localPreferences = memoryOnly ? nil : UserDefaults.standard
+        let personalStorage = try trainingStorage ?? (memoryOnly ? nil : PersonalTrainingStorage.production())
+        self.trainingStorage = personalStorage
+        self.training = try personalStorage?.read() ?? PersonalTrainingState()
         self.progress = ProgressEngine().report(samples: [], start: nil, target: nil, desiredWeeklyChange: 0.25, now: now, policy: dayPolicy)
         self.readiness = RecoveryEngine().evaluate(loads: [], context: .init(), now: now)
         self.personalModel = PersonalModel(weights: [], nutrition: [], sleep: [], workoutDates: [], now: now, policy: dayPolicy)
         self.insight = DeterministicBrainProvider().insight(.init(trendWeight: nil, momentum: nil, readiness: nil, calories: nil,
             protein: nil, confidence: .low, observedWeightDays: 0, allowedActions: RecommendedAction.allCases))
+        if demo {
+            self.training.profile.equipment = [.bodyweight, .dumbbells, .pullUpBar, .latPulldown, .chestPress]
+            self.training.favorites = ["db_row", "lat_pulldown", "push_up", "chest_press"]
+        }
         try ExerciseCatalog.seed(in: modelContext)
         try refresh(at: now)
         do {

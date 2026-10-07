@@ -16,7 +16,7 @@ final class AscendScreenshotTests: XCTestCase {
             }
         }
         app.terminate()
-        for (argument, name, screen) in [("--capture-live", "06_live_workout", "screen.liveworkout"), ("--capture-summary", "07_workout_summary", "screen.workoutsummary"), ("--capture-daily", "08_daily_evaluation", "screen.dailyevaluation")] {
+        for (argument, name, screen) in [("--capture-live", "06_live_workout", "screen.liveworkout"), ("--capture-summary", "07_workout_summary", "screen.workoutsummary"), ("--capture-daily", "08_daily_evaluation", "screen.dailyevaluation"), ("--capture-library", "09_exercise_library", "screen.exerciselibrary"), ("--capture-routine", "10_routine", "screen.routine"), ("--capture-history", "11_exercise_history", "screen.exercisehistory")] {
             let capture = XCUIApplication()
             capture.launchArguments = ["--demo", "--ui-testing", argument]
             capture.launch()

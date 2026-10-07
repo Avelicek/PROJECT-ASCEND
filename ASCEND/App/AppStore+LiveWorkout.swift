@@ -29,15 +29,9 @@ extension AppStore {
         }
     }
     func addLiveExercise(_ exercise: Exercise) {
-        guard let activeWorkout, activeWorkout.exercises.count < 40,
+        guard let activeWorkout, missingEquipment(exercise.catalogID).isEmpty, activeWorkout.exercises.count < 40,
               !activeWorkout.exercises.contains(where: { $0.catalogID == exercise.catalogID }) else { return }
-        var entry = LiveExercise(catalogID: exercise.catalogID, name: exercise.name, mode: exercise.trackingMode,
-            bodyweight: exercise.bodyweightCapable, addedWeight: exercise.additionalWeightAllowed,
-            weightStep: exercise.equipmentRaw == Equipment.dumbbell.rawValue ? 1 : 2.5, contributions: exercise.contributions)
-        if let previous = ProgressionEngine().previous(exerciseHistory, exercise: entry, now: actionDate())?.working.first {
-            entry.sets[0].reps = previous.performance.reps; entry.sets[0].kilograms = previous.performance.kilograms
-            entry.sets[0].seconds = previous.performance.seconds; entry.sets[0].distanceMeters = previous.performance.distanceMeters
-        }
+        let entry = liveExercise(exercise)
         _ = updateWorkout { $0?.exercises.append(entry) }
     }
     func addLiveSet(exerciseID: UUID) {
@@ -75,10 +69,12 @@ extension AppStore {
         return activeWorkout.exercises.flatMap { PersonalRecordEngine().detect(exercise: $0, history: exerciseHistory, at: activeWorkout.startedAt) }
     }
     func preferredRest(for exerciseID: String) -> Int {
-        (localPreferences?.dictionary(forKey: "exercise-rest-v1")?[exerciseID] as? Int) ?? settings.restTimerSeconds
+        if let routineRest = activeWorkout?.exercises.first(where: { $0.catalogID == exerciseID })?.restSeconds { return routineRest }
+        return (localPreferences?.dictionary(forKey: "exercise-rest-v1")?[exerciseID] as? Int) ?? settings.restTimerSeconds
     }
     func setPreferredRest(_ seconds: Int, for exerciseID: String) {
         let duration = min(900, max(15, seconds))
+        if let id = activeWorkout?.exercises.first(where: { $0.catalogID == exerciseID })?.id { changeLiveExercise(id) { $0.restSeconds = duration } }
         if let localPreferences {
             var values = localPreferences.dictionary(forKey: "exercise-rest-v1") ?? [:]
             values[exerciseID] = duration; localPreferences.set(values, forKey: "exercise-rest-v1")

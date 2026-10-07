@@ -3,6 +3,7 @@ import SwiftUI
 struct ProfileView: View {
     @Environment(AppStore.self) private var store
     @State private var editing = false
+    @State private var trainingProfile = false
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: AppSpacing.lg) {
@@ -35,6 +36,10 @@ struct ProfileView: View {
                 }
                 PremiumCard(role: .action, tint: AppColor.bodyweight) {
                     VStack(spacing: 2) {
+                        settingsAction("My Gym · training profile", symbol: "dumbbell") { trainingProfile = true }
+                            .accessibilityIdentifier("profile.training")
+                        Text(store.training.profile.resolvedEquipment.map(\.title).sorted().joined(separator: " · ")).font(.caption2).foregroundStyle(AppColor.muted).frame(maxWidth: .infinity, alignment: .leading).padding(.bottom, 10)
+                        Rectangle().fill(AppColor.separator).frame(height: 1)
                         settingsAction("Profile & goals", symbol: "slider.horizontal.3") { editing = true }
                         Rectangle().fill(AppColor.separator).frame(height: 1)
                         settingsAction("Daily objectives", symbol: "scope") { store.presentedSheet = .objectives }
@@ -69,6 +74,7 @@ struct ProfileView: View {
             }.padding(.horizontal, AppSpacing.page).padding(.bottom, AppSpacing.lg)
         }.accessibilityIdentifier("screen.profile").featureBackground(tint: AppColor.bodyweight)
             .sheet(isPresented: $editing) { NavigationStack { ProfileEditor(store: store).environment(store) }.preferredColorScheme(.dark) }
+            .sheet(isPresented: $trainingProfile) { NavigationStack { TrainingProfileView().environment(store) }.preferredColorScheme(.dark) }
     }
     private func weight(_ value: Double?) -> String { value.map { "\($0.formatted(.number.precision(.fractionLength(1)))) kg" } ?? "—" }
     private func settingsAction(_ title: String, symbol: String, action: @escaping () -> Void) -> some View {

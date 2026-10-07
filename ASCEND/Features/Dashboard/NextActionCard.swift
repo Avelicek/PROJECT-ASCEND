@@ -30,7 +30,8 @@ struct NextActionCard: View {
     private func act() {
         AppHaptics.tap(enabled: store.settings.hapticsEnabled)
         switch next.kind {
-        case .resume, .train: store.startLiveWorkout()
+        case .resume: store.startLiveWorkout()
+        case .train: if let routine = store.nextTrainingRoutine { _ = store.startRoutine(routine) } else { store.startLiveWorkout() }
         case .recover: store.navigationRequest = .recovery
         case .fuel: store.presentedSheet = .nutrition
         case .weigh: store.presentedSheet = .weight

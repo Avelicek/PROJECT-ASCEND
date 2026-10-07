@@ -4,6 +4,7 @@ struct LiveExerciseCard: View {
     @Environment(AppStore.self) private var store
     let exercise: LiveExercise
     let focus: FocusState<LiveSetFocus?>.Binding
+    private var metadata: TrainingExercise? { store.trainingMetadata(exercise.catalogID) }
     private var previous: ExerciseHistory? { ProgressionEngine().previous(store.exerciseHistory, exercise: exercise, now: store.actionDate()) }
     private var suggestion: ProgressionSuggestion {
         let limited = store.readiness.confidence != .low && store.readiness.muscles.contains { muscle in
@@ -13,9 +14,23 @@ struct LiveExerciseCard: View {
     }
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
+            HStack { Text(metadata?.required.map(\.title).sorted().joined(separator: " · ") ?? "Personal exercise").font(.caption2).foregroundStyle(ExerciseIdentity.tint(metadata)); Spacer(); if !store.missingEquipment(exercise.catalogID).isEmpty { PillStatus(title: "EQUIPMENT UNAVAILABLE", tint: AppColor.warning) } }
             Text(Array(Set(exercise.contributions.filter { $0.fraction >= 0.1 }.map { $0.muscle.group })).sorted().joined(separator: " · "))
                 .font(.caption).foregroundStyle(AppColor.strength)
             comparison
+            if exercise.bodyweight && exercise.addedWeight && exercise.mode == .reps {
+                Toggle("Bodyweight + added load", isOn: Binding(get: { exercise.allowsWeight }, set: { enabled in
+                    focus.wrappedValue = nil
+                    store.changeLiveExercise(exercise.id) { entry in
+                        entry.usesAddedWeight = enabled
+                        if !enabled { for index in entry.sets.indices where entry.sets[index].completedAt == nil { entry.sets[index].kilograms = 0 } }
+                    }
+                })).font(.caption).tint(AppColor.recovery).disabled(exercise.sets.contains { $0.completedAt != nil && $0.kilograms > 0 }).accessibilityIdentifier("live.added.load")
+            }
+            if suggestion.additionalSetSuggested { Text("Three consistent sessions. Consider one extra working set if recovery permits.").font(.caption).foregroundStyle(AppColor.recovery) }
+            if let metadata, let variation = TrainingSystem().harderVariation(for: metadata, history: store.exerciseHistory, state: store.training, now: store.actionDate()) {
+                Text("Variation to consider · \(variation.name)").font(.caption).foregroundStyle(AppColor.recovery)
+            }
             if let record = store.pendingRecords.first(where: { $0.exerciseID == exercise.catalogID }) { RecordCelebration(record: record, pending: true) }
             HStack { Eyebrow(text: "WORKING SETS"); Spacer(); Text("\(exercise.completedWorkingSets.count) / \(exercise.sets.filter { !$0.isWarmup }.count)").font(.caption).foregroundStyle(AppColor.strength) }
             ForEach(Array(exercise.sets.enumerated()), id: \.element.id) { index, liveSet in
@@ -78,6 +93,7 @@ struct LiveExerciseCard: View {
             if let index = entry.sets.firstIndex(where: { $0.completedAt == nil && !$0.isWarmup }) {
                 entry.sets[index].reps = value.reps; entry.sets[index].kilograms = value.kilograms
                 entry.sets[index].seconds = value.seconds; entry.sets[index].distanceMeters = value.distanceMeters
+                    if value.kilograms > 0 && entry.bodyweight { entry.usesAddedWeight = true }
             }
         }
         AppHaptics.selection(enabled: store.settings.hapticsEnabled)
@@ -100,6 +116,7 @@ struct LiveSetFocus: Hashable {
 
 private struct LiveSetRow: View {
     @Environment(AppStore.self) private var store
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let exercise: LiveExercise
     let liveSet: LiveSet
     let number: Int
@@ -146,6 +163,7 @@ private struct LiveSetRow: View {
         }.padding(.horizontal, 12).padding(.top, 12).padding(.bottom, 2)
             .background((completed ? AppColor.positive.opacity(0.045) : AppColor.surface), in: RoundedRectangle(cornerRadius: 17))
             .overlay(alignment: .leading) { RoundedRectangle(cornerRadius: 2).fill(completed ? AppColor.positive.opacity(0.55) : AppColor.strength.opacity(0.25)).frame(width: 2).padding(.vertical, 16) }
+            .animation(reduceMotion || AppMotion.snapshotMode ? nil : AppAnimation.micro, value: completed)
     }
     private var rpeField: some View {
         VStack(spacing: 7) {

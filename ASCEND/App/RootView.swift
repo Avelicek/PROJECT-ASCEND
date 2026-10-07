@@ -12,9 +12,17 @@ enum LogDestination: String, Identifiable { case weight, nutrition, sleep, worko
 
 struct RootView: View {
     @Environment(AppStore.self) private var store
-    @State private var destination = AppDestination.dashboard
+    @State private var destination: AppDestination
     @Namespace private var tabHighlight
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    init() {
+        var initial = AppDestination.dashboard
+        #if DEBUG
+        let arguments = ProcessInfo.processInfo.arguments
+        if arguments.contains("--demo"), arguments.contains("--ui-testing"), arguments.contains(where: { ["--capture-library", "--capture-routine", "--capture-history"].contains($0) }) { initial = .workout }
+        #endif
+        _destination = State(initialValue: initial)
+    }
     var body: some View {
         @Bindable var store = store
         TabView(selection: $destination) {

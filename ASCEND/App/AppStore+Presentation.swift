@@ -24,6 +24,9 @@ extension AppStore {
     var nextAction: NextActionPresentation {
         if activeWorkout != nil { return .init(kind: .resume, title: "CONTINUE", detail: "Your workout is saved", action: "Resume workout") }
         if readiness.confidence != .low, let limited = readiness.muscles.filter({ $0.lastTrainedAt != nil && $0.recoveryPercent < 40 }).min(by: { $0.recoveryPercent < $1.recoveryPercent }) {
+            if let recommendation = recommendedRoutine {
+                return .init(kind: .train, title: "ALTERNATIVE FOCUS", detail: "\(limited.muscle.group) rebuilding · \(recommendation.title) is an optional alternative", action: "Start \(recommendation.title)")
+            }
             return .init(kind: .recover, title: "RECOVER", detail: "\(limited.muscle.group) · \(Int(limited.recoveryPercent.rounded()))% estimated", action: "Review recovery")
         }
         if todayNutrition == nil { return .init(kind: .fuel, title: "FUEL", detail: "Today's totals are unlogged", action: "Log nutrition") }
@@ -38,6 +41,9 @@ extension AppStore {
         if sessions.contains(where: { $0.hasWorkingSets && policy.sameDay($0.evaluationDate, now) }) {
             return .init(kind: .evaluate, title: "WORK RECORDED", detail: "See today's pending rating", action: "Review your day")
         }
-        return .init(kind: .train, title: "TRAIN", detail: readiness.confidence == .low ? "Check how you feel before training" : "Review your session and muscle readiness", action: "Start workout")
+        if let routine = nextTrainingRoutine {
+            return .init(kind: .train, title: "TRAIN", detail: recommendedRoutine?.reason ?? "Equipment available · check how you feel", action: "Start \(routine.name)")
+        }
+        return .init(kind: .train, title: "TRAIN", detail: "Choose available exercises in My Gym", action: "Start workout")
     }
 }

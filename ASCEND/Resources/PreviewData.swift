@@ -16,22 +16,22 @@ enum PreviewData {
         guard arguments.contains("--capture-live") || arguments.contains("--capture-summary") else { return }
         let summary = arguments.contains("--capture-summary")
         _ = store.updateWorkout { $0 = LiveWorkout(startedAt: store.now.addingTimeInterval(summary ? -2778 : -2712), title: "Upper body") }
-        for (id, kg) in [("bench_press", 57.5), ("seated_row", 40.0), ("overhead_press", 35.0), ("lateral_raise", 8.0)] {
+        for (id, kg) in [("lat_pulldown", 45.0), ("chest_press", 47.5), ("db_row", 22.0), ("lateral_raise", 8.0)] {
             guard let catalog = store.exercises.first(where: { $0.catalogID == id }) else { continue }
             store.addLiveExercise(catalog)
             guard let exercise = store.activeWorkout?.exercises.last else { continue }
-            for _ in 0..<(id == "bench_press" ? 3 : 2) { store.addLiveSet(exerciseID: exercise.id) }
+            for _ in 0..<(id == "lat_pulldown" ? 3 : 2) { store.addLiveSet(exerciseID: exercise.id) }
             store.changeLiveExercise(exercise.id) { entry in
                 for index in entry.sets.indices {
                     entry.sets[index].kilograms = kg; entry.sets[index].reps = index == 0 ? 9 : 8; entry.sets[index].rpe = 7.5
-                    if summary || (id == "bench_press" && index < 2) { entry.sets[index].completedAt = store.now }
+                    if summary || (id == "lat_pulldown" && index < 2) { entry.sets[index].completedAt = store.now }
                 }
             }
         }
         _ = store.updateWorkout { draft in
             let firstExerciseID = draft?.exercises.first?.id
             draft?.selectedExerciseID = firstExerciseID
-            draft?.rest.start(seconds: 90, exerciseID: "bench_press", at: .now)
+            draft?.rest.start(seconds: 90, exerciseID: "lat_pulldown", at: .now)
             draft?.rest.pause(at: .now); draft?.rest.pausedSeconds = 61
         }
         store.liveWorkoutPresented = true
@@ -58,13 +58,16 @@ enum PreviewData {
                 calories: offset == 0 ? 2240 : 2980 + Double(offset % 5) * 25,
                 proteinGrams: offset == 0 ? 104 : 128 + Double(offset % 6), calorieGoal: 3000, proteinGoal: 130))
             context.insert(SleepEntry(dayKey: policy.key(for: date), date: date, durationHours: 7.5 + Double(offset % 3) * 0.2, quality: 4))
-            if offset % 3 == 1, let exercise = catalog.first(where: { $0.catalogID == "bench_press" }) {
+            if offset % 3 == 1 {
                 let session = WorkoutSession(startedAt: date.addingTimeInterval(17 * 3600), title: "Upper body", isQuickLog: false)
                 session.completedAt = session.startedAt
-                let entry = WorkoutExercise(exercise: exercise, order: 0); entry.session = session; session.exercises.append(entry)
-                for index in 0..<3 {
-                    let set = WorkoutSet(order: index, performance: .init(reps: 8 - index, kilograms: 55), completedAt: session.startedAt)
-                    set.workoutExercise = entry; entry.sets.append(set)
+                for (order, item) in [("chest_press", 45.0, 10), ("lat_pulldown", 40.0, 10), ("db_row", 20.0, 10), ("lateral_raise", 7.0, 12), ("push_up", 0.0, 18)].enumerated() {
+                    guard let exercise = catalog.first(where: { $0.catalogID == item.0 }) else { continue }
+                    let entry = WorkoutExercise(exercise: exercise, order: order); entry.session = session; session.exercises.append(entry)
+                    for index in 0..<3 {
+                        let set = WorkoutSet(order: index, performance: .init(reps: item.2 - index, kilograms: item.1), completedAt: session.startedAt, perceivedExertion: 7)
+                        set.workoutExercise = entry; entry.sets.append(set)
+                    }
                 }
                 context.insert(session)
             }

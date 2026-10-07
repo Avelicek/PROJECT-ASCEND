@@ -15,14 +15,13 @@ struct WorkoutEditor: View {
     @State private var sets = [SetDraft()]
     @State private var date = Date.now
     @State private var exertion: Double = 7
+    @State private var choosing = false
+    @State private var addedLoad = false
     private var exercise: Exercise? { store.exercises.first { $0.catalogID == selection } }
     var body: some View {
         Form {
             Section("Training") {
-                Picker("Exercise", selection: $selection) {
-                    Text("Choose exercise").tag("")
-                    ForEach(store.exercises, id: \.catalogID) { exercise in Text(exercise.name).tag(exercise.catalogID) }
-                }
+                Button(exercise?.name ?? "Choose exercise", systemImage: "magnifyingglass") { choosing = true }
                 Picker("Logging style", selection: $quick) { Text("Quick log").tag(true); Text("Full log").tag(false) }.pickerStyle(.segmented)
                 DatePicker("Performed at", selection: $date, in: ...Date.now)
             }
@@ -34,10 +33,11 @@ struct WorkoutEditor: View {
                         Text("Previous: \(previousSummary(previous))").font(.caption)
                     }
                 }
+                if exercise.bodyweightCapable && exercise.additionalWeightAllowed && exercise.trackingMode == .reps { Toggle("Bodyweight + added load", isOn: $addedLoad) }
                 ForEach($sets) { $set in
                     Section(quick ? "Total" : "Working set \((sets.firstIndex { $0.id == set.id } ?? 0) + 1)") {
                         if exercise.trackingMode == .reps || exercise.trackingMode == .weightAndReps { NumericField(title: "Reps", value: $set.reps) }
-                        if exercise.trackingMode == .weightAndReps || exercise.additionalWeightAllowed {
+                        if exercise.trackingMode == .weightAndReps || (exercise.additionalWeightAllowed && addedLoad) {
                             NumericField(title: exercise.bodyweightCapable ? "Additional weight · kg" : "Weight · kg", value: $set.weight)
                         }
                         if exercise.trackingMode == .duration || exercise.trackingMode == .distance { NumericField(title: "Duration · minutes", value: $set.minutes) }
@@ -61,7 +61,7 @@ struct WorkoutEditor: View {
             }
             let performances = sets.map { set in
                 SetPerformance(reps: exercise.trackingMode == .duration || exercise.trackingMode == .distance ? 0 : Int(set.reps),
-                    kilograms: exercise.trackingMode == .weightAndReps || exercise.additionalWeightAllowed ? set.weight : 0,
+                    kilograms: exercise.trackingMode == .weightAndReps || (exercise.additionalWeightAllowed && addedLoad) ? set.weight : 0,
                     seconds: exercise.trackingMode == .duration || exercise.trackingMode == .distance ? set.minutes * 60 : 0,
                     distanceMeters: exercise.trackingMode == .distance ? set.kilometers * 1000 : 0)
             }
@@ -69,7 +69,8 @@ struct WorkoutEditor: View {
                 AppHaptics.success(enabled: store.settings.hapticsEnabled); dismiss()
             }
         }.onChange(of: quick) { _, value in if value { sets = [sets.first ?? SetDraft()] } }
-            .onChange(of: selection) { _, _ in sets = [SetDraft()] }
+            .onChange(of: selection) { _, _ in sets = [SetDraft()]; addedLoad = false }
+            .sheet(isPresented: $choosing) { NavigationStack { ExerciseLibraryView(onSelect: { selection = $0.catalogID }, allowUnavailableSelection: true).environment(store) }.preferredColorScheme(.dark) }
     }
     private func previousSummary(_ entry: WorkoutExercise) -> String {
         entry.sets.sorted { $0.order < $1.order }.map { set in

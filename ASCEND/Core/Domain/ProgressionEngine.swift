@@ -4,6 +4,7 @@ public struct ProgressionSuggestion: Sendable {
     public let target: SetPerformance?
     public let confidence: Confidence
     public let explanation: String
+    public var additionalSetSuggested = false
 }
 
 public struct ProgressionEngine: Sendable {
@@ -40,8 +41,13 @@ public struct ProgressionEngine: Sendable {
             return .init(target: .init(reps: 7, kilograms: weight + exercise.weightStep), confidence: confidence,
                 explanation: "Two consistent sessions support one small load step. Keep reps lower and stop short of maximum effort.")
         }
-        return .init(target: .init(reps: minimum + 1, kilograms: weight), confidence: confidence,
-            explanation: "Try one extra rep at the same load. Keep technique and effort comparable; the target is optional.")
+        var result = ProgressionSuggestion(target: .init(reps: minimum + 1, kilograms: weight), confidence: confidence,
+            explanation: exercise.bodyweight ? "Try one extra rep at the same added load. Body weight is not estimated as external kilograms." : "Try one extra rep at the same load. Keep technique and effort comparable; the target is optional.")
+        let three = Array(comparable(history, exercise: exercise, now: now).prefix(3))
+        result.additionalSetSuggested = exercise.bodyweight && three.count == 3 && three.allSatisfy {
+            (2...3).contains($0.working.count) && $0.working.allSatisfy { $0.performance.reps >= 20 && ($0.rpe.map { $0 <= 8 } ?? false) }
+        }
+        return result
     }
     public func progressed(current: ExerciseHistory, prior: [ExerciseHistory]) -> Bool {
         guard !current.quick, current.mode == .reps || current.mode == .weightAndReps,

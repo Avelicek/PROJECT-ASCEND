@@ -44,7 +44,7 @@ final class AscendSmokeTests: XCTestCase {
         XCTAssertTrue(start.waitForExistence(timeout: 10)); start.tap()
         let add = app.buttons["live.add.exercise"]
         XCTAssertTrue(add.waitForExistence(timeout: 10)); add.tap()
-        let bench = app.buttons["live.choose.bench_press"]
+        let bench = app.buttons["live.choose.chest_press"]
         XCTAssertTrue(bench.waitForExistence(timeout: 10)); bench.tap()
         let screen = app.scrollViews["screen.liveworkout"]
         let kg = app.textFields["live.set.kg"].firstMatch

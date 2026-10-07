@@ -17,7 +17,9 @@ final class LiveWorkoutPersistenceTests: XCTestCase {
         XCTAssertEqual(set.distanceMeters, 0); XCTAssertEqual(set.weightKG, 0)
     }
     @MainActor private func store(at now: Date, storage: WorkoutDraftStorage? = nil) throws -> AppStore {
-        try AppStore(container: PersistenceController.makeContainer(inMemory: true), now: now, clock: { now }, workoutStorage: storage)
+        let value = try AppStore(container: PersistenceController.makeContainer(inMemory: true), now: now, clock: { now }, workoutStorage: storage)
+        XCTAssertTrue(value.editTraining { $0.profile.equipment = [.bodyweight, .barbell, .bench] })
+        return value
     }
     @MainActor private func begin(_ store: AppStore, reps: Int = 8, kg: Double = 55, warmup: Bool = false) throws -> LiveExercise {
         let bench = try XCTUnwrap(store.exercises.first { $0.catalogID == "bench_press" })

@@ -1,7 +1,7 @@
 import SwiftUI
 
-// A single accessory lives on the workout's NavigationStack, rather than on
-// individual scroll rows whose conditional toolbars may not be registered.
+// A single inset follows the system keyboard's safe area. Its controls remain
+// visible in the full-screen workout even when the navigation bar is hidden.
 struct LiveWorkoutKeyboard: View {
     @Environment(AppStore.self) private var store
     let exercise: LiveExercise
@@ -82,6 +82,7 @@ struct LiveWorkoutHeader: View {
             HStack(spacing: 8) {
                 Button { select(offset: -1) } label: { Image(systemName: "chevron.left").frame(width: 44, height: 44) }.disabled(index == 0).accessibilityLabel("Previous exercise")
                 VStack(spacing: 5) {
+                    if draft.routineID != nil { Text(draft.title.uppercased()).font(.system(size: 9, weight: .semibold)).foregroundStyle(AppColor.strength).lineLimit(1) }
                     Text(selected?.name ?? "Your session").font(.system(.title3, design: .rounded, weight: .semibold)).foregroundStyle(AppColor.text).lineLimit(1).minimumScaleFactor(0.7)
                     Text(draft.exercises.isEmpty ? "ADD YOUR FIRST EXERCISE" : "\(index + 1) / \(draft.exercises.count) EXERCISES · \(done) / \(working.count) WORKING SETS")
                         .font(.system(size: 9, weight: .medium)).tracking(0.7).foregroundStyle(AppColor.muted)

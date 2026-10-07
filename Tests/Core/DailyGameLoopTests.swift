@@ -95,7 +95,7 @@ final class DailyGameLoopTests: XCTestCase {
         var bodyweight = LiveExercise(catalogID: "pull", name: "Pull", mode: .reps, bodyweight: true, addedWeight: true, contributions: [])
         bodyweight.sets = [completed(reps: 11, kg: 0)]
         let previous = ExerciseHistory(exerciseID: "pull", date: now.addingTimeInterval(-86400), mode: .reps, sets: [.init(.init(reps: 10))])
-        XCTAssertEqual(PersonalRecordEngine().detect(exercise: bodyweight, history: [previous], at: now).map(\.kind), [.reps])
+        XCTAssertEqual(PersonalRecordEngine().detect(exercise: bodyweight, history: [previous], at: now).map(\.kind), [.reps, .totalReps])
     }
     func testSummaryIncludesOnlyCompletedWorkingVolumeAndEffortLoad() throws {
         var draft = LiveWorkout(startedAt: now.addingTimeInterval(-600))

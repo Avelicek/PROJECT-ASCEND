@@ -58,7 +58,7 @@ class ExportTests(unittest.TestCase):
             result = export_named_screenshots(root / 'export', root / 'named')
             self.assertEqual([x['name'] for x in result], list(SCREENSHOTS))
             self.assertEqual(list(SCREENSHOTS[:5]), ['01_dashboard', '02_workout', '03_recovery', '04_progress', '05_profile'])
-            self.assertEqual(len(list((root / 'named').glob('*.png'))), 8)
+            self.assertEqual(len(list((root / 'named').glob('*.png'))), 11)
     def test_missing_attachment_fails_before_copying(self):
         with temporary_directory() as temp:
             root = Path(temp); items = attachments(root / 'export')
@@ -136,8 +136,10 @@ class FixtureVerification(Verification):
         super().__init__(output)
         self.failing = failing
         self.invocations = []
+        self.command_lines = {}
     def run(self, label, command, json_file=None, required=True):
         self.invocations.append(label)
+        self.command_lines[label] = command
         if label == self.failing:
             if required: raise RuntimeError(f'fixture failure: {label}')
             return '', 65
@@ -153,6 +155,14 @@ class FixtureVerification(Verification):
         return text, 0
 
 class PropagationTests(unittest.TestCase):
+    def test_new_smoke_suite_and_eleven_images_are_required(self):
+        with temporary_directory() as temp, patch('verify_ios.platform.system', return_value='Darwin'), contextlib.redirect_stdout(io.StringIO()):
+            verification = FixtureVerification(temp)
+            self.assertTrue(verification.execute())
+            selectors = {argument for argument in verification.command_lines['smoke'] if argument.startswith('-only-testing:')}
+            self.assertEqual(selectors, {'-only-testing:ASCENDUITests/AscendSmokeTests', '-only-testing:ASCENDUITests/PersonalTrainingSmokeTests'})
+            self.assertEqual(len(SCREENSHOTS), 11)
+            self.assertEqual(list(SCREENSHOTS[5:]), ['06_live_workout', '07_workout_summary', '08_daily_evaluation', '09_exercise_library', '10_routine', '11_exercise_history'])
     def test_compile_failure_leaves_tests_not_run(self):
         with temporary_directory() as temp, patch('verify_ios.platform.system', return_value='Darwin'), contextlib.redirect_stdout(io.StringIO()):
             verification = FixtureVerification(temp, 'build-app')

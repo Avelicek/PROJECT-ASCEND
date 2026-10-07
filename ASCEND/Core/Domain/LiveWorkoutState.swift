@@ -42,12 +42,14 @@ public struct LiveExercise: Codable, Sendable, Identifiable {
     public let weightStep: Double
     public let contributions: [MuscleContribution]
     public var sets: [LiveSet]
+    public var usesAddedWeight: Bool?
+    public var restSeconds: Int?
     public init(catalogID: String, name: String, mode: TrackingMode, bodyweight: Bool, addedWeight: Bool,
                 weightStep: Double = 2.5, contributions: [MuscleContribution], sets: [LiveSet] = [LiveSet()]) {
         self.catalogID = catalogID; self.name = name; self.mode = mode; self.bodyweight = bodyweight
         self.addedWeight = addedWeight; self.weightStep = weightStep; self.contributions = contributions; self.sets = sets
     }
-    public var allowsWeight: Bool { mode == .weightAndReps || addedWeight }
+    public var allowsWeight: Bool { mode == .weightAndReps || (addedWeight && (usesAddedWeight ?? sets.contains { $0.kilograms > 0 })) }
     public var completedWorkingSets: [LiveSet] { sets.filter { $0.completedAt != nil && !$0.isWarmup } }
 }
 
@@ -97,6 +99,7 @@ public struct LiveWorkout: Codable, Sendable, Identifiable {
     public var exercises: [LiveExercise]
     public var rest: RestClock
     public var selectedExerciseID: UUID?
+    public var routineID: UUID?
     public init(startedAt: Date, title: String = "Live training") {
         version = 1; id = UUID(); self.startedAt = startedAt; self.title = title; exercises = []; rest = RestClock()
     }
