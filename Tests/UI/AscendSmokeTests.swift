@@ -1,6 +1,41 @@
 import XCTest
 
 final class AscendSmokeTests: XCTestCase {
+    @MainActor func testNextActionDailyResultAndRecoveryModes() {
+        continueAfterFailure = false
+        let app = AscendUITestSupport.launchDemo()
+        let dashboard = app.scrollViews["screen.dashboard"]
+        let next = app.buttons["dashboard.next.action"]
+        for _ in 0..<4 { if next.isHittable { break }; dashboard.swipeUp() }
+        XCTAssertTrue(next.isHittable); XCTAssertEqual(next.value as? String, "fuel"); next.tap()
+        XCTAssertTrue(app.navigationBars["Log nutrition"].waitForExistence(timeout: 10))
+        app.buttons["Cancel"].tap()
+        let details = app.buttons["daily.open"]
+        for _ in 0..<5 { if details.isHittable { break }; dashboard.swipeUp() }
+        XCTAssertTrue(details.isHittable); details.tap()
+        XCTAssertTrue(app.descendants(matching: .any)["screen.dailyevaluation"].firstMatch.waitForExistence(timeout: 10))
+        let done = app.buttons["Done"]
+        for _ in 0..<5 { if done.isHittable { break }; app.swipeUp() }
+        XCTAssertTrue(done.isHittable); done.tap()
+        AscendUITestSupport.navigate("recovery", in: app)
+        for mode in ["load", "fatigue", "recovery"] {
+            let button = app.buttons["body.metric.\(mode)"]
+            XCTAssertTrue(button.waitForExistence(timeout: 10)); button.tap()
+            XCTAssertEqual(button.value as? String, "Selected")
+        }
+        app.terminate()
+    }
+    @MainActor func testDeterministicRankRewardPresentation() {
+        continueAfterFailure = false
+        let app = XCUIApplication(); app.launchArguments = ["--demo", "--ui-testing", "--rank-reward"]; app.launch()
+        let reward = app.descendants(matching: .any)["screen.rankreward"].firstMatch
+        XCTAssertTrue(reward.waitForExistence(timeout: 20))
+        XCTAssertTrue(app.staticTexts["RANK UP"].exists)
+        XCTAssertTrue(app.staticTexts["PLATINUM III"].exists)
+        app.buttons["rank.reward.done"].tap()
+        XCTAssertTrue(app.descendants(matching: .any)["screen.dailyevaluation"].firstMatch.waitForExistence(timeout: 10))
+        app.terminate()
+    }
     @MainActor func testLiveWorkoutSetRestResumeAndSummary() {
         continueAfterFailure = false
         let app = AscendUITestSupport.launchDemo()
@@ -18,9 +53,8 @@ final class AscendSmokeTests: XCTestCase {
         kg.tap()
         let old = kg.value as? String ?? ""
         kg.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: old.count) + "55")
-        let complete = app.buttons["live.set.complete"].firstMatch
-        for _ in 0..<6 { if complete.isHittable { break }; screen.swipeUp() }
-        XCTAssertTrue(complete.isHittable); complete.tap()
+        let complete = app.buttons["live.keyboard.complete"]
+        XCTAssertTrue(complete.waitForExistence(timeout: 10)); complete.tap()
         let pause = app.buttons["live.rest.pause"]
         XCTAssertTrue(pause.waitForExistence(timeout: 10)); pause.tap()
         XCTAssertEqual(pause.label, "Resume")

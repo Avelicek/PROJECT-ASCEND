@@ -65,7 +65,7 @@ extension AppStore {
         }
         if saved {
             let newPR = pendingRecords.contains { !oldRecords.contains($0.id) }
-            AppHaptics.success(enabled: settings.hapticsEnabled && newPR)
+            AppHaptics.reward(enabled: settings.hapticsEnabled && newPR)
             if !newPR { AppHaptics.tap(enabled: settings.hapticsEnabled) }
         }
         return saved

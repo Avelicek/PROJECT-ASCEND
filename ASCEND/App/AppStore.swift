@@ -14,6 +14,7 @@ enum InputError: LocalizedError {
     let settings: UserSettings
     let isDemo: Bool
     var presentedSheet: LogDestination?
+    var navigationRequest: AppDestination?
     var errorMessage: String?
     var revision = 0
     var now: Date = .now
@@ -79,6 +80,9 @@ enum InputError: LocalizedError {
         do {
             if let restored = try self.workoutStorage?.read(), !sessions.contains(where: { $0.id == restored.id }) { activeWorkout = restored }
         } catch { errorMessage = "Unfinished workout file preserved: \(error.localizedDescription)" }
+        #if DEBUG
+        try PreviewData.preparePresentationFixture(store: self)
+        #endif
     }
 
     func refresh(at date: Date = .now) throws {

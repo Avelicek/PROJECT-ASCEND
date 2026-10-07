@@ -6,8 +6,8 @@ struct ProfileView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: AppSpacing.lg) {
-                FeatureHeader(eyebrow: "YOUR PERSONAL SYSTEM", title: "Identity hub")
-                PremiumCard(accented: true) {
+                FeatureHeader(eyebrow: "OWNER", title: "Your system")
+                PremiumCard(role: .hero, tint: AppColor.bodyweight) {
                     VStack(alignment: .leading, spacing: 18) {
                         HStack(spacing: 12) {
                             Text(String(store.profile.displayName.prefix(1)).uppercased())
@@ -28,19 +28,23 @@ struct ProfileView: View {
                                 Text(store.rank.rank.title).font(.title3.weight(.semibold)).foregroundStyle(AppColor.rank(store.rank.rank.tier))
                             }
                             Spacer()
-                            StatBlock(title: "ELO", value: "\(store.currentELO)").frame(maxWidth: 90)
+                            StatBlock(title: "ELO", value: store.currentELO.formatted(), tint: AppColor.elo).frame(maxWidth: 90)
                         }
                         RankProgressView(status: store.rank)
                     }
                 }
-                HStack { Eyebrow(text: "CONTROL CENTER"); Spacer(); Text("Personal targets").font(.caption2).foregroundStyle(AppColor.muted) }
-                PrimaryAction(title: "Edit profile & goals", symbol: "slider.horizontal.3") { editing = true }
-                PrimaryAction(title: "Configure objectives", symbol: "scope") { store.presentedSheet = .objectives }
+                PremiumCard(role: .action, tint: AppColor.bodyweight) {
+                    VStack(spacing: 2) {
+                        settingsAction("Profile & goals", symbol: "slider.horizontal.3") { editing = true }
+                        Rectangle().fill(AppColor.separator).frame(height: 1)
+                        settingsAction("Daily objectives", symbol: "scope") { store.presentedSheet = .objectives }
+                    }
+                }
                 PremiumCard {
                     VStack(alignment: .leading, spacing: 20) {
-                        SectionHeader(title: "Body & direction", detail: "BASELINE")
+                        SectionHeader(title: "Direction")
                         LazyVGrid(columns: [GridItem(.adaptive(minimum: 125), spacing: 16)], alignment: .leading, spacing: 22) {
-                            StatBlock(title: "Current", value: weight(store.progress.actualWeight), symbol: "scalemass")
+                            StatBlock(title: "Current", value: weight(store.progress.actualWeight), symbol: "scalemass", tint: AppColor.bodyweight)
                             StatBlock(title: "Target", value: weight(store.profile.targetWeightKG), symbol: "scope", tint: AppColor.blue)
                             StatBlock(title: "Weekly pace", value: "\(store.profile.desiredWeeklyChangeKG.formatted()) kg")
                         }
@@ -49,23 +53,25 @@ struct ProfileView: View {
                 VStack(alignment: .leading, spacing: 12) {
                     SectionHeader(title: "Daily foundation")
                     MetricStrip(metrics: [
-                        GlanceMetric(title: "Energy · kcal", value: "\(Int(store.profile.calorieGoal).formatted())", symbol: "flame", tint: AppColor.warning),
-                        GlanceMetric(title: "Protein · g", value: "\(Int(store.profile.proteinGoal))", symbol: "fork.knife", tint: AppColor.positive),
-                        GlanceMetric(title: "Sleep · h", value: store.profile.sleepTargetHours.formatted(), symbol: "moon", tint: AppColor.accent)
+                        GlanceMetric(title: "Energy · kcal", value: "\(Int(store.profile.calorieGoal).formatted())", symbol: "flame", tint: AppColor.nutrition),
+                        GlanceMetric(title: "Protein · g", value: "\(Int(store.profile.proteinGoal))", symbol: "fork.knife", tint: AppColor.nutrition),
+                        GlanceMetric(title: "Sleep · h", value: store.profile.sleepTargetHours.formatted(), symbol: "moon", tint: AppColor.sleep)
                     ])
                 }
                 PremiumCard {
                     VStack(alignment: .leading, spacing: 12) {
                         HStack { Image(systemName: "lock.shield").foregroundStyle(AppColor.blue); Eyebrow(text: "LOCAL BY DESIGN") }
-                        Text("Your history. Your iPhone.").font(.headline)
                         HStack { PillStatus(title: "OFFLINE"); PillStatus(title: "NO ACCOUNT", tint: AppColor.muted) }
-                        Text(store.settings.onDeviceAIEnabled ? "On-device insights requested. Local fallback stays available." : "Local insights · deterministic scoring")
+                        Text(store.settings.onDeviceAIEnabled ? "On-device insights · local fallback available" : "Private insights on your iPhone")
                             .font(.caption).foregroundStyle(AppColor.muted)
                     }
                 }
             }.padding(.horizontal, AppSpacing.page).padding(.bottom, AppSpacing.lg)
-        }.accessibilityIdentifier("screen.profile").featureBackground()
+        }.accessibilityIdentifier("screen.profile").featureBackground(tint: AppColor.bodyweight)
             .sheet(isPresented: $editing) { NavigationStack { ProfileEditor(store: store).environment(store) }.preferredColorScheme(.dark) }
     }
     private func weight(_ value: Double?) -> String { value.map { "\($0.formatted(.number.precision(.fractionLength(1)))) kg" } ?? "—" }
+    private func settingsAction(_ title: String, symbol: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) { HStack(spacing: 12) { Image(systemName: symbol).foregroundStyle(AppColor.bodyweight).frame(width: 24); Text(title).font(.subheadline).foregroundStyle(AppColor.secondary); Spacer(); Image(systemName: "chevron.right").font(.caption2).foregroundStyle(AppColor.muted) }.frame(minHeight: 48) }.buttonStyle(PremiumPressStyle())
+    }
 }

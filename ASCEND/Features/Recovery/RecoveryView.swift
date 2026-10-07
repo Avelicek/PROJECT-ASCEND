@@ -53,6 +53,6 @@ struct RecoveryView: View {
                     }
                 }
             }.padding(.horizontal, AppSpacing.page).padding(.bottom, AppSpacing.lg)
-        }.accessibilityIdentifier("screen.recovery").featureBackground()
+        }.accessibilityIdentifier("screen.recovery").featureBackground(tint: AppColor.recovery)
     }
 }

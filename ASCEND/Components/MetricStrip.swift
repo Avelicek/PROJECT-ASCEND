@@ -16,11 +16,11 @@ struct MetricStrip: View {
                 VStack(alignment: .leading, spacing: 9) {
                     Image(systemName: metric.symbol).font(.caption).foregroundStyle(metric.tint).accessibilityHidden(true)
                     Text(metric.value).font(.system(.title3, design: .rounded, weight: .semibold)).monospacedDigit()
+                        .foregroundStyle(metric.tint)
                         .lineLimit(1).minimumScaleFactor(0.7)
                     Text(metric.title).font(.caption2).foregroundStyle(AppColor.muted)
                 }.frame(maxWidth: .infinity, alignment: .leading).padding(12)
                     .background(AppColor.elevated.opacity(0.45), in: RoundedRectangle(cornerRadius: 16))
-                    .overlay(alignment: .top) { Rectangle().fill(metric.tint.opacity(0.4)).frame(height: 1).padding(.horizontal, 12) }
                     .accessibilityElement(children: .combine)
             }
         }

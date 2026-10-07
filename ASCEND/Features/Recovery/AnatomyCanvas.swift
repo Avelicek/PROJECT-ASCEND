@@ -4,6 +4,7 @@ struct AnatomyCanvas: View {
     let mode: BodyViewMode
     let selected: BodyRegion
     let regions: [RegionVisualization]
+    var metric: AnatomyMetricMode = .recovery
     var asset: any AnatomyGeometrySource = StylizedAnatomyAsset()
     let onSelect: (BodyRegion) -> Void
     var body: some View {
@@ -55,7 +56,7 @@ struct AnatomyCanvas: View {
         let path = patch.path(in: rect)
         let bounds = path.boundingRect
         let active = patch.region == selected
-        let tint = state.phase.tint
+        let tint = metric.tint(state, maximumLoad: regions.compactMap(\.load).max() ?? 1)
         let strength: Double = state.phase == .unknown ? 0.26 : active ? 0.88 : 0.5
         var layer = context
         if active {

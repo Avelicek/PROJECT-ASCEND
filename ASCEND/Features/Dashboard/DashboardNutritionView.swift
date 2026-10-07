@@ -21,9 +21,10 @@ struct DashboardNutritionView: View {
     }
     private var calorieRing: some View {
         ZStack {
-            ProgressRing(progress: calories / max(1, store.profile.calorieGoal), tint: AppColor.accent)
+            ProgressRing(progress: calories / max(1, store.profile.calorieGoal), tint: AppColor.nutrition)
             VStack(spacing: 3) {
                 Text(store.todayNutrition == nil ? "—" : calories.formatted(.number.precision(.fractionLength(0))))
+                    .foregroundStyle(AppColor.nutrition)
                     .font(.system(.title3, design: .rounded, weight: .semibold)).monospacedDigit().contentTransition(.numericText())
                 Text("KCAL").font(.system(.caption2, weight: .medium)).tracking(1.4).foregroundStyle(AppColor.muted)
             }
@@ -43,7 +44,7 @@ struct DashboardNutritionView: View {
                     Spacer(minLength: 6)
                     Text("\(Int(protein)) / \(Int(store.profile.proteinGoal)) g").font(.caption).foregroundStyle(AppColor.muted).monospacedDigit()
                 }
-                LinearProgress(progress: protein / max(1, store.profile.proteinGoal), tint: AppColor.violet)
+                LinearProgress(progress: protein / max(1, store.profile.proteinGoal), tint: AppColor.nutrition)
             }
         }.frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -51,18 +52,18 @@ struct DashboardNutritionView: View {
 struct DashboardInsightView: View {
     @Environment(AppStore.self) private var store
     var body: some View {
-        PremiumCard(accented: true) {
+        PremiumCard(role: .status, tint: AppColor.sleep) {
             VStack(alignment: .leading, spacing: AppSpacing.md) {
                 HStack {
                     Image(systemName: "sparkles").foregroundStyle(AppColor.accent)
-                    Eyebrow(text: "ASCEND INTELLIGENCE")
+                    Eyebrow(text: "ASCEND BRAIN")
                     Spacer()
                 }
                 DisclosureGroup {
                     Text(store.insight.summary).font(.subheadline).foregroundStyle(AppColor.muted).lineSpacing(3)
                         .fixedSize(horizontal: false, vertical: true).padding(.top, 8)
                 } label: {
-                    Text(store.insight.headline).font(.system(.headline, weight: .semibold)).foregroundStyle(AppColor.text)
+                    Text(store.insight.headline).font(.system(.subheadline, weight: .semibold)).foregroundStyle(AppColor.secondary)
                 }
                 HStack {
                     PillStatus(title: store.insight.source == .onDevice ? "ON-DEVICE AI" : "LOCAL INSIGHT").accessibilityIdentifier("brain.source").accessibilityValue(store.insight.source.rawValue)

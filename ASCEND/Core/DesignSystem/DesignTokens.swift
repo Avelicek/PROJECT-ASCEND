@@ -8,8 +8,20 @@ enum AppColor {
     static let accent = Color(red: 0.48, green: 0.50, blue: 1)
     static let blue = Color(red: 0.38, green: 0.67, blue: 1)
     static let violet = Color(red: 0.64, green: 0.46, blue: 0.96)
-    static let text = Color(red: 0.94, green: 0.95, blue: 1)
-    static let muted = Color(red: 0.64, green: 0.69, blue: 0.78)
+    static let text = Color(red: 0.91, green: 0.94, blue: 0.98)
+    static let secondary = Color(red: 0.73, green: 0.79, blue: 0.86)
+    static let muted = Color(red: 0.55, green: 0.62, blue: 0.72)
+    static let elo = Color(red: 0.44, green: 0.72, blue: 0.93)
+    static let cyan = Color(red: 0.65, green: 0.87, blue: 0.92)
+    static let strength = Color(red: 0.61, green: 0.63, blue: 0.92)
+    static let recovery = Color(red: 0.39, green: 0.76, blue: 0.80)
+    static let nutrition = Color(red: 0.87, green: 0.66, blue: 0.39)
+    static let sleep = Color(red: 0.65, green: 0.59, blue: 0.85)
+    static let bodyweight = Color(red: 0.56, green: 0.73, blue: 0.83)
+    static let gold = Color(red: 0.89, green: 0.76, blue: 0.48)
+    static let negative = Color(red: 0.89, green: 0.53, blue: 0.52)
+    static let eloGradient = LinearGradient(colors: [cyan, elo, Color(red: 0.53, green: 0.61, blue: 0.79)], startPoint: .topLeading, endPoint: .bottomTrailing)
+    static let goldGradient = LinearGradient(colors: [Color(red: 0.98, green: 0.88, blue: 0.66), gold], startPoint: .topLeading, endPoint: .bottomTrailing)
     static let positive = Color(red: 0.43, green: 0.83, blue: 0.73)
     static let warning = Color(red: 1, green: 0.69, blue: 0.45)
     static let separator = Color.white.opacity(0.075)
@@ -38,14 +50,16 @@ enum AppSpacing {
 enum AppRadius { static let small: CGFloat = 12; static let card: CGFloat = 24; static let hero: CGFloat = 32 }
 enum AppTypography {
     static let eyebrow: Font = .system(.caption2, design: .rounded, weight: .semibold)
-    static let title: Font = .system(.largeTitle, design: .rounded, weight: .semibold)
+    static let title: Font = .system(.title, design: .rounded, weight: .semibold)
     static let metric: Font = .system(.largeTitle, design: .rounded, weight: .semibold)
     static let body: Font = .system(.subheadline, weight: .regular)
 }
 enum AppShadow { static let color = Color.black.opacity(0.24); static let radius: CGFloat = 20 }
 enum AppAnimation {
-    static let interaction = Animation.spring(response: 0.32, dampingFraction: 0.82)
-    static let reveal = Animation.easeOut(duration: 0.55)
+    static let micro = Animation.easeOut(duration: 0.16)
+    static let interaction = Animation.spring(response: 0.28, dampingFraction: 0.88)
+    static let reveal = Animation.easeOut(duration: 0.32)
+    static let reward = Animation.spring(response: 0.75, dampingFraction: 0.86)
 }
 enum AppMotion {
     static var snapshotMode: Bool {
@@ -60,13 +74,14 @@ enum AppMotion {
     static func selection(enabled: Bool) { if enabled { UISelectionFeedbackGenerator().selectionChanged() } }
     static func success(enabled: Bool) { if enabled { UINotificationFeedbackGenerator().notificationOccurred(.success) } }
     static func tap(enabled: Bool) { if enabled { UIImpactFeedbackGenerator(style: .soft).impactOccurred() } }
+    static func reward(enabled: Bool) { if enabled { UIImpactFeedbackGenerator(style: .medium).impactOccurred(); UINotificationFeedbackGenerator().notificationOccurred(.success) } }
 }
 struct PremiumPressStyle: ButtonStyle {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     func makeBody(configuration: Configuration) -> some View {
         configuration.label.opacity(configuration.isPressed ? 0.78 : 1)
             .scaleEffect(configuration.isPressed && !reduceMotion ? 0.975 : 1)
-            .animation(reduceMotion ? nil : AppAnimation.interaction, value: configuration.isPressed)
+            .animation(reduceMotion || AppMotion.snapshotMode ? nil : AppAnimation.micro, value: configuration.isPressed)
     }
 }
 struct Eyebrow: View {
@@ -84,13 +99,14 @@ struct FeatureHeader: View {
     }
 }
 struct FeatureBackground: ViewModifier {
+    var tint: Color = AppColor.elo
     func body(content: Content) -> some View {
         content.background {
             AppColor.background.overlay(alignment: .topLeading) {
-                RadialGradient(colors: [AppColor.accent.opacity(0.07), .clear], center: .topLeading, startRadius: 0, endRadius: 440)
+                RadialGradient(colors: [tint.opacity(0.12), .clear], center: .topLeading, startRadius: 0, endRadius: 560)
                     .allowsHitTesting(false)
             }
-        }.foregroundStyle(AppColor.text).toolbar(.hidden, for: .navigationBar)
+        }.foregroundStyle(AppColor.secondary).toolbar(.hidden, for: .navigationBar)
     }
 }
-extension View { func featureBackground() -> some View { modifier(FeatureBackground()) } }
+extension View { func featureBackground(tint: Color = AppColor.elo) -> some View { modifier(FeatureBackground(tint: tint)) } }

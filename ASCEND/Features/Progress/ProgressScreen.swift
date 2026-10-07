@@ -6,6 +6,7 @@ struct ProgressScreen: View {
     @State private var window: EvaluationWindow = .week
     @State private var showELO = false
     @State private var showRecap = false
+    @State private var showAnalytics = false
     private var report: ProgressReport { store.report(window: window) }
     var body: some View {
         ScrollView {
@@ -15,6 +16,14 @@ struct ProgressScreen: View {
                     Text("Day").tag(EvaluationWindow.day); Text("Week").tag(EvaluationWindow.week); Text("Month").tag(EvaluationWindow.month)
                 }.pickerStyle(.segmented).padding(5).background(AppColor.surface, in: RoundedRectangle(cornerRadius: 13))
                 weeklySummary
+                Button { showAnalytics = true } label: {
+                    PremiumCard(role: .action, tint: AppColor.elo) {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 8) { Eyebrow(text: "RATING & TRAINING"); TrendGraphic(values: store.history.suffix(28).map { Double($0.elo) }, tint: AppColor.elo) }
+                            Spacer(); Image(systemName: "arrow.up.right").foregroundStyle(AppColor.elo)
+                        }
+                    }
+                }.buttonStyle(PremiumPressStyle()).accessibilityLabel("Explore ELO, volume, strength, consistency and PR trends")
                 Button { showRecap = true } label: {
                     PremiumCard(accented: true) {
                         HStack {
@@ -63,9 +72,10 @@ struct ProgressScreen: View {
                     }
                 }
             }.padding(.horizontal, AppSpacing.page).padding(.bottom, AppSpacing.lg)
-        }.accessibilityIdentifier("screen.progress").featureBackground()
+        }.accessibilityIdentifier("screen.progress").featureBackground(tint: AppColor.elo)
             .sheet(isPresented: $showELO) { NavigationStack { ScoreBreakdownView().environment(store) }.preferredColorScheme(.dark) }
             .sheet(isPresented: $showRecap) { NavigationStack { WeeklyRecapView().environment(store) }.preferredColorScheme(.dark) }
+            .sheet(isPresented: $showAnalytics) { NavigationStack { TrainingAnalyticsView().environment(store) }.preferredColorScheme(.dark) }
     }
     private var weeklySummary: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -119,7 +129,7 @@ struct ProgressScreen: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Eyebrow(text: "MOMENTUM · \(window.rawValue)D")
                     HStack(alignment: .firstTextBaseline, spacing: 2) {
-                        if let value = report.momentumPercent { CountUpText(value: value, signed: true).font(.title.weight(.semibold)) }
+                        if let value = report.momentumPercent { CountUpText(value: value, signed: true).font(.title.weight(.semibold)).foregroundStyle(value < 0 ? AppColor.negative : AppColor.positive) }
                         else { Text("—").font(.title) }
                         Text("%").font(.caption).foregroundStyle(AppColor.muted)
                     }
@@ -127,7 +137,7 @@ struct ProgressScreen: View {
                         .font(.caption).foregroundStyle(AppColor.muted)
                 }
                 TrendGraphic(values: report.trend.suffix(max(2, window.rawValue)).map(\.kilograms),
-                    tint: (report.momentumPercent ?? 0) < 0 ? AppColor.warning : AppColor.positive).frame(maxWidth: 100)
+                    tint: (report.momentumPercent ?? 0) < 0 ? AppColor.negative : AppColor.positive).frame(maxWidth: 100)
             }
         }
     }

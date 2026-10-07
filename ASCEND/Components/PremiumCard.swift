@@ -1,18 +1,27 @@
 import SwiftUI
 
+enum CardRole: Equatable { case hero, metric, action, analytics, status }
+
 struct PremiumCard<Content: View>: View {
     var accented = false
+    var role: CardRole = .analytics
+    var tint: Color = AppColor.elo
     @ViewBuilder var content: Content
     var body: some View {
-        content.padding(18).frame(maxWidth: .infinity, alignment: .leading)
-            .background(LinearGradient(colors: [AppColor.surface, AppColor.elevated.opacity(0.52)], startPoint: .topLeading, endPoint: .bottomTrailing),
-                in: RoundedRectangle(cornerRadius: AppRadius.card, style: .continuous))
+        content.padding(role == .metric ? 14 : 18).frame(maxWidth: .infinity, alignment: .leading)
+            .background {
+                RoundedRectangle(cornerRadius: AppRadius.card, style: .continuous).fill(AppColor.surface)
+                if accented || role == .hero || role == .action || role == .status {
+                    RoundedRectangle(cornerRadius: AppRadius.card, style: .continuous)
+                        .fill(RadialGradient(colors: [tint.opacity(role == .status ? 0.08 : 0.14), .clear], center: .topLeading, startRadius: 0, endRadius: 360))
+                }
+            }
             .overlay {
                 RoundedRectangle(cornerRadius: AppRadius.card, style: .continuous)
-                    .strokeBorder(LinearGradient(colors: [accented ? AppColor.accent.opacity(0.32) : Color.white.opacity(0.13), AppColor.separator.opacity(0.25)],
+                    .strokeBorder(LinearGradient(colors: [accented || role == .hero ? tint.opacity(0.20) : Color.white.opacity(0.06), AppColor.separator.opacity(0.20)],
                         startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1)
             }
-            .shadow(color: .black.opacity(accented ? 0.24 : 0.08), radius: accented ? 16 : 6, y: accented ? 8 : 3)
+            .shadow(color: .black.opacity(accented || role == .hero ? 0.28 : 0.10), radius: accented || role == .hero ? 18 : 5, y: accented || role == .hero ? 9 : 2)
     }
 }
 struct SectionHeader: View {
@@ -20,7 +29,7 @@ struct SectionHeader: View {
     var detail: String? = nil
     var body: some View {
         HStack(alignment: .firstTextBaseline) {
-            Text(title).font(.system(.headline, weight: .semibold))
+            Text(title).font(.system(.subheadline, weight: .semibold)).foregroundStyle(AppColor.secondary)
             Spacer(minLength: AppSpacing.xs)
             if let detail { Text(detail).font(.caption).foregroundStyle(AppColor.muted) }
         }.accessibilityElement(children: .combine)
@@ -73,6 +82,7 @@ struct EmptyStateCard: View {
 struct PrimaryAction: View {
     let title: String
     let symbol: String
+    var tint: Color = AppColor.elo
     let action: () -> Void
     var body: some View {
         Button(action: action) {
@@ -83,9 +93,9 @@ struct PrimaryAction: View {
                 Image(systemName: "arrow.up.right").font(.caption).accessibilityHidden(true)
             }.font(.system(.subheadline, weight: .semibold)).padding(.horizontal, 16).frame(minHeight: 50)
                 .foregroundStyle(AppColor.text)
-                .background(LinearGradient(colors: [AppColor.accent.opacity(0.35), AppColor.blue.opacity(0.12)], startPoint: .leading, endPoint: .trailing),
+                .background(LinearGradient(colors: [tint.opacity(0.25), tint.opacity(0.08)], startPoint: .leading, endPoint: .trailing),
                     in: RoundedRectangle(cornerRadius: 16))
-                .overlay { RoundedRectangle(cornerRadius: 16).strokeBorder(AppColor.accent.opacity(0.3)) }
+                .overlay { RoundedRectangle(cornerRadius: 16).strokeBorder(tint.opacity(0.18)) }
         }.buttonStyle(PremiumPressStyle()).accessibilityLabel(title)
     }
 }

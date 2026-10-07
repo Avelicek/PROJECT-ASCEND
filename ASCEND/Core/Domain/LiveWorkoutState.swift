@@ -52,6 +52,7 @@ public struct LiveExercise: Codable, Sendable, Identifiable {
 }
 
 public struct RestClock: Codable, Sendable {
+    public var spanSeconds: Double?
     public var deadline: Date?
     public var pausedSeconds: Double?
     public var exerciseID: String?
@@ -63,7 +64,8 @@ public struct RestClock: Codable, Sendable {
     public var isPaused: Bool { pausedSeconds != nil }
     public var isActive: Bool { deadline != nil || pausedSeconds != nil }
     public mutating func start(seconds: Int, exerciseID: String, at date: Date) {
-        deadline = date.addingTimeInterval(Double(min(900, max(15, seconds))))
+        let duration = Double(min(900, max(15, seconds)))
+        spanSeconds = duration; deadline = date.addingTimeInterval(duration)
         pausedSeconds = nil; self.exerciseID = exerciseID; finishAcknowledged = false
     }
     public mutating func pause(at date: Date) {
@@ -76,6 +78,7 @@ public struct RestClock: Codable, Sendable {
     }
     public mutating func add(seconds: Int, at date: Date) {
         let value = Double(min(900, max(0, remaining(at: date) + seconds)))
+        spanSeconds = max(value, min(900, (spanSeconds ?? Double(remaining(at: date))) + Double(seconds)))
         if isPaused { pausedSeconds = value } else { deadline = date.addingTimeInterval(value) }
         if value > 0 { finishAcknowledged = false }
     }

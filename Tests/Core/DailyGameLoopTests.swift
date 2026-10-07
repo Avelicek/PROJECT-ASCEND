@@ -7,6 +7,17 @@ import XCTest
 #endif
 
 final class DailyGameLoopTests: XCTestCase {
+    func testRestArcSpanPersistsAndOlderDraftsRemainDecodable() throws {
+        let date = Date(timeIntervalSince1970: 1000)
+        var timer = RestClock(); timer.start(seconds: 90, exerciseID: "bench", at: date)
+        timer.add(seconds: 30, at: date.addingTimeInterval(30))
+        XCTAssertEqual(timer.spanSeconds, 120); XCTAssertEqual(timer.remaining(at: date.addingTimeInterval(30)), 90)
+        let data = try JSONEncoder().encode(timer)
+        XCTAssertEqual(try JSONDecoder().decode(RestClock.self, from: data).spanSeconds, 120)
+        var old = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any]); old.removeValue(forKey: "spanSeconds")
+        let restored = try JSONDecoder().decode(RestClock.self, from: JSONSerialization.data(withJSONObject: old))
+        XCTAssertNil(restored.spanSeconds); XCTAssertEqual(restored.remaining(at: date.addingTimeInterval(30)), 90)
+    }
     func testTrackingModesDoNotInventRepsOrRequireAddedWeightForBodyweight() {
         var set = LiveSet(); set.reps = 12; set.kilograms = 0
         XCTAssertTrue(set.isValid(for: .weightAndReps, allowsWeight: true, bodyweight: true))

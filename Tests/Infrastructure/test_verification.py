@@ -57,7 +57,8 @@ class ExportTests(unittest.TestCase):
             root = Path(temp); attachments(root / 'export')
             result = export_named_screenshots(root / 'export', root / 'named')
             self.assertEqual([x['name'] for x in result], list(SCREENSHOTS))
-            self.assertEqual(len(list((root / 'named').glob('*.png'))), 5)
+            self.assertEqual(list(SCREENSHOTS[:5]), ['01_dashboard', '02_workout', '03_recovery', '04_progress', '05_profile'])
+            self.assertEqual(len(list((root / 'named').glob('*.png'))), 8)
     def test_missing_attachment_fails_before_copying(self):
         with temporary_directory() as temp:
             root = Path(temp); items = attachments(root / 'export')

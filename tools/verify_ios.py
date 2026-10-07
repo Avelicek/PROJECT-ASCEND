@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 import json, os, platform, re, shlex, shutil, struct, subprocess, sys
 
 ROOT = Path(__file__).resolve().parents[1]
-SCREENSHOTS = ('01_dashboard', '02_workout', '03_recovery', '04_progress', '05_profile')
+SCREENSHOTS = ('01_dashboard', '02_workout', '03_recovery', '04_progress', '05_profile', '06_live_workout', '07_workout_summary', '08_daily_evaluation')
 
 def select_simulator(inventory):
     runtimes = {r['identifier']: r for r in inventory['runtimes'] if r.get('isAvailable') and 'iOS' in r.get('name', '')}
@@ -163,7 +163,7 @@ class Verification:
             provenance = {key: self.report[key] for key in ('commit', 'xcode', 'sdk', 'simulator')}
             provenance.update(images=images, testSuitePassed=screenshot_ok, demoClock='2026-10-06T12:00:00Z', origin='Real XCUIApplication.screenshot() attachments from ASCEND Demo')
             (self.output / 'screenshots/provenance.json').write_text(json.dumps(provenance, indent=2) + '\n', encoding='utf-8')
-            self.status('SCREENSHOTS', 'GENERATED' if screenshot_ok else 'FAILED', 'Five real simulator PNGs exported' if screenshot_ok else 'Images exported but screenshot test failed')
+            self.status('SCREENSHOTS', 'GENERATED' if screenshot_ok else 'FAILED', 'Eight real simulator PNGs exported' if screenshot_ok else 'Images exported but screenshot test failed')
         except (RuntimeError, ValueError, OSError) as error:
             self.status('SCREENSHOTS', 'FAILED', str(error)); screenshot_ok = False
         return unit_ok and smoke_ok and screenshot_ok

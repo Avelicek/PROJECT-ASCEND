@@ -18,7 +18,7 @@ struct LiveWorkoutView: View {
             else if let draft = store.activeWorkout { training(draft) }
             else { Text("No active workout").task { dismiss() } }
         }.preferredColorScheme(.dark).tint(AppColor.blue).background(AppColor.background)
-            .interactiveDismissDisabled()
+            .interactiveDismissDisabled().toolbar(.hidden, for: .navigationBar)
             .sheet(isPresented: $choosing) { LiveExercisePicker().environment(store) }
             .confirmationDialog("Discard this workout? Completed history will be preserved.", isPresented: $discarding, titleVisibility: .visible) {
                 Button("Discard workout", role: .destructive) { store.discardLiveWorkout() }
@@ -37,14 +37,7 @@ struct LiveWorkoutView: View {
     }
     private func training(_ draft: LiveWorkout) -> some View {
         VStack(spacing: 0) {
-            HStack {
-                Button("Minimize", systemImage: "chevron.down") { dismiss() }.font(.caption).frame(minHeight: 44).accessibilityIdentifier("live.minimize")
-                Spacer()
-                PillStatus(title: "LIVE SESSION", tint: AppColor.positive)
-                Spacer()
-                Button { discarding = true } label: { Image(systemName: "trash").frame(width: 44, height: 44) }
-                    .foregroundStyle(AppColor.muted).accessibilityLabel("Discard workout")
-            }.padding(.horizontal, 20)
+            LiveWorkoutHeader(draft: draft, selected: selected) { dismiss() } discard: { discarding = true }
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     TextField("Session title", text: Binding(get: { store.activeWorkout?.title ?? "" }, set: { text in _ = store.updateWorkout { $0?.title = String(text.prefix(80)) } }))
@@ -81,13 +74,13 @@ struct LiveWorkoutView: View {
                         }
                     }
                     if let error = store.errorMessage { Text(error).font(.caption).foregroundStyle(AppColor.warning) }
-                }.padding(20)
+                }.padding(.horizontal, 18).padding(.vertical, 14)
             }.scrollDismissesKeyboard(.interactively).accessibilityIdentifier("screen.liveworkout")
             VStack(spacing: 10) {
-                RestTimerPanel(exerciseID: selected?.catalogID)
-                PrimaryAction(title: "Finish workout", symbol: "checkmark") { finishing = true }
+                FloatingRestTimer(exerciseID: selected?.catalogID)
+                PrimaryAction(title: "Finish workout", symbol: "checkmark", tint: AppColor.strength) { finishing = true }
                     .disabled(draft.completedSets == 0).accessibilityIdentifier("live.finish")
-            }.padding(.horizontal, 20).padding(.vertical, 12).background(AppColor.surface)
+            }.padding(.horizontal, 18).padding(.vertical, 10).background(.ultraThinMaterial)
         }.task {
             while !Task.isCancelled {
                 store.tickRest(at: .now)
@@ -135,42 +128,5 @@ private struct LiveExercisePicker: View {
             }.background(AppColor.background).navigationTitle("Add exercise").navigationBarTitleDisplayMode(.inline)
                 .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
         }.preferredColorScheme(.dark)
-    }
-}
-
-private struct RestTimerPanel: View {
-    @Environment(AppStore.self) private var store
-    let exerciseID: String?
-    var body: some View {
-        TimelineView(.periodic(from: .now, by: 1)) { timeline in
-            let rest = store.activeWorkout?.rest ?? RestClock()
-            HStack(spacing: 12) {
-                Image(systemName: "timer").foregroundStyle(AppColor.blue)
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(rest.isActive ? rest.isPaused ? "REST PAUSED" : "REST" : "REST TIMER").font(.caption2).foregroundStyle(AppColor.muted)
-                    Text(rest.isActive ? String(format: "%d:%02d", rest.remaining(at: timeline.date) / 60, rest.remaining(at: timeline.date) % 60) : "Ready")
-                        .font(.title3.weight(.semibold)).monospacedDigit().accessibilityIdentifier("live.rest.state")
-                }
-                Spacer()
-                if rest.isActive {
-                    Button(rest.isPaused ? "Resume" : "Pause") {
-                        _ = store.updateWorkout { draft in
-                            if rest.isPaused { draft?.rest.resume(at: .now) } else { draft?.rest.pause(at: .now) }
-                        }
-                    }.accessibilityIdentifier("live.rest.pause")
-                    Button("+30") { _ = store.updateWorkout { $0?.rest.add(seconds: 30, at: .now) } }
-                    Button("Skip") { _ = store.updateWorkout { $0?.rest.skip() } }.accessibilityIdentifier("live.rest.skip")
-                } else if let exerciseID {
-                    Menu("\(store.preferredRest(for: exerciseID))s") {
-                        ForEach([30, 60, 90, 120, 180, 240], id: \.self) { seconds in
-                            Button("\(seconds) seconds") { store.setPreferredRest(seconds, for: exerciseID) }
-                        }
-                        Button(store.settings.automaticRestTimer ? "Disable automatic rest" : "Enable automatic rest") {
-                            _ = store.perform { store.settings.automaticRestTimer.toggle() }
-                        }
-                    }
-                }
-            }.font(.caption.weight(.medium)).frame(minHeight: 48)
-        }.accessibilityElement(children: .contain)
     }
 }

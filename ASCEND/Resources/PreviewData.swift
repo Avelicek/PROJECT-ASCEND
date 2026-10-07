@@ -2,6 +2,41 @@ import Foundation
 import SwiftData
 
 enum PreviewData {
+    #if DEBUG
+    @MainActor static func preparePresentationFixture(store: AppStore, arguments: [String] = ProcessInfo.processInfo.arguments) throws {
+        guard store.isDemo, arguments.contains("--ui-testing") else { return }
+        if arguments.contains("--rank-reward"), let entry = store.history.last {
+            entry.previousELO = 1195; entry.elo = 1208; entry.delta = 13
+            entry.evaluation?.eloDelta = 13
+            entry.evaluation?.componentData = try JSONEncoder().encode([
+                ScoreComponent(category: .training, label: "Completed workout", points: 5),
+                .init(category: .nutrition, label: "Nutrition goals", points: 6), .init(category: .objective, label: "Daily objective", points: 2)])
+            try store.context.save()
+        }
+        guard arguments.contains("--capture-live") || arguments.contains("--capture-summary") else { return }
+        let summary = arguments.contains("--capture-summary")
+        _ = store.updateWorkout { $0 = LiveWorkout(startedAt: store.now.addingTimeInterval(summary ? -2778 : -2712), title: "Upper body") }
+        for (id, kg) in [("bench_press", 57.5), ("seated_row", 40.0), ("overhead_press", 35.0), ("lateral_raise", 8.0)] {
+            guard let catalog = store.exercises.first(where: { $0.catalogID == id }) else { continue }
+            store.addLiveExercise(catalog)
+            guard let exercise = store.activeWorkout?.exercises.last else { continue }
+            for _ in 0..<(id == "bench_press" ? 3 : 2) { store.addLiveSet(exerciseID: exercise.id) }
+            store.changeLiveExercise(exercise.id) { entry in
+                for index in entry.sets.indices {
+                    entry.sets[index].kilograms = kg; entry.sets[index].reps = index == 0 ? 9 : 8; entry.sets[index].rpe = 7.5
+                    if summary || (id == "bench_press" && index < 2) { entry.sets[index].completedAt = store.now }
+                }
+            }
+        }
+        _ = store.updateWorkout { draft in
+            draft?.selectedExerciseID = draft?.exercises.first?.id
+            draft?.rest.start(seconds: 90, exerciseID: "bench_press", at: .now)
+            draft?.rest.pause(at: .now); draft?.rest.pausedSeconds = 61
+        }
+        store.liveWorkoutPresented = true
+        if summary { _ = store.finishLiveWorkout() }
+    }
+    #endif
     @MainActor static func makeStore() throws -> AppStore {
         try AppStore(container: PersistenceController.makeContainer(inMemory: true), demo: true)
     }

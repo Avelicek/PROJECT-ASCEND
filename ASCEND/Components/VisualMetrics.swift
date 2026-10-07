@@ -7,18 +7,12 @@ struct CountUpText: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var displayed: Double?
     var body: some View {
-        Text(formatted(displayed ?? (reduceMotion || AppMotion.snapshotMode ? value : 0)))
+        Text(formatted(displayed ?? value))
             .monospacedDigit()
+            .contentTransition(.numericText(value: value))
             .accessibilityLabel(formatted(value))
-            .task(id: value) {
-                guard !reduceMotion && !AppMotion.snapshotMode else { displayed = value; return }
-                let start = displayed ?? 0
-                for step in 1...20 {
-                    do { try await Task.sleep(for: .milliseconds(22)) } catch { return }
-                    let fraction = Double(step) / 20
-                    displayed = start + (value - start) * (1 - pow(1 - fraction, 3))
-                }
-                displayed = value
+            .onChange(of: value, initial: true) { _, newValue in
+                withAnimation(reduceMotion || AppMotion.snapshotMode ? nil : AppAnimation.reward) { displayed = newValue }
             }
     }
     private func formatted(_ number: Double) -> String {
@@ -31,7 +25,7 @@ struct StatBlock: View {
     let title: String
     let value: String
     var symbol: String? = nil
-    var tint: Color = AppColor.text
+    var tint: Color = AppColor.secondary
     var body: some View {
         VStack(alignment: .leading, spacing: 7) {
             HStack(spacing: 5) {
@@ -39,7 +33,7 @@ struct StatBlock: View {
                 Text(title.uppercased())
             }.font(.caption2.weight(.medium)).foregroundStyle(AppColor.muted)
             Text(value).font(.system(.title3, design: .rounded, weight: .semibold)).monospacedDigit()
-                .foregroundStyle(AppColor.text).lineLimit(1).minimumScaleFactor(0.7)
+                .foregroundStyle(tint).lineLimit(1).minimumScaleFactor(0.7)
         }.frame(maxWidth: .infinity, alignment: .leading)
             .accessibilityElement(children: .combine)
     }
@@ -104,12 +98,13 @@ struct MomentumCard: View {
     var days = 7
     private var tint: Color { (report.momentumPercent ?? 0) < 0 ? AppColor.warning : AppColor.positive }
     var body: some View {
-        PremiumCard {
+        PremiumCard(role: .status, tint: tint) {
             VStack(alignment: .leading, spacing: 12) {
                 HStack { Eyebrow(text: "MOMENTUM"); Spacer(); Text("\(days)D").font(.caption2).foregroundStyle(AppColor.muted) }
                 HStack(alignment: .firstTextBaseline, spacing: 3) {
                     if let value = report.momentumPercent {
                         CountUpText(value: value, signed: true).font(.system(.largeTitle, design: .rounded, weight: .semibold))
+                            .foregroundStyle(tint)
                     } else { Text("—").font(.largeTitle) }
                     Text("%").font(.subheadline).foregroundStyle(AppColor.muted)
                     Spacer(minLength: 0)

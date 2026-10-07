@@ -14,6 +14,7 @@ struct DashboardView: View {
             VStack(alignment: .leading, spacing: AppSpacing.lg) {
                 header
                 RankHeroView(showScore: $showScore)
+                NextActionCard { showLatestResult = false; showDaily = true }
                 quickMetrics
                 readinessAndMomentum
                 DailyCommandCard { showLatestResult = false; showDaily = true }
@@ -24,6 +25,13 @@ struct DashboardView: View {
                 .opacity(appeared || AppMotion.snapshotMode ? 1 : 0).offset(y: appeared || reduceMotion || AppMotion.snapshotMode ? 0 : 10)
         }.accessibilityIdentifier("screen.dashboard").featureBackground().scrollIndicators(.hidden)
             .onAppear { withAnimation(reduceMotion || AppMotion.snapshotMode ? nil : AppAnimation.reveal) { appeared = true } }
+            .onAppear {
+                #if DEBUG
+                if store.isDemo && AppMotion.snapshotMode && (ProcessInfo.processInfo.arguments.contains("--capture-daily") || ProcessInfo.processInfo.arguments.contains("--rank-reward")) {
+                    showLatestResult = ProcessInfo.processInfo.arguments.contains("--rank-reward"); showDaily = true
+                }
+                #endif
+            }
             .sheet(isPresented: $showScore) { NavigationStack { ScoreBreakdownView().environment(store) }.preferredColorScheme(.dark) }
             .sheet(isPresented: $showDaily, onDismiss: { store.acknowledgeEvaluation() }) {
                 NavigationStack { DailyEvaluationView(preferFinalized: showLatestResult).environment(store) }.preferredColorScheme(.dark)
@@ -57,9 +65,9 @@ struct DashboardView: View {
     }
     private var quickMetrics: some View {
         MetricStrip(metrics: [
-            GlanceMetric(title: "Weight · kg", value: store.progress.actualWeight.map { $0.formatted(.number.precision(.fractionLength(1))) } ?? "—", symbol: "scalemass"),
-            GlanceMetric(title: "Sleep · h", value: store.todaySleep.map { $0.durationHours.formatted(.number.precision(.fractionLength(1))) } ?? "—", symbol: "moon", tint: AppColor.violet),
-            GlanceMetric(title: "Sessions · 7D", value: String(store.sessions.filter { $0.startedAt >= store.policy.adding(days: -6, to: store.policy.start(of: store.now)) && $0.startedAt <= store.now }.count), symbol: "dumbbell", tint: AppColor.positive)
+            GlanceMetric(title: "Weight · kg", value: store.progress.actualWeight.map { $0.formatted(.number.precision(.fractionLength(1))) } ?? "—", symbol: "scalemass", tint: AppColor.bodyweight),
+            GlanceMetric(title: "Sleep · h", value: store.todaySleep.map { $0.durationHours.formatted(.number.precision(.fractionLength(1))) } ?? "—", symbol: "moon", tint: AppColor.sleep),
+            GlanceMetric(title: "Sessions · 7D", value: String(store.sessions.filter { $0.startedAt >= store.policy.adding(days: -6, to: store.policy.start(of: store.now)) && $0.startedAt <= store.now }.count), symbol: "dumbbell", tint: AppColor.strength)
         ])
     }
     private var readinessCard: some View {

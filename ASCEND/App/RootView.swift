@@ -24,9 +24,10 @@ struct RootView: View {
             NavigationStack { ProgressScreen() }.tag(AppDestination.progress).toolbar(.hidden, for: .tabBar)
             NavigationStack { ProfileView() }.tag(AppDestination.profile).toolbar(.hidden, for: .tabBar)
         }.safeAreaInset(edge: .bottom, spacing: 0) { tabBar }
+            .onChange(of: store.navigationRequest) { _, request in if let request { destination = request; store.navigationRequest = nil } }
             .background(AppColor.background)
             .fullScreenCover(isPresented: $store.liveWorkoutPresented) {
-                LiveWorkoutView().environment(store).preferredColorScheme(.dark).tint(AppColor.accent)
+                NavigationStack { LiveWorkoutView().environment(store) }.preferredColorScheme(.dark).tint(AppColor.strength)
             }
             .sheet(item: $store.presentedSheet) { route in
                 NavigationStack {

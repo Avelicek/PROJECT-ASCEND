@@ -15,7 +15,7 @@ struct RankHeroView: View {
             }
             Group {
                 if typeSize.isAccessibilitySize { VStack(spacing: 10) { emblem; standing } }
-                else { HStack(spacing: 14) { emblem; standing } }
+                else { HStack(spacing: 24) { emblem; standing } }
             }
             RankProgressView(status: store.rank)
         }.padding(20)
@@ -38,6 +38,7 @@ struct RankHeroView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text(store.rank.rank.title).font(.system(.headline, design: .rounded, weight: .semibold)).tracking(0.6).foregroundStyle(tint)
             CountUpText(value: Double(store.currentELO)).font(.system(size: eloSize, weight: .semibold, design: .rounded))
+                .foregroundStyle(AppColor.eloGradient)
                 .tracking(-2).lineLimit(1).minimumScaleFactor(0.65)
                 .accessibilityIdentifier("dashboard.elo").accessibilityValue(String(store.currentELO))
             Text("ELO RATING").font(.system(.caption2, weight: .medium)).tracking(1.5).foregroundStyle(AppColor.muted)
@@ -45,8 +46,8 @@ struct RankHeroView: View {
                 VStack(alignment: .leading, spacing: 3) {
                     Label("\(store.projectedScore.delta.formatted(.number.sign(strategy: .always()))) ELO today",
                         systemImage: store.projectedScore.delta < 0 ? "arrow.down.right" : "arrow.up.right")
-                        .font(.caption.weight(.semibold)).foregroundStyle(store.projectedScore.delta < 0 ? AppColor.warning : AppColor.positive)
-                    Text("Provisional · details").font(.caption2).foregroundStyle(AppColor.muted)
+                        .font(.caption.weight(.semibold)).foregroundStyle(store.projectedScore.delta < 0 ? AppColor.negative : AppColor.positive)
+                    PillStatus(title: "PENDING", tint: AppColor.muted)
                 }.padding(.vertical, 5).frame(minHeight: 44, alignment: .leading)
             }.buttonStyle(PremiumPressStyle()).accessibilityHint("Show score components and finalized history")
         }.frame(maxWidth: .infinity, alignment: .leading)

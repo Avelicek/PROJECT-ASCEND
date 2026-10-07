@@ -61,8 +61,8 @@ struct RankProgressView: View {
                 Text(nextTitle).font(.caption2.weight(.medium)).foregroundStyle(AppColor.muted)
                 Spacer()
                 if let amount = status.amountToNext {
-                    Text("\(amount) ELO to go").font(.caption2.weight(.semibold)).foregroundStyle(AppColor.text).monospacedDigit()
-                } else { Text("MAX RANK").font(.caption2).foregroundStyle(AppColor.text) }
+                    Text("\(amount) ELO to go").font(.caption2.weight(.semibold)).foregroundStyle(AppColor.elo).monospacedDigit()
+                } else { Text("MAX RANK").font(.caption2).foregroundStyle(AppColor.elo) }
             }
             LinearProgress(progress: status.progress, tint: AppColor.rank(status.rank.tier), height: 6)
         }.accessibilityElement(children: .combine)

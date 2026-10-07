@@ -5,6 +5,22 @@ enum BodyViewMode: String, CaseIterable, Identifiable, Sendable {
     var id: String { rawValue.lowercased() }
 }
 
+enum AnatomyMetricMode: String, CaseIterable, Identifiable, Sendable {
+    case recovery = "Recovery", load = "Load", fatigue = "Fatigue"
+    var id: String { rawValue.lowercased() }
+    func value(_ state: RegionVisualization) -> Double? {
+        switch self { case .recovery: state.percent; case .load: state.load; case .fatigue: state.fatigue }
+    }
+    func tint(_ state: RegionVisualization, maximumLoad: Double) -> Color {
+        guard let value = value(state) else { return AppColor.muted }
+        switch self {
+        case .recovery: return state.phase.tint
+        case .load: return AppColor.strength.opacity(0.4 + 0.6 * min(1, value / max(1, maximumLoad)))
+        case .fatigue: return value >= 50 ? AppColor.negative : value >= 15 ? AppColor.warning : AppColor.recovery
+        }
+    }
+}
+
 enum BodyRegion: String, CaseIterable, Identifiable, Sendable {
     case chest = "Chest", shoulders = "Shoulders", arms = "Arms", back = "Back"
     case core = "Core", glutes = "Glutes", legs = "Legs", calves = "Calves"

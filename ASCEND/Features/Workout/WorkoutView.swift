@@ -8,26 +8,26 @@ struct WorkoutView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: AppSpacing.lg) {
                 FeatureHeader(eyebrow: "PUT IN THE WORK", title: "Training")
-                PremiumCard(accented: true) {
+                PremiumCard(role: .hero, tint: AppColor.strength) {
                     VStack(alignment: .leading, spacing: 20) {
                         HStack {
                             VStack(alignment: .leading, spacing: 9) {
-                                Eyebrow(text: "TRAINING CONSOLE")
-                                Text("Build your\nnext level.").font(.system(.title, design: .rounded, weight: .semibold))
+                                Eyebrow(text: store.activeWorkout == nil ? "YOUR NEXT SESSION" : "SAVED SESSION")
+                                Text(store.activeWorkout == nil ? "Ready when you are." : "Pick up where you left off.").font(.system(.title3, design: .rounded, weight: .semibold)).foregroundStyle(AppColor.text)
                             }
                             Spacer(minLength: 8)
                             ZStack {
-                                Circle().stroke(AppColor.blue.opacity(0.12), lineWidth: 1)
-                                Circle().trim(from: 0.05, to: 0.75).stroke(AppColor.blue.opacity(0.6), style: StrokeStyle(lineWidth: 3, lineCap: .round)).padding(8)
-                                Image(systemName: "dumbbell.fill").font(.system(size: 38)).foregroundStyle(AppColor.blue)
-                            }.frame(width: 88, height: 88).accessibilityHidden(true)
+                                Circle().stroke(AppColor.strength.opacity(0.12), lineWidth: 1)
+                                Circle().trim(from: 0.05, to: 0.75).stroke(AppColor.strength.opacity(0.6), style: StrokeStyle(lineWidth: 3, lineCap: .round)).padding(8)
+                                Image(systemName: "dumbbell.fill").font(.system(size: 26)).foregroundStyle(AppColor.strength)
+                            }.frame(width: 64, height: 64).accessibilityHidden(true)
                         }
                         MetricStrip(metrics: [
-                            GlanceMetric(title: "Sessions", value: "\(store.sessions.count)", symbol: "bolt.fill"),
-                            GlanceMetric(title: "Sets logged", value: "\(sets)", symbol: "square.stack", tint: AppColor.accent),
-                            GlanceMetric(title: "Records", value: "\(store.records.count)", symbol: "trophy", tint: AppColor.warning)
+                            GlanceMetric(title: "Sessions", value: "\(store.sessions.count)", symbol: "bolt.fill", tint: AppColor.strength),
+                            GlanceMetric(title: "Sets logged", value: "\(sets)", symbol: "square.stack", tint: AppColor.strength),
+                            GlanceMetric(title: "Records", value: "\(store.records.count)", symbol: "trophy", tint: AppColor.gold)
                         ])
-                        PrimaryAction(title: store.activeWorkout == nil ? "Start workout" : "Resume workout", symbol: "play.fill") { store.startLiveWorkout() }
+                        PrimaryAction(title: store.activeWorkout == nil ? "Start workout" : "Resume workout", symbol: "play.fill", tint: AppColor.strength) { store.startLiveWorkout() }
                             .accessibilityIdentifier("workout.start")
                         HStack {
                             Button("Log previous workout") { store.presentedSheet = .workout }
@@ -42,7 +42,7 @@ struct WorkoutView: View {
                 }
                 ForEach(store.sessions.prefix(20), id: \.id) { session in WorkoutSessionCard(session: session) }
             }.padding(.horizontal, AppSpacing.page).padding(.bottom, AppSpacing.lg)
-        }.accessibilityIdentifier("screen.workout").featureBackground()
+        }.accessibilityIdentifier("screen.workout").featureBackground(tint: AppColor.strength)
             .sheet(isPresented: $showRecords) { NavigationStack { RecordHistoryView().environment(store) }.preferredColorScheme(.dark) }
     }
 }
