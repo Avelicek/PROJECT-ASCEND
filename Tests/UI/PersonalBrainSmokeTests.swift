@@ -36,7 +36,8 @@ final class PersonalBrainSmokeTests: XCTestCase {
         let settings = app.buttons["profile.brain"]
         for _ in 0..<4 { if settings.isHittable { break }; app.scrollViews["screen.profile"].swipeUp() }
         XCTAssertTrue(settings.isHittable); settings.tap()
-        let sleep = app.switches["brain.settings.sleep"]
+        XCTAssertTrue(app.scrollViews["screen.brainsettings"].waitForExistence(timeout: 10))
+        let sleep = app.descendants(matching: .any)["brain.settings.sleep"].firstMatch
         XCTAssertTrue(sleep.waitForExistence(timeout: 10)); sleep.tap()
         app.buttons["Done"].firstMatch.tap()
         AscendUITestSupport.navigate("dashboard", in: app)
