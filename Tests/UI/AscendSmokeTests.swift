@@ -51,8 +51,6 @@ final class AscendSmokeTests: XCTestCase {
         for _ in 0..<6 { if kg.isHittable { break }; screen.swipeUp() }
         XCTAssertTrue(kg.isHittable)
         kg.tap()
-        let old = kg.value as? String ?? ""
-        kg.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: old.count) + "55")
         let complete = app.buttons["live.keyboard.complete"]
         XCTAssertTrue(complete.waitForExistence(timeout: 10)); complete.tap()
         let pause = app.buttons["live.rest.pause"]
