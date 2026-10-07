@@ -54,12 +54,15 @@ final class PersonalTrainingSmokeTests: XCTestCase {
         let reps = app.textFields["live.set.reps"].firstMatch
         for _ in 0..<8 { if reps.isHittable { break }; live.swipeDown() }
         XCTAssertTrue(reps.isHittable); XCTAssertEqual(app.textFields.matching(identifier: "live.set.kg").count, 0)
-        reps.tap(); let old = reps.value as? String ?? ""
-        reps.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: old.count) + "20")
+        reps.tap()
+        let initialReps = Int(reps.value as? String ?? "") ?? 8
+        let increase = app.buttons["Increase value"]
+        XCTAssertTrue(increase.waitForExistence(timeout: 10)); increase.tap(); increase.tap()
+        let expectedReps = String(initialReps + 2)
         let complete = app.buttons["live.keyboard.complete"]
         XCTAssertTrue(complete.waitForExistence(timeout: 10)); complete.tap()
         XCTAssertTrue(app.buttons["live.rest.pause"].waitForExistence(timeout: 10))
-        XCTAssertEqual(reps.value as? String, "20"); XCTAssertFalse(reps.isEnabled)
+        XCTAssertEqual(reps.value as? String, expectedReps); XCTAssertFalse(reps.isEnabled)
         app.terminate()
     }
 }
