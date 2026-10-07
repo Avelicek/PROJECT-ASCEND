@@ -7,6 +7,15 @@ import XCTest
 #endif
 
 final class DailyGameLoopTests: XCTestCase {
+    func testTrackingModesDoNotInventRepsOrRequireAddedWeightForBodyweight() {
+        var set = LiveSet(); set.reps = 12; set.kilograms = 0
+        XCTAssertTrue(set.isValid(for: .weightAndReps, allowsWeight: true, bodyweight: true))
+        XCTAssertFalse(set.isValid(for: .weightAndReps, allowsWeight: true, bodyweight: false))
+        XCTAssertEqual(set.performance(for: .duration).reps, 0)
+        XCTAssertEqual(set.performance(for: .duration).distanceMeters, 0)
+        XCTAssertEqual(set.performance(for: .reps).seconds, 0)
+        XCTAssertEqual(set.performance(for: .distance).reps, 0)
+    }
     private var now: Date { Date(timeIntervalSince1970: 1_791_288_000) }
     private var bench: LiveExercise { .init(catalogID: "bench", name: "Bench", mode: .weightAndReps, bodyweight: false, addedWeight: false, contributions: [.init(.midPectoral, 0.7), .init(.tricepsLongHead, 0.3)]) }
     private func history(days: Int, reps: [Int] = [8, 8], kg: Double = 55, rpe: Double? = 7, quick: Bool = false) -> ExerciseHistory {

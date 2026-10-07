@@ -51,7 +51,7 @@ extension AppStore {
     func completeLiveSet(exerciseID: UUID, setID: UUID) -> Bool {
         guard let exercise = activeWorkout?.exercises.first(where: { $0.id == exerciseID }),
               let set = exercise.sets.first(where: { $0.id == setID }), set.completedAt == nil else { return false }
-        guard set.isValid(for: exercise.mode, allowsWeight: exercise.allowsWeight) else {
+        guard set.isValid(for: exercise.mode, allowsWeight: exercise.allowsWeight, bodyweight: exercise.bodyweight) else {
             errorMessage = "Check reps, load, duration, distance and optional RPE before completing this set."; return false
         }
         let oldRecords = pendingRecords.map(\.id)
@@ -107,8 +107,8 @@ extension AppStore {
                 let entry = WorkoutExercise(exercise: exercise, order: index)
                 session.exercises.append(entry); entry.session = session
                 for (order, liveSet) in live.sets.filter({ $0.completedAt != nil }).enumerated() {
-                    guard liveSet.isValid(for: live.mode, allowsWeight: live.allowsWeight) else { throw InputError.invalid("A completed set contains invalid values.") }
-                    let set = WorkoutSet(order: order, performance: liveSet.performance, completedAt: liveSet.completedAt ?? now, perceivedExertion: liveSet.rpe)
+                    guard liveSet.isValid(for: live.mode, allowsWeight: live.allowsWeight, bodyweight: live.bodyweight) else { throw InputError.invalid("A completed set contains invalid values.") }
+                    let set = WorkoutSet(order: order, performance: liveSet.performance(for: live.mode), completedAt: liveSet.completedAt ?? now, perceivedExertion: liveSet.rpe)
                     set.isWarmup = liveSet.isWarmup; entry.sets.append(set); set.workoutExercise = entry
                 }
             }

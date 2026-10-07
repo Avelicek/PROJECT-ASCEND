@@ -11,14 +11,21 @@ public struct LiveSet: Codable, Sendable, Identifiable {
     public var completedAt: Date?
     public init() {}
     public var performance: SetPerformance { .init(reps: reps, kilograms: kilograms, seconds: seconds, distanceMeters: distanceMeters) }
-    public func isValid(for mode: TrackingMode, allowsWeight: Bool) -> Bool {
+    public func performance(for mode: TrackingMode) -> SetPerformance {
+        switch mode {
+        case .reps, .weightAndReps: .init(reps: reps, kilograms: kilograms)
+        case .duration: .init(reps: 0, seconds: seconds)
+        case .distance: .init(reps: 0, seconds: seconds, distanceMeters: distanceMeters)
+        }
+    }
+    public func isValid(for mode: TrackingMode, allowsWeight: Bool, bodyweight: Bool = false) -> Bool {
         guard (0...2000).contains(reps), kilograms.isFinite, (0...1000).contains(kilograms),
               seconds.isFinite, (0...86400).contains(seconds), distanceMeters.isFinite,
               (0...500000).contains(distanceMeters), allowsWeight || kilograms == 0,
               rpe == nil || (rpe!.isFinite && (1...10).contains(rpe!)) else { return false }
         switch mode {
         case .reps: return reps > 0
-        case .weightAndReps: return reps > 0 && kilograms > 0
+        case .weightAndReps: return reps > 0 && (kilograms > 0 || bodyweight)
         case .duration: return seconds > 0
         case .distance: return seconds > 0 && distanceMeters > 0
         }

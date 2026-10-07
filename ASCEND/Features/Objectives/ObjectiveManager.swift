@@ -28,7 +28,7 @@ struct ObjectiveManager: View {
             } header: {
                 Text("Recovery alternatives")
             } footer: {
-                Text("If training is inappropriate today, explicitly choose recovery. This occurrence is exempt from a missed-objective penalty. Automated suggestions will be added after personal recovery confidence improves.")
+                Text("If training is inappropriate today, explicitly choose recovery. This occurrence is exempt from a missed-objective penalty. Sufficiently supported muscle estimates can also suggest an alternative on your dashboard.")
             }
         }.scrollContentBackground(.hidden).background(AppColor.background)
             .navigationTitle("Your objectives").navigationBarTitleDisplayMode(.inline)

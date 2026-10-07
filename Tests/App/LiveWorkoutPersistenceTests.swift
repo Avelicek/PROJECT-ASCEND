@@ -4,6 +4,18 @@ import XCTest
 @testable import ASCEND
 
 final class LiveWorkoutPersistenceTests: XCTestCase {
+    @MainActor func testTimedExercisePersistsNoUnloggedRepOrDistanceMetric() throws {
+        let now = Date.now
+        let store = try store(at: now)
+        store.startLiveWorkout()
+        store.addLiveExercise(try XCTUnwrap(store.exercises.first { $0.catalogID == "plank" }))
+        let exercise = try XCTUnwrap(store.activeWorkout?.exercises.first)
+        XCTAssertTrue(store.completeLiveSet(exerciseID: exercise.id, setID: exercise.sets[0].id))
+        XCTAssertTrue(store.finishLiveWorkout())
+        let set = try XCTUnwrap(store.sessions.first?.exercises.first?.sets.first)
+        XCTAssertEqual(set.durationSeconds, 60); XCTAssertEqual(set.reps, 0)
+        XCTAssertEqual(set.distanceMeters, 0); XCTAssertEqual(set.weightKG, 0)
+    }
     @MainActor private func store(at now: Date, storage: WorkoutDraftStorage? = nil) throws -> AppStore {
         try AppStore(container: PersistenceController.makeContainer(inMemory: true), now: now, clock: { now }, workoutStorage: storage)
     }
