@@ -5,6 +5,7 @@ import SwiftUI
 struct LiveWorkoutKeyboard: View {
     @Environment(AppStore.self) private var store
     let exercise: LiveExercise
+    let target: LiveSetFocus
     let focus: FocusState<LiveSetFocus?>.Binding
     private var inputs: [SetInput] {
         var values: [SetInput] = []
@@ -30,9 +31,8 @@ struct LiveWorkoutKeyboard: View {
         focus.wrappedValue = index + 1 < inputs.count ? .init(setID: current.setID, input: inputs[index + 1]) : nil
     }
     private func complete() {
-        guard let current = focus.wrappedValue else { return }
+        _ = store.completeLiveSet(exerciseID: exercise.id, setID: target.setID)
         focus.wrappedValue = nil
-        _ = store.completeLiveSet(exerciseID: exercise.id, setID: current.setID)
     }
     private func adjust(_ direction: Double) {
         guard let current = focus.wrappedValue else { return }
