@@ -84,7 +84,7 @@ struct DailyEvaluationView: View {
             }
             .task(id: finalized) {
                 guard preferFinalized && finalized && !rankPresented && (result.elo.rank.rankedUp || result.elo.rank.rankedDown) else { return }
-                do { try await Task.sleep(for: .milliseconds(400)) } catch { return }
+                do { try await Task.sleep(for: .milliseconds(750)) } catch { return }
                 rankPresented = true; showRank = true
             }
     }

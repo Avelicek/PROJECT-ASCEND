@@ -1,23 +1,27 @@
 import SwiftUI
 
+private enum DailyPresentation: String, Identifiable {
+    case pending, finalized
+    var id: String { rawValue }
+}
+
 struct DashboardView: View {
     @Environment(AppStore.self) private var store
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var typeSize
     @State private var appeared = false
     @State private var showScore = false
-    @State private var showDaily = false
-    @State private var showLatestResult = false
+    @State private var dailyPresentation: DailyPresentation?
     @State private var keptObjectives: Set<String> = []
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: AppSpacing.lg) {
                 header
                 RankHeroView(showScore: $showScore)
-                NextActionCard { showLatestResult = false; showDaily = true }
+                NextActionCard { dailyPresentation = .pending }
                 quickMetrics
                 readinessAndMomentum
-                DailyCommandCard { showLatestResult = false; showDaily = true }
+                DailyCommandCard { dailyPresentation = .pending }
                 objectives
                 DashboardNutritionView()
                 DashboardInsightView()
@@ -28,15 +32,15 @@ struct DashboardView: View {
             .onAppear {
                 #if DEBUG
                 if store.isDemo && AppMotion.snapshotMode && (ProcessInfo.processInfo.arguments.contains("--capture-daily") || ProcessInfo.processInfo.arguments.contains("--rank-reward")) {
-                    showLatestResult = ProcessInfo.processInfo.arguments.contains("--rank-reward"); showDaily = true
+                    dailyPresentation = ProcessInfo.processInfo.arguments.contains("--rank-reward") ? .finalized : .pending
                 }
                 #endif
             }
             .sheet(isPresented: $showScore) { NavigationStack { ScoreBreakdownView().environment(store) }.preferredColorScheme(.dark) }
-            .sheet(isPresented: $showDaily, onDismiss: { store.acknowledgeEvaluation() }) {
-                NavigationStack { DailyEvaluationView(preferFinalized: showLatestResult).environment(store) }.preferredColorScheme(.dark)
+            .sheet(item: $dailyPresentation, onDismiss: { store.acknowledgeEvaluation() }) { presentation in
+                NavigationStack { DailyEvaluationView(preferFinalized: presentation == .finalized).environment(store) }.preferredColorScheme(.dark)
             }
-            .onChange(of: store.unseenEvaluation, initial: true) { _, unseen in if unseen { showLatestResult = true; showDaily = true } }
+            .onChange(of: store.unseenEvaluation, initial: true) { _, unseen in if unseen { dailyPresentation = .finalized } }
     }
     private var header: some View {
         HStack {

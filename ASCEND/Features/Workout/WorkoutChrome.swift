@@ -1,5 +1,56 @@
 import SwiftUI
 
+// A single accessory lives on the workout's NavigationStack, rather than on
+// individual scroll rows whose conditional toolbars may not be registered.
+struct LiveWorkoutKeyboard: View {
+    @Environment(AppStore.self) private var store
+    let exercise: LiveExercise
+    let focus: FocusState<LiveSetFocus?>.Binding
+    private var inputs: [SetInput] {
+        var values: [SetInput] = []
+        if exercise.allowsWeight { values.append(.kg) }
+        if exercise.mode == .reps || exercise.mode == .weightAndReps { values.append(.reps) }
+        if exercise.mode == .duration || exercise.mode == .distance { values.append(.seconds) }
+        if exercise.mode == .distance { values.append(.meters) }
+        if exercise.sets.first(where: { $0.id == focus.wrappedValue?.setID })?.rpe != nil { values.append(.rpe) }
+        return values
+    }
+    var body: some View {
+        HStack {
+            Button { adjust(-1) } label: { Image(systemName: "minus") }.accessibilityLabel("Decrease value")
+            Button { adjust(1) } label: { Image(systemName: "plus") }.accessibilityLabel("Increase value")
+            Spacer()
+            Button("Next", action: nextInput)
+            Button("Complete", action: complete).fontWeight(.semibold).accessibilityIdentifier("live.keyboard.complete")
+            Button("Done") { focus.wrappedValue = nil }
+        }.frame(maxWidth: .infinity)
+    }
+    private func nextInput() {
+        guard let current = focus.wrappedValue, let index = inputs.firstIndex(of: current.input) else { return }
+        focus.wrappedValue = index + 1 < inputs.count ? .init(setID: current.setID, input: inputs[index + 1]) : nil
+    }
+    private func complete() {
+        guard let current = focus.wrappedValue else { return }
+        focus.wrappedValue = nil
+        _ = store.completeLiveSet(exerciseID: exercise.id, setID: current.setID)
+    }
+    private func adjust(_ direction: Double) {
+        guard let current = focus.wrappedValue else { return }
+        store.changeLiveExercise(exercise.id) { entry in
+            guard let index = entry.sets.firstIndex(where: { $0.id == current.setID }), entry.sets[index].completedAt == nil else { return }
+            var edited = entry.sets[index]
+            switch current.input {
+            case .kg: edited.kilograms = min(1000, max(0, edited.kilograms + direction * exercise.weightStep))
+            case .reps: edited.reps = min(2000, max(1, edited.reps + Int(direction)))
+            case .rpe: edited.rpe = min(10, max(1, (edited.rpe ?? 7) + direction * 0.5))
+            case .seconds: edited.seconds = min(86400, max(1, edited.seconds + direction * 15))
+            case .meters: edited.distanceMeters = min(500000, max(1, edited.distanceMeters + direction * 100))
+            }
+            entry.sets[index] = edited
+        }
+    }
+}
+
 enum WorkoutClockText {
     static func duration(_ seconds: Double) -> String {
         let value = max(0, Int(seconds))

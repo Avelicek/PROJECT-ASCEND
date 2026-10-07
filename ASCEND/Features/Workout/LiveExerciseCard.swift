@@ -3,6 +3,7 @@ import SwiftUI
 struct LiveExerciseCard: View {
     @Environment(AppStore.self) private var store
     let exercise: LiveExercise
+    let focus: FocusState<LiveSetFocus?>.Binding
     private var previous: ExerciseHistory? { ProgressionEngine().previous(store.exerciseHistory, exercise: exercise, now: store.actionDate()) }
     private var suggestion: ProgressionSuggestion {
         let limited = store.readiness.confidence != .low && store.readiness.muscles.contains { muscle in
@@ -18,7 +19,7 @@ struct LiveExerciseCard: View {
             if let record = store.pendingRecords.first(where: { $0.exerciseID == exercise.catalogID }) { RecordCelebration(record: record, pending: true) }
             HStack { Eyebrow(text: "WORKING SETS"); Spacer(); Text("\(exercise.completedWorkingSets.count) / \(exercise.sets.filter { !$0.isWarmup }.count)").font(.caption).foregroundStyle(AppColor.strength) }
             ForEach(Array(exercise.sets.enumerated()), id: \.element.id) { index, liveSet in
-                LiveSetRow(exercise: exercise, liveSet: liveSet, number: index + 1)
+                LiveSetRow(exercise: exercise, liveSet: liveSet, number: index + 1, focus: focus)
             }
             PrimaryAction(title: "Add set", symbol: "plus", tint: AppColor.strength) { store.addLiveSet(exerciseID: exercise.id) }.accessibilityIdentifier("live.add.set")
         }
@@ -91,24 +92,19 @@ struct LiveExerciseCard: View {
     }
 }
 
-private enum SetInput: Hashable { case kg, reps, rpe, seconds, meters }
+enum SetInput: Hashable { case kg, reps, rpe, seconds, meters }
+struct LiveSetFocus: Hashable {
+    let setID: UUID
+    let input: SetInput
+}
 
 private struct LiveSetRow: View {
     @Environment(AppStore.self) private var store
     let exercise: LiveExercise
     let liveSet: LiveSet
     let number: Int
-    @FocusState private var focused: SetInput?
+    let focus: FocusState<LiveSetFocus?>.Binding
     private var completed: Bool { liveSet.completedAt != nil }
-    private var inputs: [SetInput] {
-        var fields: [SetInput] = []
-        if exercise.allowsWeight { fields.append(.kg) }
-        if exercise.mode == .reps || exercise.mode == .weightAndReps { fields.append(.reps) }
-        if exercise.mode == .duration || exercise.mode == .distance { fields.append(.seconds) }
-        if exercise.mode == .distance { fields.append(.meters) }
-        if liveSet.rpe != nil { fields.append(.rpe) }
-        return fields
-    }
     var body: some View {
         VStack(spacing: 8) {
             HStack(spacing: 8) {
@@ -120,7 +116,7 @@ private struct LiveSetRow: View {
                 if exercise.mode == .reps || exercise.mode == .weightAndReps {
                     VStack(spacing: 7) {
                         fieldLabel("REPS")
-                        TextField("Reps", value: binding(\.reps), format: .number).keyboardType(.numberPad).focused($focused, equals: .reps)
+                        TextField("Reps", value: binding(\.reps), format: .number).keyboardType(.numberPad).focused(focus, equals: .init(setID: liveSet.id, input: .reps))
                             .accessibilityIdentifier("live.set.reps").modifier(SetInputSurface(locked: completed))
                     }
                 }
@@ -144,42 +140,30 @@ private struct LiveSetRow: View {
                 Menu {
                     if completed { Button("Undo completion") { update { $0.completedAt = nil } } }
                     else { Button("Remove set", role: .destructive) { store.changeLiveExercise(exercise.id) { $0.sets.removeAll { $0.id == liveSet.id } } } }
-                    if !completed && liveSet.rpe != nil { Button("Remove RPE") { focused = nil; update { $0.rpe = nil } } }
+                    if !completed && liveSet.rpe != nil { Button("Remove RPE") { focus.wrappedValue = nil; update { $0.rpe = nil } } }
                 } label: { Image(systemName: "ellipsis").frame(width: 44, height: 44).foregroundStyle(AppColor.muted) }.accessibilityLabel("Set options")
             }
         }.padding(.horizontal, 12).padding(.top, 12).padding(.bottom, 2)
             .background((completed ? AppColor.positive.opacity(0.045) : AppColor.surface), in: RoundedRectangle(cornerRadius: 17))
             .overlay(alignment: .leading) { RoundedRectangle(cornerRadius: 2).fill(completed ? AppColor.positive.opacity(0.55) : AppColor.strength.opacity(0.25)).frame(width: 2).padding(.vertical, 16) }
-            .toolbar {
-                if focused != nil {
-                    ToolbarItemGroup(placement: .keyboard) {
-                        Button { adjust(-1) } label: { Image(systemName: "minus") }.accessibilityLabel("Decrease value")
-                        Button { adjust(1) } label: { Image(systemName: "plus") }.accessibilityLabel("Increase value")
-                        Spacer()
-                        Button("Next") { nextInput() }
-                        Button("Complete", action: complete).fontWeight(.semibold).accessibilityIdentifier("live.keyboard.complete")
-                        Button("Done") { focused = nil }
-                    }
-                }
-            }
     }
     private var rpeField: some View {
         VStack(spacing: 7) {
             fieldLabel("RPE")
             if liveSet.rpe != nil {
                 TextField("RPE", value: Binding(get: { liveSet.rpe ?? 7 }, set: { value in update { $0.rpe = value } }), format: .number)
-                    .keyboardType(.decimalPad).focused($focused, equals: .rpe).modifier(SetInputSurface(locked: completed)).accessibilityIdentifier("live.set.rpe")
+                    .keyboardType(.decimalPad).focused(focus, equals: .init(setID: liveSet.id, input: .rpe)).modifier(SetInputSurface(locked: completed)).accessibilityIdentifier("live.set.rpe")
             } else {
-                Button { update { $0.rpe = 7 }; focused = .rpe } label: { Text("—").font(.headline).foregroundStyle(AppColor.muted).frame(maxWidth: .infinity, minHeight: 44) }
+                Button { update { $0.rpe = 7 }; focus.wrappedValue = .init(setID: liveSet.id, input: .rpe) } label: { Text("—").font(.headline).foregroundStyle(AppColor.muted).frame(maxWidth: .infinity, minHeight: 44) }
                     .disabled(completed).accessibilityLabel("Add optional RPE")
             }
         }.frame(maxWidth: .infinity)
     }
     private func fieldLabel(_ title: String) -> some View { Text(title).font(.system(size: 9, weight: .medium)).foregroundStyle(AppColor.muted) }
-    private func decimalField(_ title: String, key: WritableKeyPath<LiveSet, Double>, focus: SetInput, id: String) -> some View {
+    private func decimalField(_ title: String, key: WritableKeyPath<LiveSet, Double>, focus input: SetInput, id: String) -> some View {
         VStack(spacing: 7) {
             fieldLabel(title)
-            TextField(title, value: binding(key), format: .number).keyboardType(.decimalPad).focused($focused, equals: focus)
+            TextField(title, value: binding(key), format: .number).keyboardType(.decimalPad).focused(focus, equals: .init(setID: liveSet.id, input: input))
                 .modifier(SetInputSurface(locked: completed)).accessibilityIdentifier(id)
         }
     }
@@ -190,24 +174,8 @@ private struct LiveSetRow: View {
         store.changeLiveExercise(exercise.id) { value in if let index = value.sets.firstIndex(where: { $0.id == liveSet.id }) { change(&value.sets[index]) } }
     }
     private func complete() {
-        focused = nil
+        focus.wrappedValue = nil
         _ = store.completeLiveSet(exerciseID: exercise.id, setID: liveSet.id)
-    }
-    private func nextInput() {
-        guard let focused, let index = inputs.firstIndex(of: focused) else { return }
-        self.focused = index + 1 < inputs.count ? inputs[index + 1] : nil
-    }
-    private func adjust(_ direction: Double) {
-        update { value in
-            switch focused {
-            case .kg: value.kilograms = min(1000, max(0, value.kilograms + direction * exercise.weightStep))
-            case .reps: value.reps = min(2000, max(1, value.reps + Int(direction)))
-            case .rpe: value.rpe = min(10, max(1, (value.rpe ?? 7) + direction * 0.5))
-            case .seconds: value.seconds = min(86400, max(1, value.seconds + direction * 15))
-            case .meters: value.distanceMeters = min(500000, max(1, value.distanceMeters + direction * 100))
-            case nil: break
-            }
-        }
     }
 }
 

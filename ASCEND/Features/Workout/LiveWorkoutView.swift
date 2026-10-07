@@ -8,6 +8,7 @@ struct LiveWorkoutView: View {
     @State private var removing = false
     @State private var finishing = false
     @FocusState private var inputFocused: Bool
+    @FocusState private var setFocus: LiveSetFocus?
     private var selected: LiveExercise? {
         guard let draft = store.activeWorkout else { return nil }
         return draft.exercises.first { $0.id == draft.selectedExerciseID } ?? draft.exercises.first
@@ -19,6 +20,13 @@ struct LiveWorkoutView: View {
             else { Text("No active workout").task { dismiss() } }
         }.preferredColorScheme(.dark).tint(AppColor.blue).background(AppColor.background)
             .interactiveDismissDisabled().toolbar(.hidden, for: .navigationBar)
+            .toolbar {
+                ToolbarItemGroup(placement: .keyboard) {
+                    if setFocus != nil, let selected {
+                        LiveWorkoutKeyboard(exercise: selected, focus: $setFocus)
+                    } else if inputFocused { Button("Done") { inputFocused = false } }
+                }
+            }
             .sheet(isPresented: $choosing) { LiveExercisePicker().environment(store) }
             .confirmationDialog("Discard this workout? Completed history will be preserved.", isPresented: $discarding, titleVisibility: .visible) {
                 Button("Discard workout", role: .destructive) { store.discardLiveWorkout() }
@@ -62,7 +70,7 @@ struct LiveWorkoutView: View {
                             }
                         }
                         if let selected {
-                            LiveExerciseCard(exercise: selected)
+                            LiveExerciseCard(exercise: selected, focus: $setFocus)
                             HStack {
                                 Button("Earlier", systemImage: "arrow.left") { move(selected.id, by: -1) }
                                     .disabled(draft.exercises.first?.id == selected.id)

@@ -116,10 +116,11 @@ final class AscendSmokeTests: XCTestCase {
         let screen = app.scrollViews["screen.recovery"]
         let glutes = app.buttons["body.region.glutes"]
         for _ in 0..<4 {
-            if glutes.isHittable { break }
+            if glutes.isHittable && glutes.frame.maxY < app.buttons["tab.workout"].frame.minY - 12 { break }
             screen.swipeUp()
         }
         XCTAssertTrue(glutes.isHittable)
+        XCTAssertLessThan(glutes.frame.maxY, app.buttons["tab.workout"].frame.minY - 12, "Reveal the entire control above the bottom navigation before tapping")
         glutes.tap()
         XCTAssertEqual(glutes.value as? String, "Selected")
         for _ in 0..<4 {

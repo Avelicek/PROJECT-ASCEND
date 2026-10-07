@@ -39,7 +39,7 @@ struct RankRewardView: View {
             .background {
                 AppColor.background.ignoresSafeArea()
                 RadialGradient(colors: [tint.opacity(0.19), .clear], center: .init(x: 0.5, y: 0.36), startRadius: 12, endRadius: 370).ignoresSafeArea()
-            }.accessibilityIdentifier("screen.rankreward")
+            }.accessibilityElement(children: .contain).accessibilityIdentifier("screen.rankreward")
             .onAppear {
                 withAnimation(reduceMotion || AppMotion.snapshotMode ? nil : AppAnimation.reward) { appeared = true }
                 if result.rank.rankedUp { AppHaptics.reward(enabled: store.settings.hapticsEnabled) }
