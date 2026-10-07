@@ -22,7 +22,7 @@ struct BodyMapView: View {
                             .accessibilityAddTraits(presentation.mode == mode ? .isSelected : [])
                     }
                 }.padding(4).background(AppColor.background.opacity(0.6), in: RoundedRectangle(cornerRadius: 16))
-                    .accessibilityIdentifier("body.view")
+                    .accessibilityElement(children: .contain)
                 AnatomyCanvas(mode: presentation.mode, selected: presentation.selected, regions: states) { region in
                     change { presentation.select(region) }
                 }.frame(height: 340).id(presentation.mode).transition(.opacity)
