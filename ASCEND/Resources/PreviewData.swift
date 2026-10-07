@@ -29,7 +29,8 @@ enum PreviewData {
             }
         }
         _ = store.updateWorkout { draft in
-            draft?.selectedExerciseID = draft?.exercises.first?.id
+            let firstExerciseID = draft?.exercises.first?.id
+            draft?.selectedExerciseID = firstExerciseID
             draft?.rest.start(seconds: 90, exerciseID: "bench_press", at: .now)
             draft?.rest.pause(at: .now); draft?.rest.pausedSeconds = 61
         }
