@@ -53,7 +53,7 @@ final class PersonalTrainingSmokeTests: XCTestCase {
         XCTAssertTrue(legRaise.waitForExistence(timeout: 10)); legRaise.tap()
         let reps = app.textFields["live.set.reps"].firstMatch
         for _ in 0..<8 { if reps.isHittable { break }; live.swipeDown() }
-        XCTAssertTrue(reps.isHittable); XCTAssertEqual(app.textFields["live.set.kg"].count, 0)
+        XCTAssertTrue(reps.isHittable); XCTAssertEqual(app.textFields.matching(identifier: "live.set.kg").count, 0)
         reps.tap(); let old = reps.value as? String ?? ""
         reps.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: old.count) + "20")
         let complete = app.buttons["live.keyboard.complete"]
