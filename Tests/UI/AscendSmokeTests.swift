@@ -8,7 +8,7 @@ final class AscendSmokeTests: XCTestCase {
         let next = app.buttons["dashboard.next.action"]
         for _ in 0..<4 { if next.isHittable { break }; dashboard.swipeUp() }
         XCTAssertTrue(next.isHittable); XCTAssertEqual(next.value as? String, "fuel"); next.tap()
-        XCTAssertTrue(app.navigationBars["Log nutrition"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.textFields["Calories · kcal"].waitForExistence(timeout: 10))
         app.buttons["Cancel"].tap()
         let details = app.buttons["daily.open"]
         for _ in 0..<5 { if details.isHittable { break }; dashboard.swipeUp() }
@@ -95,14 +95,14 @@ final class AscendSmokeTests: XCTestCase {
         XCTAssertTrue(app.wait(for: .runningForeground, timeout: 20))
         XCTAssertTrue(app.scrollViews["screen.dashboard"].waitForExistence(timeout: 20))
         XCTAssertFalse(app.staticTexts["demo.marker"].exists)
-        // Fresh simulator install: on-device AI is off. The local insight is available offline.
-        let insight = app.descendants(matching: .any)["brain.source"].firstMatch
+        // Fresh simulator install still exposes the deterministic Personal Brain without model inference.
+        let brain = app.descendants(matching: .any)["brain.hero"].firstMatch
         for _ in 0..<8 {
-            if insight.exists && insight.isHittable { break }
+            if brain.exists { break }
             app.scrollViews["screen.dashboard"].swipeUp()
         }
-        XCTAssertTrue(insight.exists)
-        XCTAssertEqual(insight.value as? String, "deterministic")
+        XCTAssertTrue(brain.exists)
+        XCTAssertTrue(app.staticTexts["brain.confidence"].exists)
         XCTAssertEqual(app.state, .runningForeground)
         app.terminate()
     }
