@@ -22,8 +22,8 @@ struct LiveWorkoutView: View {
             .interactiveDismissDisabled().toolbar(.hidden, for: .navigationBar)
             .toolbar {
                 ToolbarItemGroup(placement: .keyboard) {
-                    if setFocus != nil, let selected {
-                        LiveWorkoutKeyboard(exercise: selected, focus: $setFocus)
+                    if let keyboardTarget = setFocus, let selected {
+                        LiveWorkoutKeyboard(exercise: selected, target: keyboardTarget, focus: $setFocus)
                     } else if inputFocused { Button("Done") { inputFocused = false } }
                 }
             }
