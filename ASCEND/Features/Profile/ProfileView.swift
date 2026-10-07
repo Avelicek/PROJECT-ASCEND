@@ -5,7 +5,6 @@ struct ProfileView: View {
     @Environment(\.dynamicTypeSize) private var typeSize
     @State private var editing = false
     @State private var trainingProfile = false
-    @State private var brainSettings = false
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: AppSpacing.lg) {
@@ -35,7 +34,13 @@ struct ProfileView: View {
                     }
                 }
                 SectionHeader(title: "Intelligence")
-                settingsAction("Personal Brain", symbol: "waveform.path") { brainSettings = true }.accessibilityIdentifier("profile.brain")
+                NavigationLink {
+                    BrainSettingsView().environment(store)
+                } label: {
+                    settingsRow("Personal Brain", symbol: "waveform.path")
+                }
+                .buttonStyle(PremiumPressStyle())
+                .accessibilityIdentifier("profile.brain")
                 SectionHeader(title: "Goals")
                 PremiumCard(role: .glass) {
                     VStack(alignment: .leading, spacing: 16) {
@@ -67,7 +72,6 @@ struct ProfileView: View {
         }.accessibilityIdentifier("screen.profile").featureBackground(tint: AppColor.bodyweight)
             .sheet(isPresented: $editing) { NavigationStack { ProfileEditor(store: store).environment(store) }.preferredColorScheme(.dark) }
             .sheet(isPresented: $trainingProfile) { NavigationStack { TrainingProfileView().environment(store) }.preferredColorScheme(.dark) }
-            .sheet(isPresented: $brainSettings) { NavigationStack { BrainSettingsView().environment(store) }.preferredColorScheme(.dark) }
     }
     private var identity: some View {
         HStack(spacing: 12) {
@@ -82,7 +86,16 @@ struct ProfileView: View {
     }
     private var rankBadge: some View { RankBadgeView(rank: store.rank.rank, size: 108).accessibilityIdentifier("profile.rank.badge") }
     private func weight(_ value: Double?) -> String { value.map { "\($0.formatted(.number.precision(.fractionLength(1)))) kg" } ?? "—" }
+    private func settingsRow(_ title: String, symbol: String) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: symbol).foregroundStyle(AppColor.bodyweight).frame(width: 24)
+            Text(title).font(.subheadline).foregroundStyle(AppColor.secondary)
+            Spacer()
+            Image(systemName: "chevron.right").font(.caption2).foregroundStyle(AppColor.muted)
+        }
+        .frame(minHeight: 48)
+    }
     private func settingsAction(_ title: String, symbol: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) { HStack(spacing: 12) { Image(systemName: symbol).foregroundStyle(AppColor.bodyweight).frame(width: 24); Text(title).font(.subheadline).foregroundStyle(AppColor.secondary); Spacer(); Image(systemName: "chevron.right").font(.caption2).foregroundStyle(AppColor.muted) }.frame(minHeight: 48) }.buttonStyle(PremiumPressStyle())
+        Button(action: action) { settingsRow(title, symbol: symbol) }.buttonStyle(PremiumPressStyle())
     }
 }
