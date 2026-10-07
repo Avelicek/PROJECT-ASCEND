@@ -2,15 +2,15 @@ import SwiftUI
 import UIKit
 
 enum AppColor {
-    static let background = Color(red: 0.025, green: 0.031, blue: 0.051)
-    static let surface = Color(red: 0.063, green: 0.075, blue: 0.11)
-    static let elevated = Color(red: 0.095, green: 0.11, blue: 0.16)
+    static let background = Color(red: 0.016, green: 0.020, blue: 0.031)
+    static let surface = Color(red: 0.042, green: 0.050, blue: 0.068)
+    static let elevated = Color(red: 0.075, green: 0.086, blue: 0.112)
     static let accent = Color(red: 0.48, green: 0.50, blue: 1)
     static let blue = Color(red: 0.38, green: 0.67, blue: 1)
     static let violet = Color(red: 0.64, green: 0.46, blue: 0.96)
-    static let text = Color(red: 0.91, green: 0.94, blue: 0.98)
-    static let secondary = Color(red: 0.73, green: 0.79, blue: 0.86)
-    static let muted = Color(red: 0.55, green: 0.62, blue: 0.72)
+    static let text = Color(red: 0.88, green: 0.90, blue: 0.93)
+    static let secondary = Color(red: 0.67, green: 0.71, blue: 0.77)
+    static let muted = Color(red: 0.49, green: 0.55, blue: 0.64)
     static let elo = Color(red: 0.44, green: 0.72, blue: 0.93)
     static let cyan = Color(red: 0.65, green: 0.87, blue: 0.92)
     static let strength = Color(red: 0.61, green: 0.63, blue: 0.92)
@@ -20,7 +20,7 @@ enum AppColor {
     static let bodyweight = Color(red: 0.56, green: 0.73, blue: 0.83)
     static let gold = Color(red: 0.89, green: 0.76, blue: 0.48)
     static let negative = Color(red: 0.89, green: 0.53, blue: 0.52)
-    static let eloGradient = LinearGradient(colors: [cyan, elo, Color(red: 0.53, green: 0.61, blue: 0.79)], startPoint: .topLeading, endPoint: .bottomTrailing)
+    static let eloGradient = LinearGradient(colors: [Color(red: 0.83, green: 0.89, blue: 0.95), elo, Color(red: 0.39, green: 0.47, blue: 0.61)], startPoint: .topLeading, endPoint: .bottomTrailing)
     static let goldGradient = LinearGradient(colors: [Color(red: 0.98, green: 0.88, blue: 0.66), gold], startPoint: .topLeading, endPoint: .bottomTrailing)
     static let positive = Color(red: 0.43, green: 0.83, blue: 0.73)
     static let warning = Color(red: 1, green: 0.69, blue: 0.45)
@@ -103,7 +103,7 @@ struct FeatureBackground: ViewModifier {
     func body(content: Content) -> some View {
         content.background {
             AppColor.background.overlay(alignment: .topLeading) {
-                RadialGradient(colors: [tint.opacity(0.12), .clear], center: .topLeading, startRadius: 0, endRadius: 560)
+                RadialGradient(colors: [tint.opacity(0.055), .clear], center: .topLeading, startRadius: 0, endRadius: 560)
                     .allowsHitTesting(false)
             }
         }.foregroundStyle(AppColor.secondary).toolbar(.hidden, for: .navigationBar)

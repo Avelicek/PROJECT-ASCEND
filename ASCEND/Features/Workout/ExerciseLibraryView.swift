@@ -32,6 +32,11 @@ struct ExerciseLibraryView: View {
     var allowUnavailableSelection = false
     private var recommendations: [SubstitutionSuggestion] {
         guard let replacing, let source = store.trainingMetadata(replacing) else { return [] }
+        if store.brainArchive.settings.enabled, let minimum = PersonalBrainEngine().readiness(source, context: store.personalContext).minimum, minimum < 55 {
+            return PersonalBrainEngine().recoveryReplacements(for: source, context: store.personalContext).map {
+                SubstitutionSuggestion(exercise: $0, score: 100, reason: "Different focus · recorded recovery supports this available movement. Your choice; no automatic replacement.")
+            }
+        }
         return TrainingSystem().substitutes(for: source, catalog: TrainingCatalog.definitions, state: store.training)
     }
     private var entries: [Exercise] { store.library(query) }

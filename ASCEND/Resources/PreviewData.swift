@@ -5,6 +5,16 @@ enum PreviewData {
     #if DEBUG
     @MainActor static func preparePresentationFixture(store: AppStore, arguments: [String] = ProcessInfo.processInfo.arguments) throws {
         guard store.isDemo, arguments.contains("--ui-testing") else { return }
+        if arguments.contains("--brain-low-data") {
+            for entry in store.sleep { store.context.delete(entry) }
+            for entry in store.nutrition { store.context.delete(entry) }
+            for entry in store.sessions { store.context.delete(entry) }
+            try store.refresh(at: store.now)
+        }
+        if arguments.contains("--brain-poor-sleep"), let sleep = store.todaySleep {
+            sleep.durationHours = 3; sleep.quality = 1
+            try store.refresh(at: store.now)
+        }
         if arguments.contains("--rank-reward"), let entry = store.history.last {
             entry.previousELO = 1195; entry.elo = 1208; entry.delta = 13
             entry.evaluation?.eloDelta = 13
@@ -61,10 +71,12 @@ enum PreviewData {
             if offset % 3 == 1 {
                 let session = WorkoutSession(startedAt: date.addingTimeInterval(17 * 3600), title: "Upper body", isQuickLog: false)
                 session.completedAt = session.startedAt
-                for (order, item) in [("chest_press", 45.0, 10), ("lat_pulldown", 40.0, 10), ("db_row", 20.0, 10), ("lateral_raise", 7.0, 12), ("push_up", 0.0, 18)].enumerated() {
+                let items: [(String, Double, Int)] = offset == 1 ? [("chest_press", 45, 10), ("push_up", 0, 18)] : [("lat_pulldown", 40, 10), ("db_row", 20, 10), ("pull_up", 0, 8), ("rear_delt_raise", 6, 12), ("hammer_curl", 8, 10)]
+                session.title = offset == 1 ? "Push" : "Pull"
+                for (order, item) in items.enumerated() {
                     guard let exercise = catalog.first(where: { $0.catalogID == item.0 }) else { continue }
                     let entry = WorkoutExercise(exercise: exercise, order: order); entry.session = session; session.exercises.append(entry)
-                    for index in 0..<3 {
+                    for index in 0..<(offset == 1 && item.0 == "chest_press" ? 6 : 3) {
                         let set = WorkoutSet(order: index, performance: .init(reps: item.2 - index, kilograms: item.1), completedAt: session.startedAt, perceivedExertion: 7)
                         set.workoutExercise = entry; entry.sets.append(set)
                     }

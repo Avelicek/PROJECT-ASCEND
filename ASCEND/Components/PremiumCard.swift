@@ -1,6 +1,6 @@
 import SwiftUI
 
-enum CardRole: Equatable { case hero, metric, action, analytics, status }
+enum CardRole: Equatable { case hero, metric, action, analytics, status, ambient, glass, inline }
 
 struct PremiumCard<Content: View>: View {
     var accented = false
@@ -10,16 +10,20 @@ struct PremiumCard<Content: View>: View {
     var body: some View {
         content.padding(role == .metric ? 14 : 18).frame(maxWidth: .infinity, alignment: .leading)
             .background {
-                RoundedRectangle(cornerRadius: AppRadius.card, style: .continuous).fill(AppColor.surface)
+                if role != .ambient && role != .inline {
+                    RoundedRectangle(cornerRadius: AppRadius.card, style: .continuous).fill(AppColor.surface.opacity(role == .analytics ? 0.75 : 1))
+                }
+                if role == .glass { RoundedRectangle(cornerRadius: AppRadius.card, style: .continuous).fill(.ultraThinMaterial).opacity(0.35) }
                 if accented || role == .hero || role == .action || role == .status {
                     RoundedRectangle(cornerRadius: AppRadius.card, style: .continuous)
-                        .fill(RadialGradient(colors: [tint.opacity(role == .status ? 0.08 : 0.14), .clear], center: .topLeading, startRadius: 0, endRadius: 360))
+                        .fill(RadialGradient(colors: [tint.opacity(role == .status ? 0.04 : 0.075), .clear], center: .topLeading, startRadius: 0, endRadius: 360))
                 }
             }
             .overlay {
-                RoundedRectangle(cornerRadius: AppRadius.card, style: .continuous)
-                    .strokeBorder(LinearGradient(colors: [accented || role == .hero ? tint.opacity(0.20) : Color.white.opacity(0.06), AppColor.separator.opacity(0.20)],
+                if role == .hero || role == .glass || role == .metric || accented { RoundedRectangle(cornerRadius: AppRadius.card, style: .continuous)
+                    .strokeBorder(LinearGradient(colors: [accented || role == .hero ? tint.opacity(0.12) : Color.white.opacity(0.035), AppColor.separator.opacity(0.12)],
                         startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1)
+                }
             }
             .shadow(color: .black.opacity(accented || role == .hero ? 0.28 : 0.10), radius: accented || role == .hero ? 18 : 5, y: accented || role == .hero ? 9 : 2)
     }
@@ -51,7 +55,7 @@ struct MetricCard: View {
     let detail: String
     var tint: Color = AppColor.text
     var body: some View {
-        PremiumCard {
+        PremiumCard(role: .metric) {
             VStack(alignment: .leading, spacing: AppSpacing.sm) {
                 Eyebrow(text: title)
                 HStack(alignment: .firstTextBaseline, spacing: 3) {

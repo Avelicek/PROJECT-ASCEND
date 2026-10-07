@@ -23,7 +23,8 @@ extension AppStore {
     }
     var nextAction: NextActionPresentation {
         if activeWorkout != nil { return .init(kind: .resume, title: "CONTINUE", detail: "Your workout is saved", action: "Resume workout") }
-        if readiness.confidence != .low, let limited = readiness.muscles.filter({ $0.lastTrainedAt != nil && $0.recoveryPercent < 40 }).min(by: { $0.recoveryPercent < $1.recoveryPercent }) {
+        if brainArchive.settings.enabled && brainDecision.action == .recover { return .init(kind: .recover, title: "RECOVER", detail: brainDecision.warnings.first ?? "Review recorded limits", action: "Review recovery") }
+        if !brainArchive.settings.enabled, readiness.confidence != .low, let limited = readiness.muscles.filter({ $0.lastTrainedAt != nil && $0.recoveryPercent < 40 }).min(by: { $0.recoveryPercent < $1.recoveryPercent }) {
             if let recommendation = recommendedRoutine {
                 return .init(kind: .train, title: "ALTERNATIVE FOCUS", detail: "\(limited.muscle.group) rebuilding · \(recommendation.title) is an optional alternative", action: "Start \(recommendation.title)")
             }
@@ -40,6 +41,9 @@ extension AppStore {
         }
         if sessions.contains(where: { $0.hasWorkingSets && policy.sameDay($0.evaluationDate, now) }) {
             return .init(kind: .evaluate, title: "WORK RECORDED", detail: "See today's pending rating", action: "Review your day")
+        }
+        if brainArchive.settings.enabled, let session = brainDecision.session {
+            return .init(kind: .train, title: brainDecision.action.title.uppercased(), detail: brainDecision.intensity.title, action: "Start \(session.name)")
         }
         if let routine = nextTrainingRoutine {
             return .init(kind: .train, title: "TRAIN", detail: recommendedRoutine?.reason ?? "Equipment available · check how you feel", action: "Start \(routine.name)")

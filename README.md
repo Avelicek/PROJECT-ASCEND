@@ -8,7 +8,7 @@ Native, local-first personal fitness for iPhone / iOS 27. SwiftUI, SwiftData, Sw
 2. Select **ASCEND Demo** and an installed iPhone simulator to inspect the populated dashboard immediately. This Debug scheme passes `--demo` and uses **only an in-memory store**.
 3. Select **ASCEND** for production storage. It starts unranked, with no weight, nutrition, sleep, workout or rank history. Only the built-in exercise catalog and editable preference defaults are seeded.
 4. For a physical iPhone, set your personal signing team under Signing & Capabilities. No team or provisioning identity is supplied.
-5. Open Profile to set current/target weight and goals. Configure your own objectives. Optional on-device AI defaults off; deterministic insights always work.
+5. Open Profile to set current/target weight and goals, My Gym equipment and Personal Brain preferences. Optional on-device AI defaults off; deterministic recommendations always work. Build 06 adds a recovery-aware Today decision, detail, explicit preference history and darker surfaces; see [Build06.md](Docs/Build06.md).
 
 Release builds ignore `--demo`. Demo data never enters the production store.
 
@@ -65,7 +65,7 @@ Build 01.5 verification runs in the private GitHub repository on pushes to main,
 
 The local Python infrastructure suite and source/project checks are separate from these results. They cannot validate Swift types, macro expansion, simulator behavior or appearance. No real screenshot has been produced locally.
 
-Remote Apple verification is available through Actions. Before Build 02, commit `b8797c4` passed the Xcode 27 compile, hosted unit tests, UI smoke and five screenshot stages in [run 37507146530](https://github.com/Avelicek/PROJECT-ASCEND/actions/runs/37507146530). The independent Windows Core job failed in that baseline run. For the current commit, use its own run and stage artifacts rather than treating previous evidence as current verification.
+Remote Apple verification is available through Actions. The Build 06 pre-work check found commit `1ac6411` passed Windows Core, Xcode 27 compilation, hosted unit tests, UI smoke and simulator screenshots in [run 37635199225](https://github.com/Avelicek/PROJECT-ASCEND/actions/runs/37635199225). For a new commit, use its own run and stage artifacts rather than treating previous evidence as current verification.
 
 On a Mac:
 
@@ -74,7 +74,7 @@ swift test
 bash tools/verify_on_mac.sh
 ```
 
-The script requires Xcode 27 and an iOS 27+ SDK/runtime. It builds both shared schemes/test targets, runs unit and UI suites separately, exports five real screenshot attachments, preserves logs/result bundles and records stage statuses under `work/verification/ios`. Use `--output work/verification/ios-another-run` for another local run because a reused output directory is rejected. Manual device and accessibility checks remain necessary; see `Docs/Validation.md` and [the Build 01.5 audit](Docs/Build01.5-Audit.md).
+The script requires Xcode 27 and an iOS 27+ SDK/runtime. It builds both shared schemes/test targets, runs unit and three UI smoke suites separately, exports fifteen real screenshot attachments, preserves logs/result bundles and records stage statuses under `work/verification/ios`. Use `--output work/verification/ios-another-run` for another local run because a reused output directory is rejected. Manual device and accessibility checks remain necessary; see `Docs/Validation.md` and [the Build 01.5 audit](Docs/Build01.5-Audit.md).
 
 On Windows, after installing Swift:
 

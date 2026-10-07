@@ -2,8 +2,9 @@ import XCTest
 @testable import ASCEND
 
 final class DailyPresentationTests: XCTestCase {
-    @MainActor func testNextActionPrioritizesResumingAndSupportedRecovery() throws {
+    @MainActor func testNextActionPrioritizesResumingAndSupportedRecoveryWithBrainDisabled() throws {
         let store = try PreviewData.makeStore()
+        store.editBrainSettings { $0.enabled = false }
         XCTAssertEqual(store.nextAction.kind, .fuel)
         store.startLiveWorkout(); XCTAssertEqual(store.nextAction.kind, .resume)
         store.discardLiveWorkout()

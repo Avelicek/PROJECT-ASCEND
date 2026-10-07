@@ -61,6 +61,9 @@ struct DailyEvaluationView: View {
                     }
                 }
                 if finalized { ELOMovement(result: result.elo).frame(maxWidth: .infinity).padding(.vertical, 8) }
+                if store.brainArchive.settings.enabled {
+                    ContextExplanationView(focus: "Day read", facts: store.brainDayRead(result, date: finalized ? store.history.last?.date ?? store.now : store.now), confidence: finalized ? .low : store.brainDecision.confidence)
+                }
                 PremiumCard {
                     VStack(alignment: .leading, spacing: 14) {
                         Eyebrow(text: "WHAT MOVED YOUR RATING")

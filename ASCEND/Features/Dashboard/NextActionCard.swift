@@ -12,7 +12,7 @@ struct NextActionCard: View {
     }
     var body: some View {
         Button(action: act) {
-            PremiumCard(role: .action, tint: tint) {
+            PremiumCard(role: .inline, tint: tint) {
                 HStack(spacing: 14) {
                     Image(systemName: symbol).font(.title2).foregroundStyle(tint).frame(width: 48, height: 52)
                         .background(tint.opacity(0.08), in: RoundedRectangle(cornerRadius: 15))
@@ -31,7 +31,9 @@ struct NextActionCard: View {
         AppHaptics.tap(enabled: store.settings.hapticsEnabled)
         switch next.kind {
         case .resume: store.startLiveWorkout()
-        case .train: if let routine = store.nextTrainingRoutine { _ = store.startRoutine(routine) } else { store.startLiveWorkout() }
+        case .train:
+            if store.brainArchive.settings.enabled, store.brainDecision.session != nil { store.startBrainSession() }
+            else if let routine = store.nextTrainingRoutine { _ = store.startRoutine(routine) } else { store.startLiveWorkout() }
         case .recover: store.navigationRequest = .recovery
         case .fuel: store.presentedSheet = .nutrition
         case .weigh: store.presentedSheet = .weight

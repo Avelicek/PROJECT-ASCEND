@@ -37,6 +37,11 @@ enum InputError: LocalizedError {
     var liveWorkoutPresented = false
     var completedWorkout: CompletedWorkoutSummary?
     var training = PersonalTrainingState()
+    var brainArchive = BrainArchive()
+    var personalContext = PersonalContext(date: .distantPast)
+    var brainDecision = PersonalBrainEngine().decide(PersonalContext(date: .distantPast))
+    @ObservationIgnored var brainStorage: BrainStorage?
+    @ObservationIgnored var brainStorageUnavailable = false
     @ObservationIgnored let trainingStorage: PersonalTrainingStorage?
     @ObservationIgnored let workoutStorage: WorkoutDraftStorage?
     @ObservationIgnored let localPreferences: UserDefaults?
@@ -53,7 +58,7 @@ enum InputError: LocalizedError {
     var rank: RankStatus { RankEngine().status(elo: currentELO) }
     var lifetimeLevel: Int { ELOEngine().lifetimeLevel(credits: profile.lifetimeCredits) }
 
-    init(container: ModelContainer, demo: Bool = false, now: Date = .now, clock: @escaping () -> Date = { .now }, workoutStorage: WorkoutDraftStorage? = nil, trainingStorage: PersonalTrainingStorage? = nil) throws {
+    init(container: ModelContainer, demo: Bool = false, now: Date = .now, clock: @escaping () -> Date = { .now }, workoutStorage: WorkoutDraftStorage? = nil, trainingStorage: PersonalTrainingStorage? = nil, brainStorage: BrainStorage? = nil) throws {
         let modelContext = ModelContext(container)
         modelContext.autosaveEnabled = false
         if demo {
@@ -80,6 +85,9 @@ enum InputError: LocalizedError {
         self.personalModel = PersonalModel(weights: [], nutrition: [], sleep: [], workoutDates: [], now: now, policy: dayPolicy)
         self.insight = DeterministicBrainProvider().insight(.init(trendWeight: nil, momentum: nil, readiness: nil, calories: nil,
             protein: nil, confidence: .low, observedWeightDays: 0, allowedActions: RecommendedAction.allCases))
+        self.brainStorage = try brainStorage ?? (memoryOnly ? nil : BrainStorage.production())
+        do { self.brainArchive = try self.brainStorage?.read() ?? BrainArchive() }
+        catch { self.brainStorageUnavailable = true; self.errorMessage = "Brain history file preserved: \(error.localizedDescription)" }
         if demo {
             self.training.profile.equipment = [.bodyweight, .dumbbells, .pullUpBar, .latPulldown, .chestPress]
             self.training.favorites = ["db_row", "lat_pulldown", "push_up", "chest_press"]
@@ -194,6 +202,7 @@ enum InputError: LocalizedError {
         }
         readiness = RecoveryEngine().evaluate(loads: loads, context: context, now: now)
         projectedScore = ELOEngine().evaluate(evaluationInput(for: now, includeMisses: false), previousELO: currentELO)
+        deriveBrain()
         let value = brainContext()
         if !settings.onDeviceAIEnabled || lastAnalyzedContext != Self.encodeContext(value) || insight.source != .onDevice {
             insight = DeterministicBrainProvider().insight(value)
@@ -207,10 +216,10 @@ enum InputError: LocalizedError {
     }
 
     private func brainContext() -> BrainContext {
-        BrainContext(trendWeight: progress.trendWeight, momentum: progress.momentumPercent, readiness: readiness.percent,
-            calories: todayNutrition?.calories, protein: todayNutrition?.proteinGrams, confidence: progress.confidence,
+        BrainContext(trendWeight: progress.trendWeight, momentum: progress.momentumPercent, readiness: personalContext.recovery.percent,
+            calories: todayNutrition?.calories, protein: todayNutrition?.proteinGrams, confidence: brainDecision.confidence,
             observedWeightDays: personalModel.windows.first(where: { $0.days == 28 })?.observedWeightDays ?? 0,
-            allowedActions: RecommendedAction.allCases, explanationFacts: dailyResult.explanation + [weeklyExplanation])
+            allowedActions: [], explanationFacts: brainDecision.facts, focus: brainDecision.focus)
     }
     private static func encodeContext(_ value: BrainContext) -> Data? {
         let encoder = JSONEncoder(); encoder.outputFormatting = .sortedKeys
@@ -219,7 +228,7 @@ enum InputError: LocalizedError {
     private func scheduleAnalysis() {
         let value = brainContext()
         guard let encoded = Self.encodeContext(value) else { return }
-        guard settings.onDeviceAIEnabled else {
+        guard settings.onDeviceAIEnabled && brainArchive.settings.enabled else {
             analysisTask?.cancel(); analysisTask = nil; lastAnalyzedContext = nil
             return
         }

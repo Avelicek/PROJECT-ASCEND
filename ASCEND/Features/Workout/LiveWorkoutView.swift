@@ -8,6 +8,7 @@ struct LiveWorkoutView: View {
     @State private var removing = false
     @State private var finishing = false
     @State private var replacing = false
+    @State private var keptRecoveryExercises: Set<UUID> = []
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @FocusState private var inputFocused: Bool
     @FocusState private var setFocus: LiveSetFocus?
@@ -45,7 +46,7 @@ struct LiveWorkoutView: View {
             .confirmationDialog("Remove this exercise and its sets?", isPresented: $removing, titleVisibility: .visible) {
                 Button("Remove exercise", role: .destructive) {
                     guard let selected else { return }
-                    _ = store.updateWorkout { $0?.exercises.removeAll { $0.id == selected.id } }
+                    if store.updateWorkout({ $0?.exercises.removeAll { $0.id == selected.id } }) { store.recordPreference(selected.catalogID, .exerciseSkipped) }
                 }
             }
             .confirmationDialog("Finish workout? Only completed sets will be saved.", isPresented: $finishing, titleVisibility: .visible) {
@@ -80,6 +81,20 @@ struct LiveWorkoutView: View {
                             }
                         }
                         if let selected {
+                            if let hint = store.brainHint(selected) { Text(hint).font(.caption).foregroundStyle(AppColor.muted).accessibilityIdentifier("brain.live.hint") }
+                            if !keptRecoveryExercises.contains(selected.id), let warning = store.brainRecoveryWarning(selected) {
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text(warning).font(.caption).foregroundStyle(AppColor.warning)
+                                    HStack {
+                                        Button("Keep") { keptRecoveryExercises.insert(selected.id); store.recordPreference(selected.catalogID, .substitutionRejected) }
+                                        Spacer()
+                                        Button("Replace") { setFocus = nil; replacing = true }.disabled(selected.sets.contains { $0.completedAt != nil })
+                                        Button("Skip") {
+                                            if store.updateWorkout({ $0?.exercises.removeAll { $0.id == selected.id } }) { store.recordPreference(selected.catalogID, .exerciseSkipped) }
+                                        }.disabled(selected.sets.contains { $0.completedAt != nil })
+                                    }.font(.caption).frame(minHeight: 44)
+                                }.accessibilityIdentifier("brain.live.recovery")
+                            }
                             LiveExerciseCard(exercise: selected, focus: $setFocus).id(selected.id)
                                 .transition(.opacity).animation(reduceMotion || AppMotion.snapshotMode ? nil : AppAnimation.micro, value: draft.selectedExerciseID)
                             HStack {

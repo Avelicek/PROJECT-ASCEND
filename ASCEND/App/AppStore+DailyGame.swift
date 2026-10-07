@@ -13,7 +13,7 @@ extension AppStore {
             confidence: confidence, observedWeightDays: 0, allowedActions: [], explanationFacts: facts, focus: focus)
         let provider: (any BrainProvider)?
         #if canImport(FoundationModels)
-        provider = settings.onDeviceAIEnabled ? FoundationModelsBrainProvider() : nil
+        provider = settings.onDeviceAIEnabled && brainArchive.settings.enabled ? FoundationModelsBrainProvider() : nil
         #else
         provider = nil
         #endif

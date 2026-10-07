@@ -32,7 +32,7 @@ extension AppStore {
         guard let activeWorkout, missingEquipment(exercise.catalogID).isEmpty, activeWorkout.exercises.count < 40,
               !activeWorkout.exercises.contains(where: { $0.catalogID == exercise.catalogID }) else { return }
         let entry = liveExercise(exercise)
-        _ = updateWorkout { $0?.exercises.append(entry) }
+        if updateWorkout({ $0?.exercises.append(entry) }) { recordPreference(exercise.catalogID, .exerciseChosen) }
     }
     func addLiveSet(exerciseID: UUID) {
         changeLiveExercise(exerciseID) { exercise in

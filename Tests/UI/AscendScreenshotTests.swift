@@ -25,5 +25,16 @@ final class AscendScreenshotTests: XCTestCase {
             attachment.name = name; attachment.lifetime = .keepAlways; add(attachment)
             capture.terminate()
         }
+        for (arguments, name, screen) in [(["--capture-brain-today"], "12_brain_today", "screen.dashboard"), (["--capture-brain-detail"], "13_brain_detail", "screen.braindetail"), (["--brain-low-data"], "14_brain_low_confidence", "screen.dashboard"), (["--capture-summary"], "15_post_workout_brain", "screen.workoutsummary")] {
+            let capture = XCUIApplication(); capture.launchArguments = ["--demo", "--ui-testing"] + arguments; capture.launch()
+            XCTAssertTrue(capture.descendants(matching: .any)[screen].firstMatch.waitForExistence(timeout: 20))
+            if screen == "screen.dashboard" {
+                let hero = capture.descendants(matching: .any)["brain.hero"].firstMatch
+                for _ in 0..<3 { if hero.isHittable { break }; capture.scrollViews[screen].swipeUp() }
+                XCTAssertTrue(hero.exists)
+            }
+            let attachment = XCTAttachment(screenshot: capture.screenshot()); attachment.name = name; attachment.lifetime = .keepAlways; add(attachment)
+            capture.terminate()
+        }
     }
 }

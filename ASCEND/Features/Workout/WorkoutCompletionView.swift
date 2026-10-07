@@ -57,6 +57,10 @@ struct WorkoutCompletionView: View {
                         CountUpText(value: Double(summary.pendingELO), signed: true).font(.title.weight(.semibold)).foregroundStyle(AppColor.eloGradient)
                     }.frame(maxWidth: .infinity, alignment: .leading)
                 }.padding(.horizontal, 8)
+                if store.brainArchive.settings.enabled {
+                    ContextExplanationView(focus: "Session read", facts: PersonalBrainEngine().sessionRead(summary), confidence: store.brainDecision.confidence)
+                        .accessibilityIdentifier("brain.session.read")
+                }
                 PremiumCard(role: .analytics) {
                     VStack(alignment: .leading, spacing: 16) {
                         Eyebrow(text: "MUSCLE LOAD")

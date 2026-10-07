@@ -19,7 +19,7 @@ extension AppStore {
         guard value.version == 1, value.routines.count <= 100, value.routines.allSatisfy(\.isValid), (15...180).contains(value.profile.sessionMinutes) else {
             errorMessage = "Use a routine name, distinct exercises, 1–40 sets, positive reps and 15–900 seconds of rest."; return false
         }
-        do { try trainingStorage?.write(value); training = value; return true }
+        do { try trainingStorage?.write(value); training = value; deriveBrain(); return true }
         catch { errorMessage = "Training preferences could not be saved: \(error.localizedDescription)"; return false }
     }
     func toggleFavorite(_ id: String) { _ = editTraining { if !$0.favorites.insert(id).inserted { $0.favorites.remove(id) } } }
@@ -35,10 +35,10 @@ extension AppStore {
         for index in copy.exercises.indices { copy.exercises[index].id = UUID() }
         _ = saveRoutine(copy)
     }
-    @discardableResult func startRoutine(_ routine: WorkoutRoutine) -> Bool {
+    @discardableResult func startRoutine(_ routine: WorkoutRoutine, generated: Bool = false) -> Bool {
         guard activeWorkout == nil else { errorMessage = "Resume or finish your saved workout before starting another routine."; return false }
         guard routine.isValid else { errorMessage = "Add a name and exercises to this routine."; return false }
-        var draft = LiveWorkout(startedAt: actionDate(), title: routine.name); draft.routineID = routine.id
+        var draft = LiveWorkout(startedAt: actionDate(), title: routine.name); draft.routineID = generated ? nil : routine.id
         for item in routine.exercises {
             guard let catalog = exercises.first(where: { $0.catalogID == item.exerciseID }), missingEquipment(item.exerciseID).isEmpty else {
                 errorMessage = "Replace unavailable exercises or update My Gym before starting."; return false
@@ -50,7 +50,9 @@ extension AppStore {
         }
         draft.selectedExerciseID = draft.exercises.first?.id
         guard updateWorkout({ $0 = draft }) else { return false }
-        completedWorkout = nil; liveWorkoutPresented = true; return true
+        completedWorkout = nil; liveWorkoutPresented = true
+        if !generated { recordPreference(routine.id.uuidString, .routineStarted) }
+        return true
     }
     func liveExercise(_ exercise: Exercise) -> LiveExercise {
         var entry = LiveExercise(catalogID: exercise.catalogID, name: exercise.name, mode: exercise.trackingMode,
@@ -71,10 +73,12 @@ extension AppStore {
         var replacement = liveExercise(exercise); replacement.id = id; replacement.restSeconds = old.restSeconds
         let baseline = replacement.sets.first ?? LiveSet()
         replacement.sets = old.sets.map { _ in var row = baseline; row.id = UUID(); return row }
-        return updateWorkout { draft in
+        let saved = updateWorkout { draft in
             guard let index = draft?.exercises.firstIndex(where: { $0.id == id }) else { return }
             draft?.exercises[index] = replacement; draft?.selectedExerciseID = id; draft?.rest.skip()
         }
+        if saved { recordPreference(old.catalogID, .exerciseSkipped); recordPreference(exercise.catalogID, .substitutionAccepted) }
+        return saved
     }
     var recommendedRoutine: TrainingRecommendation? {
         TrainingSystem().recommend(routines: training.routines, catalog: TrainingCatalog.definitions, state: training, recovery: readiness)

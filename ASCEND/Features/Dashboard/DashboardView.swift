@@ -11,36 +11,51 @@ struct DashboardView: View {
     @Environment(\.dynamicTypeSize) private var typeSize
     @State private var appeared = false
     @State private var showScore = false
+    @State private var showBrain = false
+    @State private var pendingBrainStart = false
     @State private var dailyPresentation: DailyPresentation?
     @State private var keptObjectives: Set<String> = []
     var body: some View {
+        ScrollViewReader { proxy in
         ScrollView {
             VStack(alignment: .leading, spacing: AppSpacing.lg) {
                 header
                 RankHeroView(showScore: $showScore)
+                if store.brainArchive.settings.enabled { BrainHeroView { showBrain = true }.id("brain.hero.anchor") }
                 NextActionCard { dailyPresentation = .pending }
-                quickMetrics
                 readinessAndMomentum
+                quickMetrics
                 DailyCommandCard { dailyPresentation = .pending }
                 objectives
                 DashboardNutritionView()
-                DashboardInsightView()
             }.padding(.horizontal, AppSpacing.page).padding(.bottom, AppSpacing.lg)
                 .opacity(appeared || AppMotion.snapshotMode ? 1 : 0).offset(y: appeared || reduceMotion || AppMotion.snapshotMode ? 0 : 10)
         }.accessibilityIdentifier("screen.dashboard").featureBackground().scrollIndicators(.hidden)
             .onAppear { withAnimation(reduceMotion || AppMotion.snapshotMode ? nil : AppAnimation.reveal) { appeared = true } }
             .onAppear {
                 #if DEBUG
+                if store.isDemo && AppMotion.snapshotMode && ProcessInfo.processInfo.arguments.contains("--capture-brain-detail") { showBrain = true }
                 if store.isDemo && AppMotion.snapshotMode && (ProcessInfo.processInfo.arguments.contains("--capture-daily") || ProcessInfo.processInfo.arguments.contains("--rank-reward")) {
                     dailyPresentation = ProcessInfo.processInfo.arguments.contains("--rank-reward") ? .finalized : .pending
                 }
                 #endif
             }
             .sheet(isPresented: $showScore) { NavigationStack { ScoreBreakdownView().environment(store) }.preferredColorScheme(.dark) }
+            .sheet(isPresented: $showBrain, onDismiss: {
+                if pendingBrainStart { pendingBrainStart = false; store.startBrainSession() }
+            }) { NavigationStack { BrainDetailView(startSession: { pendingBrainStart = true }).environment(store) }.preferredColorScheme(.dark) }
             .sheet(item: $dailyPresentation, onDismiss: { store.acknowledgeEvaluation() }) { presentation in
                 NavigationStack { DailyEvaluationView(preferFinalized: presentation == .finalized).environment(store) }.preferredColorScheme(.dark)
             }
             .onChange(of: store.unseenEvaluation, initial: true) { _, unseen in if unseen { dailyPresentation = .finalized } }
+            .task {
+                #if DEBUG
+                if store.isDemo && AppMotion.snapshotMode && (ProcessInfo.processInfo.arguments.contains("--capture-brain-today") || ProcessInfo.processInfo.arguments.contains("--brain-low-data")) {
+                    await Task.yield(); proxy.scrollTo("brain.hero.anchor", anchor: .top)
+                }
+                #endif
+            }
+        }
     }
     private var header: some View {
         HStack {
@@ -75,7 +90,7 @@ struct DashboardView: View {
         ])
     }
     private var readinessCard: some View {
-        PremiumCard {
+        PremiumCard(role: .ambient) {
             VStack(alignment: .leading, spacing: 12) {
                 Eyebrow(text: "READINESS")
                 ReadinessGauge(percent: store.readiness.percent, size: 70).frame(maxWidth: .infinity)

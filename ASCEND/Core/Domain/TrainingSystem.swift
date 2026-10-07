@@ -87,12 +87,20 @@ public struct PersonalTrainingState: Codable, Sendable {
     }
 }
 public enum RoutineLibrary {
-    public static let starters: [WorkoutRoutine] = [
+    public static let starters: [WorkoutRoutine] = {
+        var values: [WorkoutRoutine] = [
         .init(name: "Bodyweight push", exercises: [.init("push_up", repTarget: 12), .init("pike_push_up", repTarget: 8), .init("close_grip_push_up", repTarget: 10), .init("plank", restSeconds: 60)]),
         .init(name: "Upper body", exercises: [.init("chest_press", repTarget: 10), .init("lat_pulldown", repTarget: 10), .init("db_shoulder_press", repTarget: 10), .init("db_row", repTarget: 10), .init("lateral_raise", repTarget: 12), .init("hammer_curl", repTarget: 10)]),
         .init(name: "Pull", exercises: [.init("pull_up", repTarget: 8), .init("db_row", repTarget: 10), .init("rear_delt_raise", repTarget: 12), .init("hammer_curl", repTarget: 10)]),
         .init(name: "Legs", exercises: [.init("bodyweight_squat", repTarget: 15), .init("reverse_lunge", repTarget: 10), .init("glute_bridge", repTarget: 15), .init("bodyweight_calf_raise", repTarget: 15)])
-    ]
+        ]
+        // Stable defaults let explicit Brain preferences survive a relaunch before My Gym is edited.
+        // Existing saved routines retain their original identifiers through decoding.
+        for index in values.indices {
+            values[index].id = UUID(uuid: (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, UInt8(index + 1)))
+        }
+        return values
+    }()
 }
 public enum ExerciseSort: String, CaseIterable, Hashable, Sendable { case recommended, recent, favorites, alphabetical }
 public struct ExerciseQuery: Sendable {

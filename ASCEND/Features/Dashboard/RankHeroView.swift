@@ -23,11 +23,11 @@ struct RankHeroView: View {
                 RoundedRectangle(cornerRadius: AppRadius.hero, style: .continuous).fill(AppColor.surface)
                     .overlay {
                         RoundedRectangle(cornerRadius: AppRadius.hero, style: .continuous)
-                            .fill(RadialGradient(colors: [tint.opacity(0.16), .clear],
+                            .fill(RadialGradient(colors: [tint.opacity(0.10), .clear],
                                 center: .init(x: 0.22, y: 0.45), startRadius: 4, endRadius: 280))
                     }
             }
-            .overlay { RoundedRectangle(cornerRadius: AppRadius.hero).strokeBorder(LinearGradient(colors: [tint.opacity(0.38), tint.opacity(0.07)], startPoint: .topLeading, endPoint: .bottomTrailing)) }
+            .overlay { RoundedRectangle(cornerRadius: AppRadius.hero).strokeBorder(LinearGradient(colors: [tint.opacity(0.16), tint.opacity(0.025)], startPoint: .topLeading, endPoint: .bottomTrailing)) }
             .shadow(color: .black.opacity(0.25), radius: 14, y: 8)
     }
     private var emblem: some View {
@@ -39,6 +39,7 @@ struct RankHeroView: View {
             Text(store.rank.rank.title).font(.system(.headline, design: .rounded, weight: .semibold)).tracking(0.6).foregroundStyle(tint)
             CountUpText(value: Double(store.currentELO)).font(.system(size: eloSize, weight: .semibold, design: .rounded))
                 .foregroundStyle(AppColor.eloGradient)
+                .shadow(color: AppColor.elo.opacity(0.12), radius: 12)
                 .tracking(-2).lineLimit(1).minimumScaleFactor(0.65)
                 .accessibilityIdentifier("dashboard.elo").accessibilityValue(String(store.currentELO))
             Text("ELO RATING").font(.system(.caption2, weight: .medium)).tracking(1.5).foregroundStyle(AppColor.muted)
