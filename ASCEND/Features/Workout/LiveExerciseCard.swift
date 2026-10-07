@@ -41,7 +41,7 @@ struct LiveExerciseCard: View {
             }
             HStack { Eyebrow(text: "TODAY'S SETS"); Spacer(); Text("\(exercise.completedWorkingSets.count) working").font(.caption).foregroundStyle(AppColor.muted) }
             ForEach(Array(exercise.sets.enumerated()), id: \.element.id) { index, set in
-                LiveSetRow(exercise: exercise, set: set, number: index + 1)
+                LiveSetRow(exercise: exercise, liveSet: set, number: index + 1)
             }
             PrimaryAction(title: "Add set", symbol: "plus") { store.addLiveSet(exerciseID: exercise.id) }.accessibilityIdentifier("live.add.set")
         }
@@ -87,9 +87,9 @@ struct LiveExerciseCard: View {
 private struct LiveSetRow: View {
     @Environment(AppStore.self) private var store
     let exercise: LiveExercise
-    let set: LiveSet
+    let liveSet: LiveSet
     let number: Int
-    private var completed: Bool { set.completedAt != nil }
+    private var completed: Bool { liveSet.completedAt != nil }
     var body: some View {
         PremiumCard {
             VStack(alignment: .leading, spacing: 12) {
@@ -107,10 +107,10 @@ private struct LiveSetRow: View {
                     if exercise.mode == .distance { valueField("Meters", value: field(\.distanceMeters), id: "live.set.meters") }
                 }.disabled(completed)
                 HStack {
-                    Toggle("RPE", isOn: Binding(get: { set.rpe != nil }, set: { enabled in update { $0.rpe = enabled ? 7 : nil } }))
+                    Toggle("RPE", isOn: Binding(get: { liveSet.rpe != nil }, set: { enabled in update { $0.rpe = enabled ? 7 : nil } }))
                         .font(.caption).fixedSize().disabled(completed)
-                    if set.rpe != nil {
-                        TextField("RPE", value: Binding(get: { set.rpe ?? 7 }, set: { new in update { $0.rpe = new } }), format: .number)
+                    if liveSet.rpe != nil {
+                        TextField("RPE", value: Binding(get: { liveSet.rpe ?? 7 }, set: { new in update { $0.rpe = new } }), format: .number)
                             .keyboardType(.decimalPad).padding(10).background(AppColor.elevated, in: RoundedRectangle(cornerRadius: 10)).disabled(completed)
                     }
                     Spacer()
@@ -118,12 +118,12 @@ private struct LiveSetRow: View {
                         Button("Undo", systemImage: "arrow.uturn.backward") { update { $0.completedAt = nil } }.font(.caption).frame(minHeight: 44)
                     } else {
                         Button("Remove", systemImage: "minus.circle") {
-                            store.changeLiveExercise(exercise.id) { $0.sets.removeAll { $0.id == set.id } }
+                            store.changeLiveExercise(exercise.id) { $0.sets.removeAll { $0.id == liveSet.id } }
                         }.font(.caption).foregroundStyle(AppColor.muted).frame(minHeight: 44)
                     }
                 }
                 Button {
-                    _ = store.completeLiveSet(exerciseID: exercise.id, setID: set.id)
+                    _ = store.completeLiveSet(exerciseID: exercise.id, setID: liveSet.id)
                 } label: {
                     Label(completed ? "Set complete" : "Complete set", systemImage: completed ? "checkmark.circle.fill" : "checkmark.circle")
                         .font(.subheadline.weight(.semibold)).frame(maxWidth: .infinity, minHeight: 44)
@@ -133,11 +133,11 @@ private struct LiveSetRow: View {
         }
     }
     private func field<Value>(_ keyPath: WritableKeyPath<LiveSet, Value>) -> Binding<Value> {
-        Binding(get: { set[keyPath: keyPath] }, set: { value in update { $0[keyPath: keyPath] = value } })
+        Binding(get: { liveSet[keyPath: keyPath] }, set: { value in update { $0[keyPath: keyPath] = value } })
     }
     private func update(_ change: (inout LiveSet) -> Void) {
         store.changeLiveExercise(exercise.id) { value in
-            if let index = value.sets.firstIndex(where: { $0.id == set.id }) { change(&value.sets[index]) }
+            if let index = value.sets.firstIndex(where: { $0.id == liveSet.id }) { change(&value.sets[index]) }
         }
     }
     private func valueField(_ title: String, value: Binding<Int>, id: String) -> some View {
