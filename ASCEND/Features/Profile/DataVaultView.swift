@@ -55,7 +55,7 @@ struct DataVaultView: View {
                     }
                 }
                 if let notice { Text(notice).font(.caption).foregroundStyle(AppColor.muted) }
-            }.padding(20)
+            }.padding(.horizontal, 20).padding(.top, 20).padding(.bottom, 96)
         }.featureBackground().accessibilityIdentifier("screen.data").toolbar(.visible, for: .navigationBar).navigationTitle("Data").navigationBarTitleDisplayMode(.inline)
             .fileExporter(isPresented: $export, document: document, contentType: .ascendBackup, defaultFilename: "ASCEND-\(store.policy.key(for: store.actionDate())).ascendbackup") { result in
                 switch result { case .success: notice = "Backup exported."; case .failure(let error): store.errorMessage = error.localizedDescription }

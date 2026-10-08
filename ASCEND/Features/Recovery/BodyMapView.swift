@@ -6,12 +6,12 @@ struct BodyMapView: View {
     @State private var presentation = AnatomyPresentation()
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.accessibilityVoiceOverEnabled) private var voiceOver
-    @State private var native = false
+    @State private var native = AppMotion.nativeAnatomyCapture
     @State private var nativeFailed = false
     @State private var cameraReset = 0
     @State private var cameraSide = false
     @State private var selectedMesh: String?
-    @State private var visible = false
+    @State private var visible = AppMotion.nativeAnatomyCapture
     @State private var metric = AnatomyMetricMode.recovery
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     private let states: [RegionVisualization]
@@ -51,7 +51,7 @@ struct BodyMapView: View {
                     Spacer()
                     if native { Button("Side") { cameraSide.toggle(); cameraReset += 1 }.font(.caption).frame(minHeight: 44); Button("Reset camera") { cameraSide = false; cameraReset += 1 }.font(.caption).frame(minHeight: 44) }
                 }
-                if native && !nativeFailed && visible && scenePhase == .active && !voiceOver && (!AppMotion.snapshotMode || AppMotion.nativeAnatomyCapture) {
+                if native && !nativeFailed && (AppMotion.nativeAnatomyCapture || (visible && scenePhase == .active && !voiceOver && !AppMotion.snapshotMode)) {
                     NativeAnatomyView(report: report, metric: metric, selected: presentation.selected, back: presentation.mode == .back, cameraReset: cameraReset, cameraSide: cameraSide, selectedMesh: selectedMesh, onSelect: { region, mesh in change { selectedMesh = mesh; presentation.select(region) } }, onFailure: { nativeFailed = true })
                         .frame(height: 340).clipShape(RoundedRectangle(cornerRadius: 18))
                     Text("Drag to orbit · pinch to zoom · tap a muscle. Z-Anatomy / BodyParts3D · CC BY-SA 4.0.").font(.caption2).foregroundStyle(AppColor.muted)

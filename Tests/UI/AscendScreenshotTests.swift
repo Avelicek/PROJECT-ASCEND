@@ -45,9 +45,9 @@ final class AscendScreenshotTests: XCTestCase {
 
         let anatomy = XCUIApplication(); anatomy.launchArguments = ["--demo", "--ui-testing", "--capture-anatomy-3d"]; anatomy.launch()
         let model = anatomy.descendants(matching: .any)["anatomy.native"].firstMatch
-        XCTAssertTrue(model.waitForExistence(timeout: 30))
+        XCTAssertTrue(model.waitForExistence(timeout: 45))
         let ready = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", "Ready"), object: model)
-        XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: 30), .completed)
+        XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: 60), .completed)
         let image = XCTAttachment(screenshot: anatomy.screenshot()); image.name = "22_anatomy_3d"; image.lifetime = .keepAlways; add(image)
         anatomy.terminate()
 

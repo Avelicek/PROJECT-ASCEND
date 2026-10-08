@@ -35,7 +35,7 @@ struct DashboardView: View {
                 objectives
                 DashboardNutritionView()
                 if store.ownerSystem.sleepStartedAt == nil && !store.ownerSystem.sickActive { OwnerModeCard() }
-            }.padding(.horizontal, AppSpacing.page).padding(.bottom, AppSpacing.lg)
+            }.padding(.horizontal, AppSpacing.page).padding(.bottom, 96)
                 .opacity(appeared || AppMotion.snapshotMode ? 1 : 0).offset(y: appeared || reduceMotion || AppMotion.snapshotMode ? 0 : 10)
         }.accessibilityIdentifier("screen.dashboard").featureBackground().scrollIndicators(.hidden)
             .onAppear { withAnimation(reduceMotion || AppMotion.snapshotMode ? nil : AppAnimation.reveal) { appeared = true } }

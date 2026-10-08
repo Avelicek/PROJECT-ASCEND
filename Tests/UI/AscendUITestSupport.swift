@@ -37,7 +37,7 @@ import XCTest
         let scroll = app.scrollViews[screen]
         let tab = app.buttons["tab.dashboard"]
         let bottom = tab.exists ? tab.frame.minY - 16 : scroll.frame.maxY - 16
-        for _ in 0..<8 {
+        for _ in 0..<12 {
             if element.isHittable && element.frame.minY > scroll.frame.minY + 8 && element.frame.maxY < bottom { break }
             if element.exists && element.frame.minY <= scroll.frame.minY + 8 { scroll.swipeDown() }
             else { scroll.swipeUp() }
