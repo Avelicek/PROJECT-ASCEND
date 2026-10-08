@@ -15,9 +15,16 @@ enum AscendMigrationPlan: SchemaMigrationPlan {
     static var stages: [MigrationStage] { [] }
 }
 enum PersistenceController {
-    @MainActor static func makeContainer(inMemory: Bool) throws -> ModelContainer {
+    @MainActor static func makeContainer(inMemory: Bool, folder: URL? = nil) throws -> ModelContainer {
         let schema = Schema(versionedSchema: AscendSchemaV1.self)
-        let configuration = ModelConfiguration("Ascend", schema: schema, isStoredInMemoryOnly: inMemory, cloudKitDatabase: .none)
+        if !inMemory && folder == nil { try OwnerStoreLocation.cleanRetiredData() }
+        let selected = try folder ?? (inMemory ? nil : OwnerStoreLocation.selectedFolder())
+        let configuration: ModelConfiguration
+        if let selected, selected.lastPathComponent != "ASCEND" {
+            configuration = ModelConfiguration("Ascend", schema: schema, url: selected.appendingPathComponent("Ascend.store"), cloudKitDatabase: .none)
+        } else {
+            configuration = ModelConfiguration("Ascend", schema: schema, isStoredInMemoryOnly: inMemory, cloudKitDatabase: .none)
+        }
         return try ModelContainer(for: schema, migrationPlan: AscendMigrationPlan.self, configurations: [configuration])
     }
 }

@@ -217,4 +217,86 @@ final class PersonalBrainTests: XCTestCase {
         let result = DailyGameEngine().evaluate(.init(), previousELO: 1084, momentum: nil, confidence: .low)
         XCTAssertFalse(engine.dayRead(result).contains { $0.contains("91%") })
     }
+    func testEverythingKnownReadySupportsNormalTraining() {
+        var value = context(chest: 95)
+        value.recovery = .init(percent: 95, state: .primed, muscles: Muscle.allCases.map {
+            .init(muscle: $0, recoveryPercent: 95, load: 1, fatigue: 5, lastTrainedAt: date.addingTimeInterval(-4 * 86400), estimatedRecoveryTime: nil, confidence: .high)
+        }, confidence: .high)
+        let decision = engine.decide(value)
+        XCTAssertEqual(decision.action, .train); XCTAssertNotNil(decision.session)
+        XCTAssertFalse(decision.reasons.isEmpty); XCTAssertTrue(decision.muscles.allSatisfy { $0.recovery != nil })
+    }
+    func testMissingSleepLowersConfidenceWithoutInventingSleep() {
+        var value = context(); value.sleepHours = nil; value.sleepQuality = nil
+        let decision = engine.decide(value)
+        XCTAssertNotEqual(decision.action, .recover); XCTAssertNotEqual(decision.confidence, .high)
+        XCTAssertTrue(decision.missing.contains { $0.lowercased().contains("sleep") })
+        XCTAssertNil(value.sleepHours)
+    }
+    func testFiveDayReturnUsesActualGapAndNoImaginaryPerformance() {
+        var value = context(); value.daysSinceLastSession = 5
+        let decision = engine.decide(value)
+        XCTAssertEqual(decision.action, .train); XCTAssertEqual(decision.focus, "Pull")
+        XCTAssertTrue(decision.reasons.contains { $0.contains("5 days") })
+        XCTAssertTrue(decision.opportunities.allSatisfy { $0.suggestion.target == nil })
+    }
+    func testUnderexposedLegsWinWhenBothChoicesHaveKnownEqualRecovery() {
+        var value = context(chest: 90)
+        value.recovery = .init(percent: 90, state: .ready, muscles: Muscle.allCases.map {
+            .init(muscle: $0, recoveryPercent: 90, load: 1, fatigue: 10, lastTrainedAt: date.addingTimeInterval(-4 * 86400), estimatedRecoveryTime: nil, confidence: .medium)
+        }, confidence: .medium)
+        value.training.routines = [.init(name: "Legs", exercises: [.init("bodyweight_squat")]), .init(name: "Push", exercises: [.init("push_up")])]
+        value.weeklyMovements = [.horizontalPush: 20, .squat: 0]; value.weeklyMuscles = ["Chest": 20, "Legs": 0]
+        let decision = engine.decide(value)
+        XCTAssertEqual(decision.action, .train); XCTAssertEqual(decision.focus, "Legs")
+        XCTAssertTrue(decision.session?.exercises.contains { $0.exerciseID == "bodyweight_squat" } ?? false)
+    }
+    func testUnderexposedPullWinsAmongEqualKnownChoices() {
+        var value = context(chest: 90)
+        value.training.routines = [.init(name: "Pull", exercises: [.init("db_row")]), .init(name: "Push", exercises: [.init("push_up")])]
+        value.weeklyMovements = [.horizontalPush: 20, .horizontalPull: 0]; value.weeklyMuscles = ["Chest": 20, "Back": 0]
+        let decision = engine.decide(value)
+        XCTAssertEqual(decision.focus, "Pull"); XCTAssertEqual(decision.action, .train)
+        XCTAssertFalse(decision.session?.exercises.contains { $0.exerciseID == "push_up" } ?? true)
+    }
+    func testRealDailyPushupLoadProtectsChestWithoutInventingProgression() {
+        var value = context(chest: 20); value.weeklyMuscles = ["Chest": 10]
+        value.history = [.init(exerciseID: "push_up", date: date.addingTimeInterval(-3600), mode: .reps, quick: true, sets: [.init(.init(reps: 60), rpe: 7)])]
+        let decision = engine.decide(value)
+        XCTAssertEqual(decision.focus, "Pull"); XCTAssertEqual(decision.action, .train)
+        XCTAssertFalse(decision.session?.exercises.contains { $0.exerciseID == "push_up" } ?? true)
+        XCTAssertTrue(decision.opportunities.allSatisfy { $0.suggestion.target == nil })
+    }
+    func testSickModePausesTrainingWithoutInventingRecoveryMeasurements() {
+        var value = context(); value.sickMode = true
+        let decision = engine.decide(value)
+        XCTAssertEqual(decision.action, .recover); XCTAssertEqual(decision.focus, "Recovery protection")
+        XCTAssertNil(decision.routineID); XCTAssertNil(decision.session); XCTAssertTrue(decision.opportunities.isEmpty)
+        XCTAssertTrue(decision.reasons.contains { $0.contains("User-declared") })
+        XCTAssertEqual(value.recovery.percent, 80)
+    }
+    func testSleepModePausesPressureAndRetainsConfidence() {
+        var value = context(); value.sleepMode = true
+        let decision = engine.decide(value)
+        XCTAssertEqual(decision.action, .recover); XCTAssertEqual(decision.focus, "Sleep")
+        XCTAssertNil(decision.session); XCTAssertEqual(decision.confidence, value.recovery.confidence)
+        XCTAssertTrue(decision.reasons.contains { $0.contains("recorded sleep interval") })
+    }
+    func testActiveWorkoutDoesNotOfferSecondSession() {
+        var value = context(); value.activeWorkout = true
+        let decision = engine.decide(value)
+        XCTAssertEqual(decision.action, .maintain); XCTAssertEqual(decision.focus, "Active session")
+        XCTAssertNil(decision.session); XCTAssertNil(decision.routineID)
+        XCTAssertTrue(decision.reasons.contains { $0.contains("Resume") })
+    }
+    func testLowCaloriesAndLowProteinSeparatelyHoldLoad() {
+        for protein in [false, true] {
+            var value = context(); value.history = history()
+            if protein { value.proteinAdherence = 0.5 } else { value.calorieAdherence = 0.5 }
+            let decision = engine.decide(value)
+            XCTAssertEqual(decision.action, .train); XCTAssertEqual(decision.intensity, .holdLoad)
+            XCTAssertFalse(decision.warnings.isEmpty); XCTAssertTrue(decision.opportunities.allSatisfy { $0.suggestion.target == nil })
+        }
+    }
+
 }

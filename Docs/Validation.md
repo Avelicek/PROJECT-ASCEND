@@ -1,5 +1,7 @@
 # Validation status and Build 01.5 CI handoff
 
+> Historical Build 01.5 record. Current repository, V1 implementation and remaining acceptance: [V1MasterUpdate.md](V1MasterUpdate.md). Counts and setup state below describe that earlier build.
+
 ## Authoring environment
 
 Windows / PowerShell. Empty initial workspace; no Git repository, existing Xcode project, Swift compiler, Apple SDK or Xcode executable. No compilation, Swift tests, macro expansion, simulator screenshots, on-device AI inference or device visual verification can be claimed.

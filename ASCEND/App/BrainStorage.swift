@@ -3,9 +3,7 @@ import Foundation
 struct BrainStorage {
     let url: URL
     static func production() throws -> BrainStorage {
-        let folder = try FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
-            .appendingPathComponent("ASCEND", isDirectory: true)
-        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        let folder = try OwnerStoreLocation.selectedFolder()
         return .init(url: folder.appendingPathComponent("personal-brain-v1.json"))
     }
     func read() throws -> BrainArchive? {

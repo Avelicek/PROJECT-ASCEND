@@ -81,7 +81,8 @@ extension AppStore {
         return saved
     }
     var recommendedRoutine: TrainingRecommendation? {
-        TrainingSystem().recommend(routines: training.routines, catalog: TrainingCatalog.definitions, state: training, recovery: readiness)
+        guard !ownerSystem.sickActive, ownerSystem.sleepStartedAt == nil else { return nil }
+        return TrainingSystem().recommend(routines: training.routines, catalog: TrainingCatalog.definitions, state: training, recovery: readiness)
     }
     var nextTrainingRoutine: WorkoutRoutine? {
         if let recommendation = recommendedRoutine { return training.routines.first { $0.id == recommendation.routineID } }
@@ -90,9 +91,9 @@ extension AppStore {
     var weeklyExposure: [(String, Double)] {
         let lower = policy.adding(days: -(policy.calendar.component(.weekday, from: now) + 5) % 7, to: policy.start(of: now))
         var totals: [String: Double] = [:]
-        for session in sessions where session.hasWorkingSets && !session.isQuickLog && session.evaluationDate >= lower && session.evaluationDate <= now {
+        for session in sessions where session.hasWorkingSets && session.evaluationDate >= lower && session.evaluationDate <= now {
             for exercise in session.exercises {
-                let count = Double(exercise.sets.filter { !$0.isWarmup }.count)
+                let count = WorkoutEngine().load(sets: exercise.sets.filter { !$0.isWarmup }.map(\.performance), mode: exercise.trackingMode, quick: session.isQuickLog)
                 for contribution in exercise.contributions { totals[contribution.muscle.group, default: 0] += count * contribution.fraction }
             }
         }
@@ -102,7 +103,7 @@ extension AppStore {
         let weekday = (policy.calendar.component(.weekday, from: now) + 5) % 7
         let lower = policy.adding(days: -weekday, to: policy.start(of: now))
         var totals: [MovementPattern: Int] = [:]
-        for session in sessions where session.hasWorkingSets && !session.isQuickLog && session.evaluationDate >= lower && session.evaluationDate <= now {
+        for session in sessions where session.hasWorkingSets && session.evaluationDate >= lower && session.evaluationDate <= now {
             for exercise in session.exercises {
                 if let id = exercise.exercise?.catalogID, let metadata = trainingMetadata(id) { totals[metadata.pattern, default: 0] += exercise.sets.filter { !$0.isWarmup }.count }
             }

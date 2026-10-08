@@ -61,7 +61,8 @@ public struct RestClock: Codable, Sendable {
     public var finishAcknowledged = true
     public init() {}
     public func remaining(at date: Date) -> Int {
-        Int(ceil(max(0, pausedSeconds ?? deadline?.timeIntervalSince(date) ?? 0)))
+        let value = pausedSeconds ?? deadline?.timeIntervalSince(date) ?? 0
+        return value.isFinite ? Int(ceil(FitnessMath.clamp(value, 0...900))) : 0
     }
     public var isPaused: Bool { pausedSeconds != nil }
     public var isActive: Bool { deadline != nil || pausedSeconds != nil }
@@ -102,6 +103,27 @@ public struct LiveWorkout: Codable, Sendable, Identifiable {
     public var routineID: UUID?
     public init(startedAt: Date, title: String = "Live training") {
         version = 1; id = UUID(); self.startedAt = startedAt; self.title = title; exercises = []; rest = RestClock()
+    }
+    public var isStructurallyValid: Bool {
+        guard version == 1, OwnerDates.valid(startedAt), exercises.count <= 40, Set(exercises.map(\.id)).count == exercises.count,
+              selectedExerciseID.map({ selected in exercises.contains { $0.id == selected } }) ?? true,
+              rest.spanSeconds.map({ $0.isFinite && (0...900).contains($0) }) ?? true,
+              rest.pausedSeconds.map({ $0.isFinite && (0...900).contains($0) }) ?? true,
+              rest.deadline == nil || rest.pausedSeconds == nil,
+              rest.deadline.map({ OwnerDates.valid($0) }) ?? true else { return false }
+        return exercises.allSatisfy { exercise in
+            exercise.sets.count <= 40 && Set(exercise.sets.map(\.id)).count == exercise.sets.count &&
+            exercise.weightStep.isFinite && exercise.weightStep > 0 &&
+            (exercise.restSeconds.map { (15...900).contains($0) } ?? true) &&
+            exercise.contributions.allSatisfy { $0.fraction.isFinite && (0...1).contains($0.fraction) } &&
+            exercise.sets.allSatisfy { set in
+                (0...2000).contains(set.reps) && (0...1000).contains(set.kilograms) &&
+                (0...86400).contains(set.seconds) && (0...500000).contains(set.distanceMeters) &&
+                (set.rpe.map { (1...10).contains($0) } ?? true) &&
+                (set.completedAt.map(OwnerDates.valid) ?? true) &&
+                (set.completedAt == nil || set.isValid(for: exercise.mode, allowsWeight: exercise.allowsWeight, bodyweight: exercise.bodyweight))
+            }
+        }
     }
     public var completedSets: Int { exercises.reduce(0) { $0 + $1.sets.filter { $0.completedAt != nil }.count } }
 }

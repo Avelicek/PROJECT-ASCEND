@@ -21,7 +21,7 @@ extension AppStore {
         let recentStart = policy.adding(days: -3, to: policy.start(of: date))
         input.consistent = Set(nutrition.filter { $0.date >= recentStart && $0.date <= end }.map(\.dayKey)).count >= 3
         let due = occurrences.filter { $0.dayKey == key && (includeMisses || $0.completedAt != nil || $0.recoveryExempt) }
-        input.recoverySafeChoice = due.contains { $0.recoveryExempt }
+        input.recoverySafeChoice = due.contains { $0.recoveryExempt && $0.replacementTitle != "Sick Mode · protected" }
         input.objectives = due.map { .init(title: $0.title, completed: $0.completedAt != nil,
             importance: ObjectiveImportance(rawValue: $0.importanceRaw) ?? .standard, recoveryExempt: $0.recoveryExempt) }
         return input

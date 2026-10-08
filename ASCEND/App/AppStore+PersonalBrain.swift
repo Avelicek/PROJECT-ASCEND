@@ -1,8 +1,40 @@
 import Foundation
 
 extension AppStore {
+    // Event-driven cache. Recovery age advances on foreground refresh, with a one-minute
+    // presentation tolerance; this never schedules a timer or requests model inference.
+    private func currentBrainInputKey() -> Int {
+        var hash = Hasher()
+        hash.combine((now.timeIntervalSince1970 / 60).rounded(.down))
+        hash.combine(policy.key(for: now)); hash.combine(currentELO); hash.combine(activeWorkout?.id)
+        hash.combine(profile.startingWeightKG); hash.combine(profile.desiredWeeklyChangeKG); hash.combine(profile.targetDeadline); hash.combine(profile.targetWeightKG); hash.combine(profile.calorieGoal); hash.combine(profile.proteinGoal); hash.combine(profile.sleepTargetHours)
+        let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys]
+        // JSONEncoder's Set order is not stable. Encode sorted set values separately.
+        var profile = training.profile
+        let equipment = profile.equipment.map(\.rawValue).sorted(); profile.equipment = []
+        hash.combine(try? encoder.encode(profile)); hash.combine(equipment)
+        hash.combine(try? encoder.encode(training.routines)); hash.combine(training.favorites.sorted()); hash.combine(training.hidden.sorted())
+        hash.combine(try? encoder.encode(brainArchive.settings)); hash.combine(try? encoder.encode(brainArchive.preferences))
+        hash.combine(ownerSystem.sickActive); hash.combine(ownerSystem.sleepStartedAt)
+        for entry in weights { hash.combine(entry.id); hash.combine(entry.measuredAt); hash.combine(entry.kilograms) }
+        for entry in nutrition { hash.combine(entry.dayKey); hash.combine(entry.date); hash.combine(entry.calories); hash.combine(entry.proteinGrams); hash.combine(entry.calorieGoal); hash.combine(entry.proteinGoal) }
+        for entry in sleep { hash.combine(entry.dayKey); hash.combine(entry.date); hash.combine(entry.durationHours); hash.combine(entry.quality) }
+        for session in sessions {
+            hash.combine(session.id); hash.combine(session.startedAt); hash.combine(session.completedAt); hash.combine(session.isQuickLog)
+            for exercise in session.exercises.sorted(by: { $0.order < $1.order }) {
+                hash.combine(exercise.id); hash.combine(exercise.exercise?.catalogID); hash.combine(exercise.trackingModeRaw); hash.combine(exercise.contributionData)
+                for set in exercise.sets.sorted(by: { $0.order < $1.order }) { hash.combine(set.id); hash.combine(set.reps); hash.combine(set.weightKG); hash.combine(set.durationSeconds); hash.combine(set.distanceMeters); hash.combine(set.perceivedExertion); hash.combine(set.isWarmup); hash.combine(set.completedAt) }
+            }
+        }
+        for exercise in exercises { hash.combine(exercise.catalogID); hash.combine(exercise.contributionData); hash.combine(exercise.trackingModeRaw) }
+        return hash.finalize()
+    }
     func deriveBrain() {
+        let key = currentBrainInputKey()
+        guard key != brainInputKey else { return }
+        brainInputKey = key
         var value = PersonalContext(date: now)
+        value.sickMode = ownerSystem.sickActive; value.sleepMode = ownerSystem.sleepStartedAt != nil; value.activeWorkout = activeWorkout != nil
         value.dayKey = policy.key(for: now); value.currentELO = currentELO; value.rank = rank.rank.title
         value.weight = progress.actualWeight; value.targetWeight = profile.targetWeightKG; value.weightMomentum = progress.momentumPercent
         let recentSleep = sleep.last { $0.date <= now && $0.date >= policy.adding(days: -1, to: policy.start(of: now)) }

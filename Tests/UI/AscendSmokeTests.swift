@@ -91,18 +91,15 @@ final class AscendSmokeTests: XCTestCase {
     @MainActor func testLaunchWithoutDemoOrModelInference() {
         continueAfterFailure = false
         let app = XCUIApplication()
+        app.launchArguments = ["--fresh-ui-testing"]
         app.launch()
         XCTAssertTrue(app.wait(for: .runningForeground, timeout: 20))
-        XCTAssertTrue(app.scrollViews["screen.dashboard"].waitForExistence(timeout: 20))
+        let setup = app.scrollViews["screen.onboarding"]
+        let dashboard = app.scrollViews["screen.dashboard"]
+        XCTAssertTrue(setup.waitForExistence(timeout: 10) || dashboard.waitForExistence(timeout: 10))
         XCTAssertFalse(app.staticTexts["demo.marker"].exists)
-        // Fresh simulator install still exposes the deterministic Personal Brain without model inference.
-        let brain = app.descendants(matching: .any)["brain.hero"].firstMatch
-        for _ in 0..<8 {
-            if brain.exists { break }
-            app.scrollViews["screen.dashboard"].swipeUp()
-        }
-        XCTAssertTrue(brain.exists)
-        XCTAssertTrue(app.staticTexts["brain.confidence"].exists)
+        // Fresh installs enter setup; existing local owners retain their completed setup.
+        if setup.exists { XCTAssertTrue(app.textFields["onboarding.name"].exists) }
         XCTAssertEqual(app.state, .runningForeground)
         app.terminate()
     }

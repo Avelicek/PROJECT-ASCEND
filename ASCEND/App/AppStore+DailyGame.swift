@@ -28,26 +28,27 @@ extension AppStore {
         return DailyGameEngine().presentation(result, momentum: nil, confidence: .low)
     }
     var unseenEvaluation: Bool {
-        guard !isDemo, let latest = history.last, localPreferences != nil else { return false }
-        return localPreferences?.string(forKey: "seen-daily-evaluation-v1") != latest.dayKey
+        guard !isDemo, let latest = history.last else { return false }
+        return (ownerSystem.lastSeenDay ?? localPreferences?.string(forKey: "seen-daily-evaluation-v1")) != latest.dayKey
     }
-    func acknowledgeEvaluation() { if let latest = history.last { localPreferences?.set(latest.dayKey, forKey: "seen-daily-evaluation-v1") } }
+    func acknowledgeEvaluation() { if let latest = history.last { _ = saveOwnerSystem { $0.lastSeenDay = latest.dayKey }; localPreferences?.set(latest.dayKey, forKey: "seen-daily-evaluation-v1") } }
     private var goodFuel: [NutritionEntry] {
         nutrition.filter { (0.9...1.1).contains($0.calories / max(1, $0.calorieGoal)) && $0.proteinGrams / max(1, $0.proteinGoal) >= 0.9 }
     }
     private var objectiveDays: [Date] {
         Dictionary(grouping: occurrences) { $0.dayKey }.values.compactMap { day in
-            day.allSatisfy { $0.completedAt != nil || $0.recoveryExempt } ? day.first?.date : nil
+            day.contains { $0.completedAt != nil } && day.allSatisfy { $0.completedAt != nil || $0.recoveryExempt } ? day.first?.date : nil
         }
     }
     var streaks: [(String, Int, String)] {
         let engine = StreakEngine()
+        let protected = protectedDays
         let objectives = Set(objectiveDays.map { policy.key(for: $0) })
         let perfect = goodFuel.filter { objectives.contains($0.dayKey) }.map(\.date)
         return [
-            ("Training", engine.workoutWeeks(dates: sessions.filter { $0.hasWorkingSets }.map(\.evaluationDate), now: now, policy: policy), "weeks"),
+            ("Training", engine.workoutWeeks(dates: sessions.filter { $0.hasWorkingSets }.map(\.evaluationDate), now: now, policy: policy, protectedDays: protected), "weeks"),
             ("Nutrition", engine.daily(qualifyingDays: goodFuel.map(\.date), now: now, policy: policy), "days"),
-            ("Objectives", engine.daily(qualifyingDays: objectiveDays, now: now, policy: policy), "days"),
+            ("Objectives", engine.daily(qualifyingDays: objectiveDays, now: now, policy: policy, protectedDays: protected), "days"),
             ("Perfect day", engine.daily(qualifyingDays: perfect, now: now, policy: policy), "days")
         ]
     }

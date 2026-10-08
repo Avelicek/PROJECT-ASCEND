@@ -62,6 +62,13 @@ enum AppAnimation {
     static let reward = Animation.spring(response: 0.44, dampingFraction: 0.86)
 }
 enum AppMotion {
+    static var nativeAnatomyCapture: Bool {
+        #if DEBUG
+        snapshotMode && ProcessInfo.processInfo.arguments.contains("--demo") && ProcessInfo.processInfo.arguments.contains("--capture-anatomy-3d")
+        #else
+        false
+        #endif
+    }
     static var snapshotMode: Bool {
         #if DEBUG
         ProcessInfo.processInfo.arguments.contains("--ui-testing")

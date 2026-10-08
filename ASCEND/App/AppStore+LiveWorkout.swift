@@ -17,9 +17,18 @@ extension AppStore {
         if activeWorkout != nil { liveWorkoutPresented = true }
     }
     @discardableResult func updateWorkout(_ change: (inout LiveWorkout?) -> Void) -> Bool {
+        let hadWorkout = activeWorkout != nil
+        let previousDeadline = activeWorkout?.rest.deadline
+        let previousExercise = activeWorkout?.rest.exerciseID
         var value = activeWorkout
         change(&value)
-        do { try workoutStorage?.write(value); activeWorkout = value; return true }
+        do { try workoutStorage?.write(value); activeWorkout = value
+            if value?.rest.deadline != previousDeadline || value?.rest.exerciseID != previousExercise {
+                RestNotifications.synchronize(value?.rest, enabled: !isDemo && !AppMotion.snapshotMode && !container.configurations.allSatisfy(\.isStoredInMemoryOnly))
+                RestLiveActivity.synchronize(value, enabled: !isDemo && !AppMotion.snapshotMode && !container.configurations.allSatisfy(\.isStoredInMemoryOnly))
+            }
+            if hadWorkout != (value != nil) { deriveBrain() }
+            return true }
         catch { errorMessage = "Workout progress could not be saved: \(error.localizedDescription)"; return false }
     }
     func changeLiveExercise(_ id: UUID, _ change: (inout LiveExercise) -> Void) {
@@ -70,11 +79,12 @@ extension AppStore {
     }
     func preferredRest(for exerciseID: String) -> Int {
         if let routineRest = activeWorkout?.exercises.first(where: { $0.catalogID == exerciseID })?.restSeconds { return routineRest }
-        return (localPreferences?.dictionary(forKey: "exercise-rest-v1")?[exerciseID] as? Int) ?? settings.restTimerSeconds
+        return ownerSystem.exerciseRest[exerciseID] ?? (localPreferences?.dictionary(forKey: "exercise-rest-v1")?[exerciseID] as? Int) ?? settings.restTimerSeconds
     }
     func setPreferredRest(_ seconds: Int, for exerciseID: String) {
         let duration = min(900, max(15, seconds))
         if let id = activeWorkout?.exercises.first(where: { $0.catalogID == exerciseID })?.id { changeLiveExercise(id) { $0.restSeconds = duration } }
+        _ = saveOwnerSystem { $0.exerciseRest[exerciseID] = duration }
         if let localPreferences {
             var values = localPreferences.dictionary(forKey: "exercise-rest-v1") ?? [:]
             values[exerciseID] = duration; localPreferences.set(values, forKey: "exercise-rest-v1")

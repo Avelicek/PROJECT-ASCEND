@@ -5,6 +5,8 @@ struct ProfileView: View {
     @Environment(\.dynamicTypeSize) private var typeSize
     @State private var editing = false
     @State private var trainingProfile = false
+    @State private var showBrainSettings = false
+    @State private var showData = false
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: AppSpacing.lg) {
@@ -34,9 +36,7 @@ struct ProfileView: View {
                     }
                 }
                 SectionHeader(title: "Intelligence")
-                NavigationLink {
-                    BrainSettingsView().environment(store)
-                } label: {
+                Button { showBrainSettings = true } label: {
                     settingsRow("Personal Brain", symbol: "waveform.path")
                 }
                 .buttonStyle(PremiumPressStyle())
@@ -57,7 +57,10 @@ struct ProfileView: View {
                         settingsAction("Daily objectives", symbol: "scope") { store.presentedSheet = .objectives }
                     }
                 }
+                NavigationLink { BodyMeasurementsView() } label: { settingsRow("Body measurements", symbol: "ruler") }
+                NavigationLink { SickModeView() } label: { settingsRow(store.ownerSystem.sickActive ? "Sick Mode active" : "Sick Mode", symbol: "shield.lefthalf.filled") }
                 SectionHeader(title: "System")
+                Button { showData = true } label: { settingsRow("Data · backup & restore", symbol: "externaldrive") }.accessibilityIdentifier("profile.data")
                 PremiumCard(role: .inline) {
                     VStack(alignment: .leading, spacing: 12) {
                         HStack { Image(systemName: "lock.shield").foregroundStyle(AppColor.blue); Eyebrow(text: "LOCAL BY DESIGN") }
@@ -70,6 +73,13 @@ struct ProfileView: View {
                 }
             }.padding(.horizontal, AppSpacing.page).padding(.bottom, AppSpacing.lg)
         }.accessibilityIdentifier("screen.profile").featureBackground(tint: AppColor.bodyweight)
+            .onAppear {
+                #if DEBUG
+                if store.isDemo && AppMotion.snapshotMode && ProcessInfo.processInfo.arguments.contains("--capture-data") { showData = true }
+                #endif
+            }
+            .navigationDestination(isPresented: $showData) { DataVaultView().environment(store) }
+            .navigationDestination(isPresented: $showBrainSettings) { BrainSettingsView().environment(store) }
             .sheet(isPresented: $editing) { NavigationStack { ProfileEditor(store: store).environment(store) }.preferredColorScheme(.dark) }
             .sheet(isPresented: $trainingProfile) { NavigationStack { TrainingProfileView().environment(store) }.preferredColorScheme(.dark) }
     }

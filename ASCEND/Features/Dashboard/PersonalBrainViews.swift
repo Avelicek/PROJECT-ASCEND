@@ -3,9 +3,9 @@ import SwiftUI
 private extension BrainDecision {
     var status: SemanticStatus {
         switch action {
-        case .train: intensity == .progressIfReady ? .excellent : .good
+        case .train: confidence == .high && !muscles.isEmpty && muscles.allSatisfy({ ($0.recovery ?? 0) >= 95 }) ? .excellent : .good
         case .trainLight: .watch
-        case .recover: .low
+        case .recover: focus == "Recovery protection" || focus == "Sleep" || confidence == .low ? .unknown : .low
         case .maintain: .good
         }
     }
@@ -200,7 +200,7 @@ struct BrainSettingsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
-                FeatureHeader(eyebrow: "LOCAL INTELLIGENCE", title: "Personal Brain")
+                FeatureHeader(eyebrow: "LOCAL INTELLIGENCE", title: "Personal Brain").accessibilityIdentifier("brain.settings.title")
                 Toggle("Personal Brain", isOn: setting(\.enabled)).accessibilityIdentifier("brain.settings.enabled")
                 Text("Balanced · recovery first, modest progression, explicit preferences.").font(.caption).foregroundStyle(AppColor.muted)
                 Picker("Session duration", selection: Binding(get: { store.brainArchive.settings.duration }, set: { duration in store.editBrainSettings { $0.duration = duration } })) {

@@ -36,5 +36,20 @@ final class AscendScreenshotTests: XCTestCase {
             let attachment = XCTAttachment(screenshot: capture.screenshot()); attachment.name = name; attachment.lifetime = .keepAlways; add(attachment)
             capture.terminate()
         }
+        for (argument, name, screen) in [("--capture-onboarding", "16_onboarding", "screen.onboarding"), ("--capture-sleep", "17_sleep_mode", "screen.dashboard"), ("--capture-end-sleep", "18_end_sleep", "screen.endsleep"), ("--capture-objectives", "19_daily_objectives", "screen.objectives"), ("--capture-sick", "20_sick_mode", "screen.dashboard"), ("--capture-data", "21_data_management", "screen.data")] {
+            let capture = XCUIApplication(); capture.launchArguments = ["--demo", "--ui-testing", argument]; capture.launch()
+            XCTAssertTrue(capture.descendants(matching: .any)[screen].firstMatch.waitForExistence(timeout: 20))
+            let attachment = XCTAttachment(screenshot: capture.screenshot()); attachment.name = name; attachment.lifetime = .keepAlways; add(attachment)
+            capture.terminate()
+        }
+
+        let anatomy = XCUIApplication(); anatomy.launchArguments = ["--demo", "--ui-testing", "--capture-anatomy-3d"]; anatomy.launch()
+        let model = anatomy.descendants(matching: .any)["anatomy.native"].firstMatch
+        XCTAssertTrue(model.waitForExistence(timeout: 30))
+        let ready = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", "Ready"), object: model)
+        XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: 30), .completed)
+        let image = XCTAttachment(screenshot: anatomy.screenshot()); image.name = "22_anatomy_3d"; image.lifetime = .keepAlways; add(image)
+        anatomy.terminate()
+
     }
 }

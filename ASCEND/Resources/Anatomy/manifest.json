@@ -1,0 +1,3505 @@
+{
+  "source": "LluisV/Z-Anatomy",
+  "commit": "6c7f9016bd5899ac8edafd31b9900c151df42ed6",
+  "sourceSHA256": "4c19df534d5d84aabbce08604306aa0485b43e8a2483c72a95b569e1dfea2279",
+  "license": "CC BY-SA 4.0 (BodyParts3D attribution retained)",
+  "converter": "5.2.2 LTS",
+  "sourceMeshes": 686,
+  "includedMeshes": 463,
+  "inputTriangles": 1819652,
+  "outputTriangles": 345735,
+  "bounds": {
+    "min": [
+      -0.3298836946487427,
+      -0.12848427891731262,
+      0.007107301149517298
+    ],
+    "max": [
+      0.3298835754394531,
+      0.13007456064224243,
+      1.6776682138442993
+    ]
+  },
+  "upAxis": "Y",
+  "assetBytes": 8186398,
+  "assetSHA256": "38f91423a4c23857bdfee61885b6f3f4ddb6dc545fbf799859a30b1fdc486f30",
+  "meshes": [
+    {
+      "entity": "muscle_0000",
+      "sourceName": "(Abdominal part of pectoralis major muscle).l",
+      "muscles": [
+        "lowerPectoral"
+      ],
+      "vertices": 137,
+      "triangles": 270
+    },
+    {
+      "entity": "muscle_0001",
+      "sourceName": "(Abdominal part of pectoralis major muscle).r",
+      "muscles": [
+        "lowerPectoral"
+      ],
+      "vertices": 137,
+      "triangles": 270
+    },
+    {
+      "entity": "muscle_0002",
+      "sourceName": "(Adductor minimus).l",
+      "muscles": [
+        "adductors"
+      ],
+      "vertices": 92,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0003",
+      "sourceName": "(Adductor minimus).r",
+      "muscles": [
+        "adductors"
+      ],
+      "vertices": 92,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0004",
+      "sourceName": "(Opponens digiti minimi muscle of foot).l",
+      "muscles": [],
+      "vertices": 120,
+      "triangles": 236
+    },
+    {
+      "entity": "muscle_0005",
+      "sourceName": "(Opponens digiti minimi muscle of foot).r",
+      "muscles": [],
+      "vertices": 120,
+      "triangles": 236
+    },
+    {
+      "entity": "muscle_0006",
+      "sourceName": "Abductor digiti minimi of foot.l",
+      "muscles": [],
+      "vertices": 115,
+      "triangles": 230
+    },
+    {
+      "entity": "muscle_0007",
+      "sourceName": "Abductor digiti minimi of foot.r",
+      "muscles": [],
+      "vertices": 115,
+      "triangles": 230
+    },
+    {
+      "entity": "muscle_0008",
+      "sourceName": "Abductor digiti minimi of hand.l",
+      "muscles": [],
+      "vertices": 90,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0009",
+      "sourceName": "Abductor digiti minimi of hand.r",
+      "muscles": [],
+      "vertices": 90,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0010",
+      "sourceName": "Abductor hallucis.l",
+      "muscles": [],
+      "vertices": 151,
+      "triangles": 302
+    },
+    {
+      "entity": "muscle_0011",
+      "sourceName": "Abductor hallucis.r",
+      "muscles": [],
+      "vertices": 151,
+      "triangles": 302
+    },
+    {
+      "entity": "muscle_0012",
+      "sourceName": "Abductor pollicis brevis.l",
+      "muscles": [],
+      "vertices": 90,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0013",
+      "sourceName": "Abductor pollicis brevis.r",
+      "muscles": [],
+      "vertices": 90,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0014",
+      "sourceName": "Abductor pollicis longus.l",
+      "muscles": [],
+      "vertices": 223,
+      "triangles": 442
+    },
+    {
+      "entity": "muscle_0015",
+      "sourceName": "Abductor pollicis longus.r",
+      "muscles": [],
+      "vertices": 223,
+      "triangles": 442
+    },
+    {
+      "entity": "muscle_0016",
+      "sourceName": "Acromial part of deltoid muscle.l",
+      "muscles": [
+        "lateralDeltoid"
+      ],
+      "vertices": 266,
+      "triangles": 532
+    },
+    {
+      "entity": "muscle_0017",
+      "sourceName": "Acromial part of deltoid muscle.r",
+      "muscles": [
+        "lateralDeltoid"
+      ],
+      "vertices": 266,
+      "triangles": 532
+    },
+    {
+      "entity": "muscle_0018",
+      "sourceName": "Adductor brevis.l",
+      "muscles": [
+        "adductors"
+      ],
+      "vertices": 189,
+      "triangles": 382
+    },
+    {
+      "entity": "muscle_0019",
+      "sourceName": "Adductor brevis.r",
+      "muscles": [
+        "adductors"
+      ],
+      "vertices": 189,
+      "triangles": 382
+    },
+    {
+      "entity": "muscle_0020",
+      "sourceName": "Adductor longus.l",
+      "muscles": [
+        "adductors"
+      ],
+      "vertices": 332,
+      "triangles": 668
+    },
+    {
+      "entity": "muscle_0021",
+      "sourceName": "Adductor longus.r",
+      "muscles": [
+        "adductors"
+      ],
+      "vertices": 332,
+      "triangles": 668
+    },
+    {
+      "entity": "muscle_0022",
+      "sourceName": "Adductor magnus.l",
+      "muscles": [
+        "adductors"
+      ],
+      "vertices": 737,
+      "triangles": 1474
+    },
+    {
+      "entity": "muscle_0023",
+      "sourceName": "Adductor magnus.r",
+      "muscles": [
+        "adductors"
+      ],
+      "vertices": 737,
+      "triangles": 1474
+    },
+    {
+      "entity": "muscle_0024",
+      "sourceName": "Anconeus muscle.l",
+      "muscles": [],
+      "vertices": 131,
+      "triangles": 258
+    },
+    {
+      "entity": "muscle_0025",
+      "sourceName": "Anconeus muscle.r",
+      "muscles": [],
+      "vertices": 131,
+      "triangles": 258
+    },
+    {
+      "entity": "muscle_0026",
+      "sourceName": "Anterior belly of digastric muscle.l",
+      "muscles": [],
+      "vertices": 198,
+      "triangles": 392
+    },
+    {
+      "entity": "muscle_0027",
+      "sourceName": "Anterior belly of digastric muscle.r",
+      "muscles": [],
+      "vertices": 198,
+      "triangles": 392
+    },
+    {
+      "entity": "muscle_0028",
+      "sourceName": "Ary-epiglottic part of oblique arytenoid muscle.l",
+      "muscles": [],
+      "vertices": 93,
+      "triangles": 182
+    },
+    {
+      "entity": "muscle_0029",
+      "sourceName": "Ary-epiglottic part of oblique arytenoid muscle.r",
+      "muscles": [],
+      "vertices": 93,
+      "triangles": 182
+    },
+    {
+      "entity": "muscle_0030",
+      "sourceName": "Ascending part of trapezius muscle.l",
+      "muscles": [
+        "lowerTrapezius"
+      ],
+      "vertices": 413,
+      "triangles": 826
+    },
+    {
+      "entity": "muscle_0031",
+      "sourceName": "Ascending part of trapezius muscle.r",
+      "muscles": [
+        "lowerTrapezius"
+      ],
+      "vertices": 413,
+      "triangles": 826
+    },
+    {
+      "entity": "muscle_0032",
+      "sourceName": "Brachialis muscle.l",
+      "muscles": [
+        "brachialis"
+      ],
+      "vertices": 315,
+      "triangles": 626
+    },
+    {
+      "entity": "muscle_0033",
+      "sourceName": "Brachialis muscle.r",
+      "muscles": [
+        "brachialis"
+      ],
+      "vertices": 315,
+      "triangles": 626
+    },
+    {
+      "entity": "muscle_0034",
+      "sourceName": "Brachioradialis muscle.l",
+      "muscles": [],
+      "vertices": 660,
+      "triangles": 1316
+    },
+    {
+      "entity": "muscle_0035",
+      "sourceName": "Brachioradialis muscle.r",
+      "muscles": [],
+      "vertices": 660,
+      "triangles": 1316
+    },
+    {
+      "entity": "muscle_0036",
+      "sourceName": "Bucinator.l",
+      "muscles": [],
+      "vertices": 92,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0037",
+      "sourceName": "Bucinator.r",
+      "muscles": [],
+      "vertices": 92,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0038",
+      "sourceName": "Clavicular head of pectoralis major muscle.l",
+      "muscles": [
+        "upperPectoral"
+      ],
+      "vertices": 90,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0039",
+      "sourceName": "Clavicular head of pectoralis major muscle.r",
+      "muscles": [
+        "upperPectoral"
+      ],
+      "vertices": 90,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0040",
+      "sourceName": "Clavicular part of deltoid muscle.l",
+      "muscles": [
+        "anteriorDeltoid"
+      ],
+      "vertices": 263,
+      "triangles": 522
+    },
+    {
+      "entity": "muscle_0041",
+      "sourceName": "Clavicular part of deltoid muscle.r",
+      "muscles": [
+        "anteriorDeltoid"
+      ],
+      "vertices": 263,
+      "triangles": 522
+    },
+    {
+      "entity": "muscle_0042",
+      "sourceName": "Coccygeus muscle.l",
+      "muscles": [],
+      "vertices": 97,
+      "triangles": 186
+    },
+    {
+      "entity": "muscle_0043",
+      "sourceName": "Coccygeus muscle.r",
+      "muscles": [],
+      "vertices": 97,
+      "triangles": 186
+    },
+    {
+      "entity": "muscle_0044",
+      "sourceName": "Coracobrachialis muscle.l",
+      "muscles": [],
+      "vertices": 106,
+      "triangles": 208
+    },
+    {
+      "entity": "muscle_0045",
+      "sourceName": "Coracobrachialis muscle.r",
+      "muscles": [],
+      "vertices": 106,
+      "triangles": 208
+    },
+    {
+      "entity": "muscle_0046",
+      "sourceName": "Corrugator supercilii.l",
+      "muscles": [],
+      "vertices": 141,
+      "triangles": 278
+    },
+    {
+      "entity": "muscle_0047",
+      "sourceName": "Corrugator supercilii.r",
+      "muscles": [],
+      "vertices": 141,
+      "triangles": 278
+    },
+    {
+      "entity": "muscle_0048",
+      "sourceName": "Deep head of flexor pollicis brevis.l",
+      "muscles": [],
+      "vertices": 88,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0049",
+      "sourceName": "Deep head of flexor pollicis brevis.r",
+      "muscles": [],
+      "vertices": 88,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0050",
+      "sourceName": "Deep head of pronator teres.l",
+      "muscles": [],
+      "vertices": 102,
+      "triangles": 200
+    },
+    {
+      "entity": "muscle_0051",
+      "sourceName": "Deep head of pronator teres.r",
+      "muscles": [],
+      "vertices": 102,
+      "triangles": 200
+    },
+    {
+      "entity": "muscle_0052",
+      "sourceName": "Deep part of masseter.l",
+      "muscles": [],
+      "vertices": 90,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0053",
+      "sourceName": "Deep part of masseter.r",
+      "muscles": [],
+      "vertices": 90,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0054",
+      "sourceName": "Depressor anguli oris.l",
+      "muscles": [],
+      "vertices": 92,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0055",
+      "sourceName": "Depressor anguli oris.r",
+      "muscles": [],
+      "vertices": 92,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0056",
+      "sourceName": "Depressor labii inferioris.l",
+      "muscles": [],
+      "vertices": 92,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0057",
+      "sourceName": "Depressor labii inferioris.r",
+      "muscles": [],
+      "vertices": 92,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0058",
+      "sourceName": "Depressor septi nasi.l",
+      "muscles": [],
+      "vertices": 140,
+      "triangles": 276
+    },
+    {
+      "entity": "muscle_0059",
+      "sourceName": "Depressor septi nasi.r",
+      "muscles": [],
+      "vertices": 140,
+      "triangles": 276
+    },
+    {
+      "entity": "muscle_0060",
+      "sourceName": "Descending part of trapezius muscle.l",
+      "muscles": [
+        "upperTrapezius"
+      ],
+      "vertices": 604,
+      "triangles": 1216
+    },
+    {
+      "entity": "muscle_0061",
+      "sourceName": "Descending part of trapezius muscle.r",
+      "muscles": [
+        "upperTrapezius"
+      ],
+      "vertices": 604,
+      "triangles": 1216
+    },
+    {
+      "entity": "muscle_0062",
+      "sourceName": "Diaphragm",
+      "muscles": [],
+      "vertices": 3499,
+      "triangles": 6995
+    },
+    {
+      "entity": "muscle_0063",
+      "sourceName": "Dorsal interossei muscles of foot.l",
+      "muscles": [],
+      "vertices": 177,
+      "triangles": 350
+    },
+    {
+      "entity": "muscle_0064",
+      "sourceName": "Dorsal interossei muscles of foot.r",
+      "muscles": [],
+      "vertices": 177,
+      "triangles": 350
+    },
+    {
+      "entity": "muscle_0065",
+      "sourceName": "Dorsal interossei muscles of hand.l",
+      "muscles": [],
+      "vertices": 130,
+      "triangles": 244
+    },
+    {
+      "entity": "muscle_0066",
+      "sourceName": "Dorsal interossei muscles of hand.r",
+      "muscles": [],
+      "vertices": 130,
+      "triangles": 244
+    },
+    {
+      "entity": "muscle_0067",
+      "sourceName": "Dorsal parts of lateral intertransversarii lumborum muscles.l",
+      "muscles": [],
+      "vertices": 92,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0068",
+      "sourceName": "Dorsal parts of lateral intertransversarii lumborum muscles.r",
+      "muscles": [],
+      "vertices": 92,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0069",
+      "sourceName": "Extensor carpi radialis brevis.l",
+      "muscles": [
+        "forearmExtensors"
+      ],
+      "vertices": 284,
+      "triangles": 564
+    },
+    {
+      "entity": "muscle_0070",
+      "sourceName": "Extensor carpi radialis brevis.r",
+      "muscles": [
+        "forearmExtensors"
+      ],
+      "vertices": 284,
+      "triangles": 564
+    },
+    {
+      "entity": "muscle_0071",
+      "sourceName": "Extensor carpi radialis longus.l",
+      "muscles": [
+        "forearmExtensors"
+      ],
+      "vertices": 337,
+      "triangles": 666
+    },
+    {
+      "entity": "muscle_0072",
+      "sourceName": "Extensor carpi radialis longus.r",
+      "muscles": [
+        "forearmExtensors"
+      ],
+      "vertices": 337,
+      "triangles": 666
+    },
+    {
+      "entity": "muscle_0073",
+      "sourceName": "Extensor digiti minimi.l",
+      "muscles": [],
+      "vertices": 195,
+      "triangles": 386
+    },
+    {
+      "entity": "muscle_0074",
+      "sourceName": "Extensor digiti minimi.r",
+      "muscles": [],
+      "vertices": 195,
+      "triangles": 386
+    },
+    {
+      "entity": "muscle_0075",
+      "sourceName": "Extensor digitorum brevis.l",
+      "muscles": [],
+      "vertices": 290,
+      "triangles": 572
+    },
+    {
+      "entity": "muscle_0076",
+      "sourceName": "Extensor digitorum brevis.r",
+      "muscles": [],
+      "vertices": 290,
+      "triangles": 572
+    },
+    {
+      "entity": "muscle_0077",
+      "sourceName": "Extensor digitorum longus.l",
+      "muscles": [],
+      "vertices": 287,
+      "triangles": 571
+    },
+    {
+      "entity": "muscle_0078",
+      "sourceName": "Extensor digitorum longus.r",
+      "muscles": [],
+      "vertices": 287,
+      "triangles": 571
+    },
+    {
+      "entity": "muscle_0079",
+      "sourceName": "Extensor digitorum.l",
+      "muscles": [],
+      "vertices": 572,
+      "triangles": 1152
+    },
+    {
+      "entity": "muscle_0080",
+      "sourceName": "Extensor digitorum.r",
+      "muscles": [],
+      "vertices": 572,
+      "triangles": 1152
+    },
+    {
+      "entity": "muscle_0081",
+      "sourceName": "Extensor hallucis brevis.l",
+      "muscles": [],
+      "vertices": 102,
+      "triangles": 200
+    },
+    {
+      "entity": "muscle_0082",
+      "sourceName": "Extensor hallucis brevis.r",
+      "muscles": [],
+      "vertices": 102,
+      "triangles": 200
+    },
+    {
+      "entity": "muscle_0083",
+      "sourceName": "Extensor hallucis longus.l",
+      "muscles": [],
+      "vertices": 214,
+      "triangles": 424
+    },
+    {
+      "entity": "muscle_0084",
+      "sourceName": "Extensor hallucis longus.r",
+      "muscles": [],
+      "vertices": 214,
+      "triangles": 424
+    },
+    {
+      "entity": "muscle_0085",
+      "sourceName": "Extensor indicis.l",
+      "muscles": [],
+      "vertices": 104,
+      "triangles": 204
+    },
+    {
+      "entity": "muscle_0086",
+      "sourceName": "Extensor indicis.r",
+      "muscles": [],
+      "vertices": 104,
+      "triangles": 204
+    },
+    {
+      "entity": "muscle_0087",
+      "sourceName": "Extensor pollicis brevis.l",
+      "muscles": [],
+      "vertices": 107,
+      "triangles": 210
+    },
+    {
+      "entity": "muscle_0088",
+      "sourceName": "Extensor pollicis brevis.r",
+      "muscles": [],
+      "vertices": 107,
+      "triangles": 210
+    },
+    {
+      "entity": "muscle_0089",
+      "sourceName": "Extensor pollicis longus.l",
+      "muscles": [],
+      "vertices": 146,
+      "triangles": 288
+    },
+    {
+      "entity": "muscle_0090",
+      "sourceName": "Extensor pollicis longus.r",
+      "muscles": [],
+      "vertices": 146,
+      "triangles": 288
+    },
+    {
+      "entity": "muscle_0091",
+      "sourceName": "External abdominal oblique muscle.l",
+      "muscles": [
+        "obliques"
+      ],
+      "vertices": 2665,
+      "triangles": 5330
+    },
+    {
+      "entity": "muscle_0092",
+      "sourceName": "External abdominal oblique muscle.r",
+      "muscles": [
+        "obliques"
+      ],
+      "vertices": 2665,
+      "triangles": 5330
+    },
+    {
+      "entity": "muscle_0093",
+      "sourceName": "External anal sphincter.l",
+      "muscles": [],
+      "vertices": 103,
+      "triangles": 202
+    },
+    {
+      "entity": "muscle_0094",
+      "sourceName": "External anal sphincter.r",
+      "muscles": [],
+      "vertices": 103,
+      "triangles": 202
+    },
+    {
+      "entity": "muscle_0095",
+      "sourceName": "External intercostal muscles.l",
+      "muscles": [],
+      "vertices": 3685,
+      "triangles": 7453
+    },
+    {
+      "entity": "muscle_0096",
+      "sourceName": "External intercostal muscles.r",
+      "muscles": [],
+      "vertices": 3685,
+      "triangles": 7453
+    },
+    {
+      "entity": "muscle_0097",
+      "sourceName": "External part of thyro-arytenoid muscle.l",
+      "muscles": [],
+      "vertices": 203,
+      "triangles": 402
+    },
+    {
+      "entity": "muscle_0098",
+      "sourceName": "External part of thyro-arytenoid muscle.r",
+      "muscles": [],
+      "vertices": 203,
+      "triangles": 402
+    },
+    {
+      "entity": "muscle_0099",
+      "sourceName": "Fibularis brevis muscle.l",
+      "muscles": [],
+      "vertices": 310,
+      "triangles": 620
+    },
+    {
+      "entity": "muscle_0100",
+      "sourceName": "Fibularis brevis muscle.r",
+      "muscles": [],
+      "vertices": 310,
+      "triangles": 620
+    },
+    {
+      "entity": "muscle_0101",
+      "sourceName": "Fibularis longus muscle.l",
+      "muscles": [],
+      "vertices": 474,
+      "triangles": 992
+    },
+    {
+      "entity": "muscle_0102",
+      "sourceName": "Fibularis longus muscle.r",
+      "muscles": [],
+      "vertices": 474,
+      "triangles": 992
+    },
+    {
+      "entity": "muscle_0103",
+      "sourceName": "Fibularis tertius muscle.l",
+      "muscles": [],
+      "vertices": 91,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0104",
+      "sourceName": "Fibularis tertius muscle.r",
+      "muscles": [],
+      "vertices": 91,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0105",
+      "sourceName": "Flexor carpi radialis.l",
+      "muscles": [
+        "forearmFlexors"
+      ],
+      "vertices": 151,
+      "triangles": 298
+    },
+    {
+      "entity": "muscle_0106",
+      "sourceName": "Flexor carpi radialis.r",
+      "muscles": [
+        "forearmFlexors"
+      ],
+      "vertices": 151,
+      "triangles": 298
+    },
+    {
+      "entity": "muscle_0107",
+      "sourceName": "Flexor digiti minimi of foot.l",
+      "muscles": [],
+      "vertices": 230,
+      "triangles": 464
+    },
+    {
+      "entity": "muscle_0108",
+      "sourceName": "Flexor digiti minimi of foot.r",
+      "muscles": [],
+      "vertices": 230,
+      "triangles": 464
+    },
+    {
+      "entity": "muscle_0109",
+      "sourceName": "Flexor digiti minimi of hand.l",
+      "muscles": [],
+      "vertices": 156,
+      "triangles": 308
+    },
+    {
+      "entity": "muscle_0110",
+      "sourceName": "Flexor digiti minimi of hand.r",
+      "muscles": [],
+      "vertices": 156,
+      "triangles": 308
+    },
+    {
+      "entity": "muscle_0111",
+      "sourceName": "Flexor digitorum brevis.l",
+      "muscles": [],
+      "vertices": 288,
+      "triangles": 580
+    },
+    {
+      "entity": "muscle_0112",
+      "sourceName": "Flexor digitorum brevis.r",
+      "muscles": [],
+      "vertices": 288,
+      "triangles": 580
+    },
+    {
+      "entity": "muscle_0113",
+      "sourceName": "Flexor digitorum longus.l",
+      "muscles": [],
+      "vertices": 617,
+      "triangles": 1230
+    },
+    {
+      "entity": "muscle_0114",
+      "sourceName": "Flexor digitorum longus.r",
+      "muscles": [],
+      "vertices": 617,
+      "triangles": 1230
+    },
+    {
+      "entity": "muscle_0115",
+      "sourceName": "Flexor digitorum profundus.l",
+      "muscles": [
+        "forearmFlexors"
+      ],
+      "vertices": 643,
+      "triangles": 1278
+    },
+    {
+      "entity": "muscle_0116",
+      "sourceName": "Flexor digitorum profundus.r",
+      "muscles": [
+        "forearmFlexors"
+      ],
+      "vertices": 643,
+      "triangles": 1278
+    },
+    {
+      "entity": "muscle_0117",
+      "sourceName": "Flexor hallucis longus.l",
+      "muscles": [],
+      "vertices": 531,
+      "triangles": 1058
+    },
+    {
+      "entity": "muscle_0118",
+      "sourceName": "Flexor hallucis longus.r",
+      "muscles": [],
+      "vertices": 531,
+      "triangles": 1058
+    },
+    {
+      "entity": "muscle_0119",
+      "sourceName": "Flexor pollicis longus.l",
+      "muscles": [],
+      "vertices": 149,
+      "triangles": 298
+    },
+    {
+      "entity": "muscle_0120",
+      "sourceName": "Flexor pollicis longus.r",
+      "muscles": [],
+      "vertices": 149,
+      "triangles": 298
+    },
+    {
+      "entity": "muscle_0121",
+      "sourceName": "Frontalis muscle.l",
+      "muscles": [],
+      "vertices": 524,
+      "triangles": 1056
+    },
+    {
+      "entity": "muscle_0122",
+      "sourceName": "Frontalis muscle.r",
+      "muscles": [],
+      "vertices": 524,
+      "triangles": 1056
+    },
+    {
+      "entity": "muscle_0123",
+      "sourceName": "Genioglossus muscle.l",
+      "muscles": [],
+      "vertices": 339,
+      "triangles": 674
+    },
+    {
+      "entity": "muscle_0124",
+      "sourceName": "Genioglossus muscle.r",
+      "muscles": [],
+      "vertices": 339,
+      "triangles": 674
+    },
+    {
+      "entity": "muscle_0125",
+      "sourceName": "Geniohyoid muscle.l",
+      "muscles": [],
+      "vertices": 92,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0126",
+      "sourceName": "Geniohyoid muscle.r",
+      "muscles": [],
+      "vertices": 92,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0127",
+      "sourceName": "Gluteus maximus muscle.l",
+      "muscles": [
+        "gluteusMaximus"
+      ],
+      "vertices": 299,
+      "triangles": 598
+    },
+    {
+      "entity": "muscle_0128",
+      "sourceName": "Gluteus maximus muscle.r",
+      "muscles": [
+        "gluteusMaximus"
+      ],
+      "vertices": 299,
+      "triangles": 598
+    },
+    {
+      "entity": "muscle_0129",
+      "sourceName": "Gluteus medius muscle.l",
+      "muscles": [
+        "gluteusMedius"
+      ],
+      "vertices": 467,
+      "triangles": 930
+    },
+    {
+      "entity": "muscle_0130",
+      "sourceName": "Gluteus medius muscle.r",
+      "muscles": [
+        "gluteusMedius"
+      ],
+      "vertices": 467,
+      "triangles": 930
+    },
+    {
+      "entity": "muscle_0131",
+      "sourceName": "Gluteus minimus muscle.l",
+      "muscles": [
+        "gluteusMinimus"
+      ],
+      "vertices": 564,
+      "triangles": 1124
+    },
+    {
+      "entity": "muscle_0132",
+      "sourceName": "Gluteus minimus muscle.r",
+      "muscles": [
+        "gluteusMinimus"
+      ],
+      "vertices": 564,
+      "triangles": 1124
+    },
+    {
+      "entity": "muscle_0133",
+      "sourceName": "Gracilis muscle.l",
+      "muscles": [],
+      "vertices": 431,
+      "triangles": 866
+    },
+    {
+      "entity": "muscle_0134",
+      "sourceName": "Gracilis muscle.r",
+      "muscles": [],
+      "vertices": 431,
+      "triangles": 866
+    },
+    {
+      "entity": "muscle_0135",
+      "sourceName": "Humeral head of extensor carpi ulnaris.l",
+      "muscles": [
+        "forearmExtensors"
+      ],
+      "vertices": 86,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0136",
+      "sourceName": "Humeral head of extensor carpi ulnaris.r",
+      "muscles": [
+        "forearmExtensors"
+      ],
+      "vertices": 86,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0137",
+      "sourceName": "Humeral head of flexor carpi ulnaris.l",
+      "muscles": [
+        "forearmFlexors"
+      ],
+      "vertices": 350,
+      "triangles": 704
+    },
+    {
+      "entity": "muscle_0138",
+      "sourceName": "Humeral head of flexor carpi ulnaris.r",
+      "muscles": [
+        "forearmFlexors"
+      ],
+      "vertices": 350,
+      "triangles": 704
+    },
+    {
+      "entity": "muscle_0139",
+      "sourceName": "Humero-ulnar head of flexor digitorum superficialis.l",
+      "muscles": [
+        "forearmFlexors"
+      ],
+      "vertices": 1153,
+      "triangles": 2302
+    },
+    {
+      "entity": "muscle_0140",
+      "sourceName": "Humero-ulnar head of flexor digitorum superficialis.r",
+      "muscles": [
+        "forearmFlexors"
+      ],
+      "vertices": 1153,
+      "triangles": 2302
+    },
+    {
+      "entity": "muscle_0141",
+      "sourceName": "Hyoglossus muscle.l",
+      "muscles": [],
+      "vertices": 130,
+      "triangles": 256
+    },
+    {
+      "entity": "muscle_0142",
+      "sourceName": "Hyoglossus muscle.r",
+      "muscles": [],
+      "vertices": 130,
+      "triangles": 256
+    },
+    {
+      "entity": "muscle_0143",
+      "sourceName": "Iliacus muscle.l",
+      "muscles": [
+        "hipFlexors"
+      ],
+      "vertices": 393,
+      "triangles": 782
+    },
+    {
+      "entity": "muscle_0144",
+      "sourceName": "Iliacus muscle.r",
+      "muscles": [
+        "hipFlexors"
+      ],
+      "vertices": 393,
+      "triangles": 782
+    },
+    {
+      "entity": "muscle_0145",
+      "sourceName": "Iliococcygeus muscle.l",
+      "muscles": [],
+      "vertices": 174,
+      "triangles": 352
+    },
+    {
+      "entity": "muscle_0146",
+      "sourceName": "Iliococcygeus muscle.r",
+      "muscles": [],
+      "vertices": 174,
+      "triangles": 352
+    },
+    {
+      "entity": "muscle_0147",
+      "sourceName": "Iliocostalis colli muscle",
+      "muscles": [],
+      "vertices": 186,
+      "triangles": 368
+    },
+    {
+      "entity": "muscle_0148",
+      "sourceName": "Iliocostalis colli muscle.r",
+      "muscles": [],
+      "vertices": 186,
+      "triangles": 368
+    },
+    {
+      "entity": "muscle_0149",
+      "sourceName": "Iliocostalis lumborum muscle.l",
+      "muscles": [
+        "spinalErectors"
+      ],
+      "vertices": 903,
+      "triangles": 1806
+    },
+    {
+      "entity": "muscle_0150",
+      "sourceName": "Iliocostalis lumborum muscle.r",
+      "muscles": [
+        "spinalErectors"
+      ],
+      "vertices": 903,
+      "triangles": 1806
+    },
+    {
+      "entity": "muscle_0151",
+      "sourceName": "Iliocostalis thoracis muscle.l",
+      "muscles": [
+        "spinalErectors"
+      ],
+      "vertices": 521,
+      "triangles": 1038
+    },
+    {
+      "entity": "muscle_0152",
+      "sourceName": "Iliocostalis thoracis muscle.r",
+      "muscles": [
+        "spinalErectors"
+      ],
+      "vertices": 521,
+      "triangles": 1038
+    },
+    {
+      "entity": "muscle_0153",
+      "sourceName": "Iliopectineal arch.l",
+      "muscles": [],
+      "vertices": 23,
+      "triangles": 26
+    },
+    {
+      "entity": "muscle_0154",
+      "sourceName": "Iliopectineal arch.r",
+      "muscles": [],
+      "vertices": 142,
+      "triangles": 280
+    },
+    {
+      "entity": "muscle_0155",
+      "sourceName": "Inferior gemellus muscle.l",
+      "muscles": [],
+      "vertices": 92,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0156",
+      "sourceName": "Inferior gemellus muscle.r",
+      "muscles": [],
+      "vertices": 92,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0157",
+      "sourceName": "Inferior head of lateral pterygoid muscle.l",
+      "muscles": [],
+      "vertices": 164,
+      "triangles": 326
+    },
+    {
+      "entity": "muscle_0158",
+      "sourceName": "Inferior head of lateral pterygoid muscle.r",
+      "muscles": [],
+      "vertices": 164,
+      "triangles": 326
+    },
+    {
+      "entity": "muscle_0159",
+      "sourceName": "Inferior oblique muscle.l",
+      "muscles": [],
+      "vertices": 105,
+      "triangles": 206
+    },
+    {
+      "entity": "muscle_0160",
+      "sourceName": "Inferior oblique muscle.r",
+      "muscles": [],
+      "vertices": 105,
+      "triangles": 206
+    },
+    {
+      "entity": "muscle_0161",
+      "sourceName": "Inferior pharyngeal constrictor.l",
+      "muscles": [],
+      "vertices": 334,
+      "triangles": 664
+    },
+    {
+      "entity": "muscle_0162",
+      "sourceName": "Inferior pharyngeal constrictor.r",
+      "muscles": [],
+      "vertices": 334,
+      "triangles": 664
+    },
+    {
+      "entity": "muscle_0163",
+      "sourceName": "Inferior rectus muscle.l",
+      "muscles": [],
+      "vertices": 158,
+      "triangles": 312
+    },
+    {
+      "entity": "muscle_0164",
+      "sourceName": "Inferior rectus muscle.r",
+      "muscles": [],
+      "vertices": 158,
+      "triangles": 312
+    },
+    {
+      "entity": "muscle_0165",
+      "sourceName": "Infraspinatus muscle.l",
+      "muscles": [],
+      "vertices": 286,
+      "triangles": 568
+    },
+    {
+      "entity": "muscle_0166",
+      "sourceName": "Infraspinatus muscle.r",
+      "muscles": [],
+      "vertices": 286,
+      "triangles": 568
+    },
+    {
+      "entity": "muscle_0167",
+      "sourceName": "Innermost intercostal muscles.l",
+      "muscles": [],
+      "vertices": 3406,
+      "triangles": 6884
+    },
+    {
+      "entity": "muscle_0168",
+      "sourceName": "Innermost intercostal muscles.r",
+      "muscles": [],
+      "vertices": 3406,
+      "triangles": 6884
+    },
+    {
+      "entity": "muscle_0169",
+      "sourceName": "Internal abdominal oblique muscle.l",
+      "muscles": [
+        "obliques"
+      ],
+      "vertices": 2574,
+      "triangles": 5196
+    },
+    {
+      "entity": "muscle_0170",
+      "sourceName": "Internal abdominal oblique muscle.r",
+      "muscles": [
+        "obliques"
+      ],
+      "vertices": 2574,
+      "triangles": 5196
+    },
+    {
+      "entity": "muscle_0171",
+      "sourceName": "Internal intercostal muscles.l",
+      "muscles": [],
+      "vertices": 3573,
+      "triangles": 7232
+    },
+    {
+      "entity": "muscle_0172",
+      "sourceName": "Internal intercostal muscles.r",
+      "muscles": [],
+      "vertices": 3573,
+      "triangles": 7232
+    },
+    {
+      "entity": "muscle_0173",
+      "sourceName": "Interspinales colli muscles.l",
+      "muscles": [],
+      "vertices": 234,
+      "triangles": 444
+    },
+    {
+      "entity": "muscle_0174",
+      "sourceName": "Interspinales colli muscles.r",
+      "muscles": [],
+      "vertices": 234,
+      "triangles": 444
+    },
+    {
+      "entity": "muscle_0175",
+      "sourceName": "Interspinales lumborum muscles.l",
+      "muscles": [],
+      "vertices": 100,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0176",
+      "sourceName": "Interspinales lumborum muscles.r",
+      "muscles": [],
+      "vertices": 100,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0177",
+      "sourceName": "Interspinales thoracis muscles.l",
+      "muscles": [],
+      "vertices": 103,
+      "triangles": 198
+    },
+    {
+      "entity": "muscle_0178",
+      "sourceName": "Interspinales thoracis muscles.r",
+      "muscles": [],
+      "vertices": 103,
+      "triangles": 198
+    },
+    {
+      "entity": "muscle_0179",
+      "sourceName": "Lateral crico-arytenoid muscle.l",
+      "muscles": [],
+      "vertices": 149,
+      "triangles": 291
+    },
+    {
+      "entity": "muscle_0180",
+      "sourceName": "Lateral crico-arytenoid muscle.r",
+      "muscles": [],
+      "vertices": 149,
+      "triangles": 291
+    },
+    {
+      "entity": "muscle_0181",
+      "sourceName": "Lateral head of flexor hallucis brevis.l",
+      "muscles": [],
+      "vertices": 88,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0182",
+      "sourceName": "Lateral head of flexor hallucis brevis.r",
+      "muscles": [],
+      "vertices": 88,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0183",
+      "sourceName": "Lateral head of gastrocnemius.l",
+      "muscles": [
+        "gastrocnemius"
+      ],
+      "vertices": 441,
+      "triangles": 882
+    },
+    {
+      "entity": "muscle_0184",
+      "sourceName": "Lateral head of gastrocnemius.r",
+      "muscles": [
+        "gastrocnemius"
+      ],
+      "vertices": 441,
+      "triangles": 882
+    },
+    {
+      "entity": "muscle_0185",
+      "sourceName": "Lateral head of triceps brachii.l",
+      "muscles": [
+        "tricepsLateralHead"
+      ],
+      "vertices": 328,
+      "triangles": 652
+    },
+    {
+      "entity": "muscle_0186",
+      "sourceName": "Lateral head of triceps brachii.r",
+      "muscles": [
+        "tricepsLateralHead"
+      ],
+      "vertices": 328,
+      "triangles": 652
+    },
+    {
+      "entity": "muscle_0187",
+      "sourceName": "Lateral rectus muscle.l",
+      "muscles": [],
+      "vertices": 146,
+      "triangles": 288
+    },
+    {
+      "entity": "muscle_0188",
+      "sourceName": "Lateral rectus muscle.r",
+      "muscles": [],
+      "vertices": 146,
+      "triangles": 288
+    },
+    {
+      "entity": "muscle_0189",
+      "sourceName": "Latissimus dorsi muscle.l",
+      "muscles": [
+        "latissimus"
+      ],
+      "vertices": 1948,
+      "triangles": 3884
+    },
+    {
+      "entity": "muscle_0190",
+      "sourceName": "Latissimus dorsi muscle.r",
+      "muscles": [
+        "latissimus"
+      ],
+      "vertices": 1948,
+      "triangles": 3884
+    },
+    {
+      "entity": "muscle_0191",
+      "sourceName": "Levator anguli oris.l",
+      "muscles": [],
+      "vertices": 165,
+      "triangles": 330
+    },
+    {
+      "entity": "muscle_0192",
+      "sourceName": "Levator anguli oris.r",
+      "muscles": [],
+      "vertices": 165,
+      "triangles": 330
+    },
+    {
+      "entity": "muscle_0193",
+      "sourceName": "Levator labii superioris.l",
+      "muscles": [],
+      "vertices": 92,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0194",
+      "sourceName": "Levator labii superioris.r",
+      "muscles": [],
+      "vertices": 92,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0195",
+      "sourceName": "Levator nasolabialis.l",
+      "muscles": [],
+      "vertices": 88,
+      "triangles": 172
+    },
+    {
+      "entity": "muscle_0196",
+      "sourceName": "Levator nasolabialis.r",
+      "muscles": [],
+      "vertices": 88,
+      "triangles": 172
+    },
+    {
+      "entity": "muscle_0197",
+      "sourceName": "Levator palpebrae superioris.l",
+      "muscles": [],
+      "vertices": 196,
+      "triangles": 386
+    },
+    {
+      "entity": "muscle_0198",
+      "sourceName": "Levator palpebrae superioris.r",
+      "muscles": [],
+      "vertices": 196,
+      "triangles": 386
+    },
+    {
+      "entity": "muscle_0199",
+      "sourceName": "Levator scapulae.l",
+      "muscles": [],
+      "vertices": 279,
+      "triangles": 554
+    },
+    {
+      "entity": "muscle_0200",
+      "sourceName": "Levator scapulae.r",
+      "muscles": [],
+      "vertices": 279,
+      "triangles": 554
+    },
+    {
+      "entity": "muscle_0201",
+      "sourceName": "Levatores breves costarum.l",
+      "muscles": [],
+      "vertices": 257,
+      "triangles": 484
+    },
+    {
+      "entity": "muscle_0202",
+      "sourceName": "Levatores breves costarum.r",
+      "muscles": [],
+      "vertices": 257,
+      "triangles": 484
+    },
+    {
+      "entity": "muscle_0203",
+      "sourceName": "Levatores longi costarum.l",
+      "muscles": [],
+      "vertices": 561,
+      "triangles": 1066
+    },
+    {
+      "entity": "muscle_0204",
+      "sourceName": "Levatores longi costarum.r",
+      "muscles": [],
+      "vertices": 561,
+      "triangles": 1066
+    },
+    {
+      "entity": "muscle_0205",
+      "sourceName": "Linea alba",
+      "muscles": [],
+      "vertices": 171,
+      "triangles": 338
+    },
+    {
+      "entity": "muscle_0206",
+      "sourceName": "Long head of biceps brachii.l",
+      "muscles": [
+        "bicepsLongHead"
+      ],
+      "vertices": 291,
+      "triangles": 578
+    },
+    {
+      "entity": "muscle_0207",
+      "sourceName": "Long head of biceps brachii.r",
+      "muscles": [
+        "bicepsLongHead"
+      ],
+      "vertices": 291,
+      "triangles": 578
+    },
+    {
+      "entity": "muscle_0208",
+      "sourceName": "Long head of biceps femoris.l",
+      "muscles": [
+        "bicepsFemoris"
+      ],
+      "vertices": 647,
+      "triangles": 1306
+    },
+    {
+      "entity": "muscle_0209",
+      "sourceName": "Long head of biceps femoris.r",
+      "muscles": [
+        "bicepsFemoris"
+      ],
+      "vertices": 647,
+      "triangles": 1306
+    },
+    {
+      "entity": "muscle_0210",
+      "sourceName": "Long head of triceps brachii.l",
+      "muscles": [
+        "tricepsLongHead"
+      ],
+      "vertices": 357,
+      "triangles": 710
+    },
+    {
+      "entity": "muscle_0211",
+      "sourceName": "Long head of triceps brachii.r",
+      "muscles": [
+        "tricepsLongHead"
+      ],
+      "vertices": 357,
+      "triangles": 710
+    },
+    {
+      "entity": "muscle_0212",
+      "sourceName": "Longissimus capitis muscle.l",
+      "muscles": [],
+      "vertices": 139,
+      "triangles": 282
+    },
+    {
+      "entity": "muscle_0213",
+      "sourceName": "Longissimus capitis muscle.r",
+      "muscles": [],
+      "vertices": 139,
+      "triangles": 282
+    },
+    {
+      "entity": "muscle_0214",
+      "sourceName": "Longissimus colli muscle.l",
+      "muscles": [],
+      "vertices": 166,
+      "triangles": 328
+    },
+    {
+      "entity": "muscle_0215",
+      "sourceName": "Longissimus colli muscle.r",
+      "muscles": [],
+      "vertices": 166,
+      "triangles": 328
+    },
+    {
+      "entity": "muscle_0216",
+      "sourceName": "Longissimus thoracis muscle.l",
+      "muscles": [
+        "spinalErectors"
+      ],
+      "vertices": 860,
+      "triangles": 1736
+    },
+    {
+      "entity": "muscle_0217",
+      "sourceName": "Longissimus thoracis muscle.r",
+      "muscles": [
+        "spinalErectors"
+      ],
+      "vertices": 860,
+      "triangles": 1736
+    },
+    {
+      "entity": "muscle_0218",
+      "sourceName": "Longus capitis muscle.l",
+      "muscles": [],
+      "vertices": 176,
+      "triangles": 356
+    },
+    {
+      "entity": "muscle_0219",
+      "sourceName": "Longus capitis muscle.r",
+      "muscles": [],
+      "vertices": 176,
+      "triangles": 356
+    },
+    {
+      "entity": "muscle_0220",
+      "sourceName": "Longus colli muscle.l",
+      "muscles": [],
+      "vertices": 573,
+      "triangles": 1132
+    },
+    {
+      "entity": "muscle_0221",
+      "sourceName": "Longus colli muscle.r",
+      "muscles": [],
+      "vertices": 573,
+      "triangles": 1132
+    },
+    {
+      "entity": "muscle_0222",
+      "sourceName": "Lumbrical muscles of foot.l",
+      "muscles": [],
+      "vertices": 207,
+      "triangles": 418
+    },
+    {
+      "entity": "muscle_0223",
+      "sourceName": "Lumbrical muscles of foot.r",
+      "muscles": [],
+      "vertices": 207,
+      "triangles": 418
+    },
+    {
+      "entity": "muscle_0224",
+      "sourceName": "Lumbrical muscles of hand.l",
+      "muscles": [],
+      "vertices": 131,
+      "triangles": 246
+    },
+    {
+      "entity": "muscle_0225",
+      "sourceName": "Lumbrical muscles of hand.r",
+      "muscles": [],
+      "vertices": 131,
+      "triangles": 246
+    },
+    {
+      "entity": "muscle_0226",
+      "sourceName": "Medial head of flexor hallucis brevis.l",
+      "muscles": [],
+      "vertices": 92,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0227",
+      "sourceName": "Medial head of flexor hallucis brevis.r",
+      "muscles": [],
+      "vertices": 92,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0228",
+      "sourceName": "Medial head of gastrocnemius.l",
+      "muscles": [
+        "gastrocnemius"
+      ],
+      "vertices": 583,
+      "triangles": 1162
+    },
+    {
+      "entity": "muscle_0229",
+      "sourceName": "Medial head of gastrocnemius.r",
+      "muscles": [
+        "gastrocnemius"
+      ],
+      "vertices": 583,
+      "triangles": 1162
+    },
+    {
+      "entity": "muscle_0230",
+      "sourceName": "Medial head of triceps brachii.l",
+      "muscles": [
+        "tricepsMedialHead"
+      ],
+      "vertices": 243,
+      "triangles": 482
+    },
+    {
+      "entity": "muscle_0231",
+      "sourceName": "Medial head of triceps brachii.r",
+      "muscles": [
+        "tricepsMedialHead"
+      ],
+      "vertices": 243,
+      "triangles": 482
+    },
+    {
+      "entity": "muscle_0232",
+      "sourceName": "Medial pterygoid muscle.l",
+      "muscles": [],
+      "vertices": 249,
+      "triangles": 496
+    },
+    {
+      "entity": "muscle_0233",
+      "sourceName": "Medial pterygoid muscle.r",
+      "muscles": [],
+      "vertices": 249,
+      "triangles": 496
+    },
+    {
+      "entity": "muscle_0234",
+      "sourceName": "Medial rectus muscle.l",
+      "muscles": [],
+      "vertices": 114,
+      "triangles": 224
+    },
+    {
+      "entity": "muscle_0235",
+      "sourceName": "Medial rectus muscle.r",
+      "muscles": [],
+      "vertices": 114,
+      "triangles": 224
+    },
+    {
+      "entity": "muscle_0236",
+      "sourceName": "Mentalis muscle.l",
+      "muscles": [],
+      "vertices": 85,
+      "triangles": 166
+    },
+    {
+      "entity": "muscle_0237",
+      "sourceName": "Mentalis muscle.r",
+      "muscles": [],
+      "vertices": 85,
+      "triangles": 166
+    },
+    {
+      "entity": "muscle_0238",
+      "sourceName": "Middle pharyngeal constrictor.l",
+      "muscles": [],
+      "vertices": 267,
+      "triangles": 530
+    },
+    {
+      "entity": "muscle_0239",
+      "sourceName": "Middle pharyngeal constrictor.r",
+      "muscles": [],
+      "vertices": 267,
+      "triangles": 530
+    },
+    {
+      "entity": "muscle_0240",
+      "sourceName": "Multifidus colli muscle.l",
+      "muscles": [],
+      "vertices": 126,
+      "triangles": 250
+    },
+    {
+      "entity": "muscle_0241",
+      "sourceName": "Multifidus colli muscle.r",
+      "muscles": [],
+      "vertices": 126,
+      "triangles": 250
+    },
+    {
+      "entity": "muscle_0242",
+      "sourceName": "Multifidus lumborum muscle.l",
+      "muscles": [],
+      "vertices": 256,
+      "triangles": 506
+    },
+    {
+      "entity": "muscle_0243",
+      "sourceName": "Multifidus lumborum muscle.r",
+      "muscles": [],
+      "vertices": 256,
+      "triangles": 506
+    },
+    {
+      "entity": "muscle_0244",
+      "sourceName": "Multifidus thoracis muscle.l",
+      "muscles": [],
+      "vertices": 387,
+      "triangles": 702
+    },
+    {
+      "entity": "muscle_0245",
+      "sourceName": "Multifidus thoracis muscle.r",
+      "muscles": [],
+      "vertices": 387,
+      "triangles": 702
+    },
+    {
+      "entity": "muscle_0246",
+      "sourceName": "Mylohyoid muscle.l",
+      "muscles": [],
+      "vertices": 100,
+      "triangles": 200
+    },
+    {
+      "entity": "muscle_0247",
+      "sourceName": "Mylohyoid muscle.r",
+      "muscles": [],
+      "vertices": 100,
+      "triangles": 200
+    },
+    {
+      "entity": "muscle_0248",
+      "sourceName": "Nasalis muscle.l",
+      "muscles": [],
+      "vertices": 90,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0249",
+      "sourceName": "Nasalis muscle.r",
+      "muscles": [],
+      "vertices": 90,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0250",
+      "sourceName": "Oblique head of adductor hallucis.l",
+      "muscles": [],
+      "vertices": 92,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0251",
+      "sourceName": "Oblique head of adductor hallucis.r",
+      "muscles": [],
+      "vertices": 92,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0252",
+      "sourceName": "Oblique head of adductor pollicis.l",
+      "muscles": [],
+      "vertices": 227,
+      "triangles": 449
+    },
+    {
+      "entity": "muscle_0253",
+      "sourceName": "Oblique head of adductor pollicis.r",
+      "muscles": [],
+      "vertices": 227,
+      "triangles": 449
+    },
+    {
+      "entity": "muscle_0254",
+      "sourceName": "Oblique part of cricothyroid muscle.l",
+      "muscles": [],
+      "vertices": 187,
+      "triangles": 370
+    },
+    {
+      "entity": "muscle_0255",
+      "sourceName": "Oblique part of cricothyroid muscle.r",
+      "muscles": [],
+      "vertices": 187,
+      "triangles": 370
+    },
+    {
+      "entity": "muscle_0256",
+      "sourceName": "Obliquus inferior capitis muscle.l",
+      "muscles": [],
+      "vertices": 92,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0257",
+      "sourceName": "Obliquus inferior capitis muscle.r",
+      "muscles": [],
+      "vertices": 92,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0258",
+      "sourceName": "Obliquus superior capitis muscle.l",
+      "muscles": [],
+      "vertices": 88,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0259",
+      "sourceName": "Obliquus superior capitis muscle.r",
+      "muscles": [],
+      "vertices": 88,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0260",
+      "sourceName": "Obturator externus.l",
+      "muscles": [],
+      "vertices": 108,
+      "triangles": 208
+    },
+    {
+      "entity": "muscle_0261",
+      "sourceName": "Obturator externus.r",
+      "muscles": [],
+      "vertices": 108,
+      "triangles": 208
+    },
+    {
+      "entity": "muscle_0262",
+      "sourceName": "Obturator internus.l",
+      "muscles": [],
+      "vertices": 340,
+      "triangles": 676
+    },
+    {
+      "entity": "muscle_0263",
+      "sourceName": "Obturator internus.r",
+      "muscles": [],
+      "vertices": 340,
+      "triangles": 676
+    },
+    {
+      "entity": "muscle_0264",
+      "sourceName": "Occipitalis muscle.l",
+      "muscles": [],
+      "vertices": 230,
+      "triangles": 468
+    },
+    {
+      "entity": "muscle_0265",
+      "sourceName": "Occipitalis muscle.r",
+      "muscles": [],
+      "vertices": 230,
+      "triangles": 468
+    },
+    {
+      "entity": "muscle_0266",
+      "sourceName": "Omohyoid muscle.l",
+      "muscles": [],
+      "vertices": 245,
+      "triangles": 486
+    },
+    {
+      "entity": "muscle_0267",
+      "sourceName": "Omohyoid muscle.r",
+      "muscles": [],
+      "vertices": 245,
+      "triangles": 486
+    },
+    {
+      "entity": "muscle_0268",
+      "sourceName": "Opponens digiti minimi muscle of hand.l",
+      "muscles": [],
+      "vertices": 210,
+      "triangles": 420
+    },
+    {
+      "entity": "muscle_0269",
+      "sourceName": "Opponens digiti minimi muscle of hand.r",
+      "muscles": [],
+      "vertices": 210,
+      "triangles": 420
+    },
+    {
+      "entity": "muscle_0270",
+      "sourceName": "Opponens pollicis muscle.l",
+      "muscles": [],
+      "vertices": 194,
+      "triangles": 384
+    },
+    {
+      "entity": "muscle_0271",
+      "sourceName": "Opponens pollicis muscle.r",
+      "muscles": [],
+      "vertices": 194,
+      "triangles": 384
+    },
+    {
+      "entity": "muscle_0272",
+      "sourceName": "Orbicularis oris muscle.l",
+      "muscles": [],
+      "vertices": 169,
+      "triangles": 338
+    },
+    {
+      "entity": "muscle_0273",
+      "sourceName": "Orbicularis oris muscle.r",
+      "muscles": [],
+      "vertices": 169,
+      "triangles": 338
+    },
+    {
+      "entity": "muscle_0274",
+      "sourceName": "Orbital part of orbicularis oculi.l",
+      "muscles": [],
+      "vertices": 215,
+      "triangles": 430
+    },
+    {
+      "entity": "muscle_0275",
+      "sourceName": "Orbital part of orbicularis oculi.r",
+      "muscles": [],
+      "vertices": 215,
+      "triangles": 430
+    },
+    {
+      "entity": "muscle_0276",
+      "sourceName": "Palatopharyngeus muscle.l",
+      "muscles": [],
+      "vertices": 1376,
+      "triangles": 2750
+    },
+    {
+      "entity": "muscle_0277",
+      "sourceName": "Palatopharyngeus muscle.r",
+      "muscles": [],
+      "vertices": 1376,
+      "triangles": 2750
+    },
+    {
+      "entity": "muscle_0278",
+      "sourceName": "Palmar interossei muscles.l",
+      "muscles": [],
+      "vertices": 87,
+      "triangles": 174
+    },
+    {
+      "entity": "muscle_0279",
+      "sourceName": "Palmar interossei muscles.r",
+      "muscles": [],
+      "vertices": 87,
+      "triangles": 174
+    },
+    {
+      "entity": "muscle_0280",
+      "sourceName": "Palmaris longus muscle.l",
+      "muscles": [],
+      "vertices": 383,
+      "triangles": 786
+    },
+    {
+      "entity": "muscle_0281",
+      "sourceName": "Palmaris longus muscle.r",
+      "muscles": [],
+      "vertices": 383,
+      "triangles": 786
+    },
+    {
+      "entity": "muscle_0282",
+      "sourceName": "Palpebral part of orbicularis oculi.l",
+      "muscles": [],
+      "vertices": 90,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0283",
+      "sourceName": "Palpebral part of orbicularis oculi.r",
+      "muscles": [],
+      "vertices": 90,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0284",
+      "sourceName": "Pectineus muscle.l",
+      "muscles": [],
+      "vertices": 173,
+      "triangles": 350
+    },
+    {
+      "entity": "muscle_0285",
+      "sourceName": "Pectineus muscle.r",
+      "muscles": [],
+      "vertices": 173,
+      "triangles": 350
+    },
+    {
+      "entity": "muscle_0286",
+      "sourceName": "Pectoralis minor muscle.l",
+      "muscles": [],
+      "vertices": 368,
+      "triangles": 744
+    },
+    {
+      "entity": "muscle_0287",
+      "sourceName": "Pectoralis minor muscle.r",
+      "muscles": [],
+      "vertices": 368,
+      "triangles": 744
+    },
+    {
+      "entity": "muscle_0288",
+      "sourceName": "Piriformis muscle.l",
+      "muscles": [],
+      "vertices": 136,
+      "triangles": 268
+    },
+    {
+      "entity": "muscle_0289",
+      "sourceName": "Piriformis muscle.r",
+      "muscles": [],
+      "vertices": 136,
+      "triangles": 268
+    },
+    {
+      "entity": "muscle_0290",
+      "sourceName": "Plantar interossei muscles.l",
+      "muscles": [],
+      "vertices": 117,
+      "triangles": 222
+    },
+    {
+      "entity": "muscle_0291",
+      "sourceName": "Plantar interossei muscles.r",
+      "muscles": [],
+      "vertices": 117,
+      "triangles": 222
+    },
+    {
+      "entity": "muscle_0292",
+      "sourceName": "Plantaris muscle.l",
+      "muscles": [],
+      "vertices": 424,
+      "triangles": 844
+    },
+    {
+      "entity": "muscle_0293",
+      "sourceName": "Plantaris muscle.r",
+      "muscles": [],
+      "vertices": 424,
+      "triangles": 844
+    },
+    {
+      "entity": "muscle_0294",
+      "sourceName": "Platysma.l",
+      "muscles": [],
+      "vertices": 591,
+      "triangles": 1178
+    },
+    {
+      "entity": "muscle_0295",
+      "sourceName": "Platysma.r",
+      "muscles": [],
+      "vertices": 591,
+      "triangles": 1178
+    },
+    {
+      "entity": "muscle_0296",
+      "sourceName": "Popliteus muscle.l",
+      "muscles": [],
+      "vertices": 101,
+      "triangles": 202
+    },
+    {
+      "entity": "muscle_0297",
+      "sourceName": "Popliteus muscle.r",
+      "muscles": [],
+      "vertices": 101,
+      "triangles": 202
+    },
+    {
+      "entity": "muscle_0298",
+      "sourceName": "Posterior belly of digastric muscle.l",
+      "muscles": [],
+      "vertices": 114,
+      "triangles": 228
+    },
+    {
+      "entity": "muscle_0299",
+      "sourceName": "Posterior belly of digastric muscle.r",
+      "muscles": [],
+      "vertices": 114,
+      "triangles": 228
+    },
+    {
+      "entity": "muscle_0300",
+      "sourceName": "Posterior crico-arytenoid muscle.l",
+      "muscles": [],
+      "vertices": 165,
+      "triangles": 326
+    },
+    {
+      "entity": "muscle_0301",
+      "sourceName": "Posterior crico-arytenoid muscle.r",
+      "muscles": [],
+      "vertices": 165,
+      "triangles": 326
+    },
+    {
+      "entity": "muscle_0302",
+      "sourceName": "Procerus muscle.l",
+      "muscles": [],
+      "vertices": 90,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0303",
+      "sourceName": "Procerus muscle.r",
+      "muscles": [],
+      "vertices": 90,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0304",
+      "sourceName": "Pronator quadratus.l",
+      "muscles": [],
+      "vertices": 93,
+      "triangles": 182
+    },
+    {
+      "entity": "muscle_0305",
+      "sourceName": "Pronator quadratus.r",
+      "muscles": [],
+      "vertices": 93,
+      "triangles": 182
+    },
+    {
+      "entity": "muscle_0306",
+      "sourceName": "Psoas major.l",
+      "muscles": [
+        "hipFlexors"
+      ],
+      "vertices": 492,
+      "triangles": 984
+    },
+    {
+      "entity": "muscle_0307",
+      "sourceName": "Psoas major.r",
+      "muscles": [
+        "hipFlexors"
+      ],
+      "vertices": 492,
+      "triangles": 984
+    },
+    {
+      "entity": "muscle_0308",
+      "sourceName": "Pubo-analis muscle.l",
+      "muscles": [],
+      "vertices": 125,
+      "triangles": 258
+    },
+    {
+      "entity": "muscle_0309",
+      "sourceName": "Pubo-analis muscle.r",
+      "muscles": [],
+      "vertices": 125,
+      "triangles": 258
+    },
+    {
+      "entity": "muscle_0310",
+      "sourceName": "Pubococcygeus muscle.l",
+      "muscles": [],
+      "vertices": 222,
+      "triangles": 452
+    },
+    {
+      "entity": "muscle_0311",
+      "sourceName": "Pubococcygeus muscle.r",
+      "muscles": [],
+      "vertices": 222,
+      "triangles": 452
+    },
+    {
+      "entity": "muscle_0312",
+      "sourceName": "Pyramidalis muscle.l",
+      "muscles": [],
+      "vertices": 98,
+      "triangles": 200
+    },
+    {
+      "entity": "muscle_0313",
+      "sourceName": "Pyramidalis muscle.r",
+      "muscles": [],
+      "vertices": 98,
+      "triangles": 200
+    },
+    {
+      "entity": "muscle_0314",
+      "sourceName": "Quadratus femoris muscle.l",
+      "muscles": [],
+      "vertices": 150,
+      "triangles": 296
+    },
+    {
+      "entity": "muscle_0315",
+      "sourceName": "Quadratus femoris muscle.r",
+      "muscles": [],
+      "vertices": 150,
+      "triangles": 296
+    },
+    {
+      "entity": "muscle_0316",
+      "sourceName": "Quadratus lumborum muscle.l",
+      "muscles": [],
+      "vertices": 254,
+      "triangles": 508
+    },
+    {
+      "entity": "muscle_0317",
+      "sourceName": "Quadratus lumborum muscle.r",
+      "muscles": [],
+      "vertices": 254,
+      "triangles": 508
+    },
+    {
+      "entity": "muscle_0318",
+      "sourceName": "Quadratus plantae muscle.l",
+      "muscles": [],
+      "vertices": 107,
+      "triangles": 210
+    },
+    {
+      "entity": "muscle_0319",
+      "sourceName": "Quadratus plantae muscle.r",
+      "muscles": [],
+      "vertices": 107,
+      "triangles": 210
+    },
+    {
+      "entity": "muscle_0320",
+      "sourceName": "Radial head of flexor digitorum superficialis.l",
+      "muscles": [
+        "forearmFlexors"
+      ],
+      "vertices": 116,
+      "triangles": 228
+    },
+    {
+      "entity": "muscle_0321",
+      "sourceName": "Radial head of flexor digitorum superficialis.r",
+      "muscles": [
+        "forearmFlexors"
+      ],
+      "vertices": 116,
+      "triangles": 228
+    },
+    {
+      "entity": "muscle_0322",
+      "sourceName": "Rectus abdominis muscle.l",
+      "muscles": [
+        "rectusAbdominis"
+      ],
+      "vertices": 1856,
+      "triangles": 3708
+    },
+    {
+      "entity": "muscle_0323",
+      "sourceName": "Rectus abdominis muscle.r",
+      "muscles": [
+        "rectusAbdominis"
+      ],
+      "vertices": 1856,
+      "triangles": 3708
+    },
+    {
+      "entity": "muscle_0324",
+      "sourceName": "Rectus anterior capitis muscle.l",
+      "muscles": [],
+      "vertices": 200,
+      "triangles": 396
+    },
+    {
+      "entity": "muscle_0325",
+      "sourceName": "Rectus anterior capitis muscle.r",
+      "muscles": [],
+      "vertices": 200,
+      "triangles": 396
+    },
+    {
+      "entity": "muscle_0326",
+      "sourceName": "Rectus femoris muscle.l",
+      "muscles": [
+        "rectusFemoris"
+      ],
+      "vertices": 742,
+      "triangles": 1488
+    },
+    {
+      "entity": "muscle_0327",
+      "sourceName": "Rectus femoris muscle.r",
+      "muscles": [
+        "rectusFemoris"
+      ],
+      "vertices": 742,
+      "triangles": 1488
+    },
+    {
+      "entity": "muscle_0328",
+      "sourceName": "Rectus lateralis capitis muscle.l",
+      "muscles": [],
+      "vertices": 182,
+      "triangles": 360
+    },
+    {
+      "entity": "muscle_0329",
+      "sourceName": "Rectus lateralis capitis muscle.r",
+      "muscles": [],
+      "vertices": 182,
+      "triangles": 360
+    },
+    {
+      "entity": "muscle_0330",
+      "sourceName": "Rectus posterior major capitis muscle.l",
+      "muscles": [],
+      "vertices": 92,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0331",
+      "sourceName": "Rectus posterior major capitis muscle.r",
+      "muscles": [],
+      "vertices": 92,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0332",
+      "sourceName": "Rectus posterior minor capitis muscle.l",
+      "muscles": [],
+      "vertices": 214,
+      "triangles": 432
+    },
+    {
+      "entity": "muscle_0333",
+      "sourceName": "Rectus posterior minor capitis muscle.r",
+      "muscles": [],
+      "vertices": 214,
+      "triangles": 432
+    },
+    {
+      "entity": "muscle_0334",
+      "sourceName": "Rhomboid major muscle.l",
+      "muscles": [
+        "rhomboids"
+      ],
+      "vertices": 434,
+      "triangles": 864
+    },
+    {
+      "entity": "muscle_0335",
+      "sourceName": "Rhomboid major muscle.r",
+      "muscles": [
+        "rhomboids"
+      ],
+      "vertices": 434,
+      "triangles": 864
+    },
+    {
+      "entity": "muscle_0336",
+      "sourceName": "Rhomboid minor muscle.l",
+      "muscles": [
+        "rhomboids"
+      ],
+      "vertices": 134,
+      "triangles": 268
+    },
+    {
+      "entity": "muscle_0337",
+      "sourceName": "Rhomboid minor muscle.r",
+      "muscles": [
+        "rhomboids"
+      ],
+      "vertices": 134,
+      "triangles": 268
+    },
+    {
+      "entity": "muscle_0338",
+      "sourceName": "Risorius muscle.l",
+      "muscles": [],
+      "vertices": 90,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0339",
+      "sourceName": "Risorius muscle.r",
+      "muscles": [],
+      "vertices": 90,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0340",
+      "sourceName": "Rotatores.l",
+      "muscles": [],
+      "vertices": 581,
+      "triangles": 1172
+    },
+    {
+      "entity": "muscle_0341",
+      "sourceName": "Rotatores.r",
+      "muscles": [],
+      "vertices": 581,
+      "triangles": 1172
+    },
+    {
+      "entity": "muscle_0342",
+      "sourceName": "Sartorius muscle.l",
+      "muscles": [],
+      "vertices": 444,
+      "triangles": 892
+    },
+    {
+      "entity": "muscle_0343",
+      "sourceName": "Sartorius muscle.r",
+      "muscles": [],
+      "vertices": 444,
+      "triangles": 892
+    },
+    {
+      "entity": "muscle_0344",
+      "sourceName": "Scalenus anterior muscle.l",
+      "muscles": [],
+      "vertices": 129,
+      "triangles": 249
+    },
+    {
+      "entity": "muscle_0345",
+      "sourceName": "Scalenus anterior muscle.r",
+      "muscles": [],
+      "vertices": 129,
+      "triangles": 249
+    },
+    {
+      "entity": "muscle_0346",
+      "sourceName": "Scalenus medius muscle.l",
+      "muscles": [],
+      "vertices": 185,
+      "triangles": 374
+    },
+    {
+      "entity": "muscle_0347",
+      "sourceName": "Scalenus medius muscle.r",
+      "muscles": [],
+      "vertices": 185,
+      "triangles": 374
+    },
+    {
+      "entity": "muscle_0348",
+      "sourceName": "Scalenus posterior muscle.l",
+      "muscles": [],
+      "vertices": 121,
+      "triangles": 238
+    },
+    {
+      "entity": "muscle_0349",
+      "sourceName": "Scalenus posterior muscle.r",
+      "muscles": [],
+      "vertices": 121,
+      "triangles": 238
+    },
+    {
+      "entity": "muscle_0350",
+      "sourceName": "Scapular spinal part of deltoid muscle.l",
+      "muscles": [
+        "posteriorDeltoid"
+      ],
+      "vertices": 394,
+      "triangles": 788
+    },
+    {
+      "entity": "muscle_0351",
+      "sourceName": "Scapular spinal part of deltoid muscle.r",
+      "muscles": [
+        "posteriorDeltoid"
+      ],
+      "vertices": 394,
+      "triangles": 788
+    },
+    {
+      "entity": "muscle_0352",
+      "sourceName": "Semimembranosus muscle.l",
+      "muscles": [
+        "semimembranosus"
+      ],
+      "vertices": 673,
+      "triangles": 1338
+    },
+    {
+      "entity": "muscle_0353",
+      "sourceName": "Semimembranosus muscle.r",
+      "muscles": [
+        "semimembranosus"
+      ],
+      "vertices": 673,
+      "triangles": 1338
+    },
+    {
+      "entity": "muscle_0354",
+      "sourceName": "Semispinalis colli muscle.l",
+      "muscles": [],
+      "vertices": 232,
+      "triangles": 464
+    },
+    {
+      "entity": "muscle_0355",
+      "sourceName": "Semispinalis colli muscle.r",
+      "muscles": [],
+      "vertices": 232,
+      "triangles": 464
+    },
+    {
+      "entity": "muscle_0356",
+      "sourceName": "Semispinalis thoracis muscle.l",
+      "muscles": [
+        "spinalErectors"
+      ],
+      "vertices": 436,
+      "triangles": 894
+    },
+    {
+      "entity": "muscle_0357",
+      "sourceName": "Semispinalis thoracis muscle.r",
+      "muscles": [
+        "spinalErectors"
+      ],
+      "vertices": 436,
+      "triangles": 894
+    },
+    {
+      "entity": "muscle_0358",
+      "sourceName": "Semitendinosus muscle.l",
+      "muscles": [
+        "semitendinosus"
+      ],
+      "vertices": 388,
+      "triangles": 776
+    },
+    {
+      "entity": "muscle_0359",
+      "sourceName": "Semitendinosus muscle.r",
+      "muscles": [
+        "semitendinosus"
+      ],
+      "vertices": 388,
+      "triangles": 776
+    },
+    {
+      "entity": "muscle_0360",
+      "sourceName": "Serratus anterior muscle.l",
+      "muscles": [
+        "serratusAnterior"
+      ],
+      "vertices": 2269,
+      "triangles": 4542
+    },
+    {
+      "entity": "muscle_0361",
+      "sourceName": "Serratus anterior muscle.r",
+      "muscles": [
+        "serratusAnterior"
+      ],
+      "vertices": 2269,
+      "triangles": 4542
+    },
+    {
+      "entity": "muscle_0362",
+      "sourceName": "Serratus posterior inferior muscle.l",
+      "muscles": [],
+      "vertices": 798,
+      "triangles": 1612
+    },
+    {
+      "entity": "muscle_0363",
+      "sourceName": "Serratus posterior inferior muscle.r",
+      "muscles": [],
+      "vertices": 798,
+      "triangles": 1612
+    },
+    {
+      "entity": "muscle_0364",
+      "sourceName": "Serratus posterior superior muscle.l",
+      "muscles": [],
+      "vertices": 496,
+      "triangles": 992
+    },
+    {
+      "entity": "muscle_0365",
+      "sourceName": "Serratus posterior superior muscle.r",
+      "muscles": [],
+      "vertices": 496,
+      "triangles": 992
+    },
+    {
+      "entity": "muscle_0366",
+      "sourceName": "Short head of biceps brachii.l",
+      "muscles": [
+        "bicepsShortHead"
+      ],
+      "vertices": 238,
+      "triangles": 484
+    },
+    {
+      "entity": "muscle_0367",
+      "sourceName": "Short head of biceps brachii.r",
+      "muscles": [
+        "bicepsShortHead"
+      ],
+      "vertices": 238,
+      "triangles": 484
+    },
+    {
+      "entity": "muscle_0368",
+      "sourceName": "Short head of biceps femoris.l",
+      "muscles": [
+        "bicepsFemoris"
+      ],
+      "vertices": 222,
+      "triangles": 444
+    },
+    {
+      "entity": "muscle_0369",
+      "sourceName": "Short head of biceps femoris.r",
+      "muscles": [
+        "bicepsFemoris"
+      ],
+      "vertices": 222,
+      "triangles": 444
+    },
+    {
+      "entity": "muscle_0370",
+      "sourceName": "Soleus muscle.l",
+      "muscles": [
+        "soleus"
+      ],
+      "vertices": 601,
+      "triangles": 1218
+    },
+    {
+      "entity": "muscle_0371",
+      "sourceName": "Soleus muscle.r",
+      "muscles": [
+        "soleus"
+      ],
+      "vertices": 601,
+      "triangles": 1218
+    },
+    {
+      "entity": "muscle_0372",
+      "sourceName": "Spinalis capitis muscle.l",
+      "muscles": [],
+      "vertices": 225,
+      "triangles": 460
+    },
+    {
+      "entity": "muscle_0373",
+      "sourceName": "Spinalis capitis muscle.r",
+      "muscles": [],
+      "vertices": 225,
+      "triangles": 460
+    },
+    {
+      "entity": "muscle_0374",
+      "sourceName": "Spinalis colli muscle.l",
+      "muscles": [],
+      "vertices": 90,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0375",
+      "sourceName": "Spinalis colli muscle.r",
+      "muscles": [],
+      "vertices": 90,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0376",
+      "sourceName": "Spinalis thoracis muscle.l",
+      "muscles": [
+        "spinalErectors"
+      ],
+      "vertices": 499,
+      "triangles": 994
+    },
+    {
+      "entity": "muscle_0377",
+      "sourceName": "Spinalis thoracis muscle.r",
+      "muscles": [
+        "spinalErectors"
+      ],
+      "vertices": 499,
+      "triangles": 994
+    },
+    {
+      "entity": "muscle_0378",
+      "sourceName": "Splenius capitis muscle.l",
+      "muscles": [],
+      "vertices": 471,
+      "triangles": 946
+    },
+    {
+      "entity": "muscle_0379",
+      "sourceName": "Splenius capitis muscle.r",
+      "muscles": [],
+      "vertices": 471,
+      "triangles": 946
+    },
+    {
+      "entity": "muscle_0380",
+      "sourceName": "Splenius colli muscle.l",
+      "muscles": [],
+      "vertices": 389,
+      "triangles": 776
+    },
+    {
+      "entity": "muscle_0381",
+      "sourceName": "Splenius colli muscle.r",
+      "muscles": [],
+      "vertices": 389,
+      "triangles": 776
+    },
+    {
+      "entity": "muscle_0382",
+      "sourceName": "Sternocleidomastoid muscle.l",
+      "muscles": [],
+      "vertices": 441,
+      "triangles": 890
+    },
+    {
+      "entity": "muscle_0383",
+      "sourceName": "Sternocleidomastoid muscle.r",
+      "muscles": [],
+      "vertices": 441,
+      "triangles": 890
+    },
+    {
+      "entity": "muscle_0384",
+      "sourceName": "Sternocostal head of pectoralis major muscle.l",
+      "muscles": [
+        "midPectoral"
+      ],
+      "vertices": 289,
+      "triangles": 578
+    },
+    {
+      "entity": "muscle_0385",
+      "sourceName": "Sternocostal head of pectoralis major muscle.r",
+      "muscles": [
+        "midPectoral"
+      ],
+      "vertices": 289,
+      "triangles": 578
+    },
+    {
+      "entity": "muscle_0386",
+      "sourceName": "Sternohyoid muscle.l",
+      "muscles": [],
+      "vertices": 125,
+      "triangles": 250
+    },
+    {
+      "entity": "muscle_0387",
+      "sourceName": "Sternohyoid muscle.r",
+      "muscles": [],
+      "vertices": 125,
+      "triangles": 250
+    },
+    {
+      "entity": "muscle_0388",
+      "sourceName": "Sternothyroid muscle.l",
+      "muscles": [],
+      "vertices": 99,
+      "triangles": 194
+    },
+    {
+      "entity": "muscle_0389",
+      "sourceName": "Sternothyroid muscle.r",
+      "muscles": [],
+      "vertices": 99,
+      "triangles": 194
+    },
+    {
+      "entity": "muscle_0390",
+      "sourceName": "Straight part of cricothyroid muscle.l",
+      "muscles": [],
+      "vertices": 108,
+      "triangles": 212
+    },
+    {
+      "entity": "muscle_0391",
+      "sourceName": "Straight part of cricothyroid muscle.r",
+      "muscles": [],
+      "vertices": 108,
+      "triangles": 212
+    },
+    {
+      "entity": "muscle_0392",
+      "sourceName": "Stylohyoid muscle.l",
+      "muscles": [],
+      "vertices": 92,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0393",
+      "sourceName": "Stylohyoid muscle.r",
+      "muscles": [],
+      "vertices": 92,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0394",
+      "sourceName": "Stylopharyngeus muscle.l",
+      "muscles": [],
+      "vertices": 854,
+      "triangles": 1706
+    },
+    {
+      "entity": "muscle_0395",
+      "sourceName": "Stylopharyngeus muscle.r",
+      "muscles": [],
+      "vertices": 854,
+      "triangles": 1706
+    },
+    {
+      "entity": "muscle_0396",
+      "sourceName": "Subclavius muscle.l",
+      "muscles": [],
+      "vertices": 90,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0397",
+      "sourceName": "Subclavius muscle.r",
+      "muscles": [],
+      "vertices": 90,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0398",
+      "sourceName": "Subscapularis muscle.l",
+      "muscles": [],
+      "vertices": 259,
+      "triangles": 530
+    },
+    {
+      "entity": "muscle_0399",
+      "sourceName": "Subscapularis muscle.r",
+      "muscles": [],
+      "vertices": 259,
+      "triangles": 530
+    },
+    {
+      "entity": "muscle_0400",
+      "sourceName": "Superficial head of flexor pollicis brevis.l",
+      "muscles": [],
+      "vertices": 136,
+      "triangles": 276
+    },
+    {
+      "entity": "muscle_0401",
+      "sourceName": "Superficial head of flexor pollicis brevis.r",
+      "muscles": [],
+      "vertices": 136,
+      "triangles": 276
+    },
+    {
+      "entity": "muscle_0402",
+      "sourceName": "Superficial head of pronator teres.l",
+      "muscles": [],
+      "vertices": 229,
+      "triangles": 458
+    },
+    {
+      "entity": "muscle_0403",
+      "sourceName": "Superficial head of pronator teres.r",
+      "muscles": [],
+      "vertices": 229,
+      "triangles": 458
+    },
+    {
+      "entity": "muscle_0404",
+      "sourceName": "Superficial part of masseter.l",
+      "muscles": [],
+      "vertices": 126,
+      "triangles": 252
+    },
+    {
+      "entity": "muscle_0405",
+      "sourceName": "Superficial part of masseter.r",
+      "muscles": [],
+      "vertices": 126,
+      "triangles": 252
+    },
+    {
+      "entity": "muscle_0406",
+      "sourceName": "Superior gemellus muscle.l",
+      "muscles": [],
+      "vertices": 204,
+      "triangles": 404
+    },
+    {
+      "entity": "muscle_0407",
+      "sourceName": "Superior gemellus muscle.r",
+      "muscles": [],
+      "vertices": 204,
+      "triangles": 404
+    },
+    {
+      "entity": "muscle_0408",
+      "sourceName": "Superior head of lateral pterygoid muscle.l",
+      "muscles": [],
+      "vertices": 115,
+      "triangles": 226
+    },
+    {
+      "entity": "muscle_0409",
+      "sourceName": "Superior head of lateral pterygoid muscle.r",
+      "muscles": [],
+      "vertices": 115,
+      "triangles": 226
+    },
+    {
+      "entity": "muscle_0410",
+      "sourceName": "Superior oblique muscle.l",
+      "muscles": [],
+      "vertices": 159,
+      "triangles": 314
+    },
+    {
+      "entity": "muscle_0411",
+      "sourceName": "Superior oblique muscle.r",
+      "muscles": [],
+      "vertices": 159,
+      "triangles": 314
+    },
+    {
+      "entity": "muscle_0412",
+      "sourceName": "Superior pharyngeal constrictor.l",
+      "muscles": [],
+      "vertices": 482,
+      "triangles": 960
+    },
+    {
+      "entity": "muscle_0413",
+      "sourceName": "Superior pharyngeal constrictor.r",
+      "muscles": [],
+      "vertices": 482,
+      "triangles": 960
+    },
+    {
+      "entity": "muscle_0414",
+      "sourceName": "Superior rectus muscle.l",
+      "muscles": [],
+      "vertices": 117,
+      "triangles": 230
+    },
+    {
+      "entity": "muscle_0415",
+      "sourceName": "Superior rectus muscle.r",
+      "muscles": [],
+      "vertices": 117,
+      "triangles": 230
+    },
+    {
+      "entity": "muscle_0416",
+      "sourceName": "Supinator.l",
+      "muscles": [],
+      "vertices": 249,
+      "triangles": 494
+    },
+    {
+      "entity": "muscle_0417",
+      "sourceName": "Supinator.r",
+      "muscles": [],
+      "vertices": 249,
+      "triangles": 494
+    },
+    {
+      "entity": "muscle_0418",
+      "sourceName": "Supraspinatus muscle.l",
+      "muscles": [],
+      "vertices": 130,
+      "triangles": 256
+    },
+    {
+      "entity": "muscle_0419",
+      "sourceName": "Supraspinatus muscle.r",
+      "muscles": [],
+      "vertices": 130,
+      "triangles": 256
+    },
+    {
+      "entity": "muscle_0420",
+      "sourceName": "Temporalis muscle.l",
+      "muscles": [],
+      "vertices": 919,
+      "triangles": 1846
+    },
+    {
+      "entity": "muscle_0421",
+      "sourceName": "Temporalis muscle.r",
+      "muscles": [],
+      "vertices": 919,
+      "triangles": 1846
+    },
+    {
+      "entity": "muscle_0422",
+      "sourceName": "Temporoparietalis muscle.l",
+      "muscles": [],
+      "vertices": 1065,
+      "triangles": 2154
+    },
+    {
+      "entity": "muscle_0423",
+      "sourceName": "Temporoparietalis muscle.r",
+      "muscles": [],
+      "vertices": 1065,
+      "triangles": 2154
+    },
+    {
+      "entity": "muscle_0424",
+      "sourceName": "Teres major muscle.l",
+      "muscles": [],
+      "vertices": 103,
+      "triangles": 206
+    },
+    {
+      "entity": "muscle_0425",
+      "sourceName": "Teres major muscle.r",
+      "muscles": [],
+      "vertices": 103,
+      "triangles": 206
+    },
+    {
+      "entity": "muscle_0426",
+      "sourceName": "Teres minor muscle.l",
+      "muscles": [],
+      "vertices": 138,
+      "triangles": 272
+    },
+    {
+      "entity": "muscle_0427",
+      "sourceName": "Teres minor muscle.r",
+      "muscles": [],
+      "vertices": 138,
+      "triangles": 272
+    },
+    {
+      "entity": "muscle_0428",
+      "sourceName": "Thyro-epiglottic part of thyro-arytenoid muscle.l",
+      "muscles": [],
+      "vertices": 281,
+      "triangles": 558
+    },
+    {
+      "entity": "muscle_0429",
+      "sourceName": "Thyro-epiglottic part of thyro-arytenoid muscle.r",
+      "muscles": [],
+      "vertices": 281,
+      "triangles": 558
+    },
+    {
+      "entity": "muscle_0430",
+      "sourceName": "Thyrohyoid muscle.l",
+      "muscles": [],
+      "vertices": 92,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0431",
+      "sourceName": "Thyrohyoid muscle.r",
+      "muscles": [],
+      "vertices": 92,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0432",
+      "sourceName": "Tibialis anterior muscle.l",
+      "muscles": [
+        "tibialisAnterior"
+      ],
+      "vertices": 315,
+      "triangles": 634
+    },
+    {
+      "entity": "muscle_0433",
+      "sourceName": "Tibialis anterior muscle.r",
+      "muscles": [
+        "tibialisAnterior"
+      ],
+      "vertices": 315,
+      "triangles": 634
+    },
+    {
+      "entity": "muscle_0434",
+      "sourceName": "Tibialis posterior muscle.l",
+      "muscles": [],
+      "vertices": 475,
+      "triangles": 994
+    },
+    {
+      "entity": "muscle_0435",
+      "sourceName": "Tibialis posterior muscle.r",
+      "muscles": [],
+      "vertices": 475,
+      "triangles": 994
+    },
+    {
+      "entity": "muscle_0436",
+      "sourceName": "Transverse arytenoid muscle",
+      "muscles": [],
+      "vertices": 165,
+      "triangles": 326
+    },
+    {
+      "entity": "muscle_0437",
+      "sourceName": "Transverse head of adductor hallucis.l",
+      "muscles": [],
+      "vertices": 181,
+      "triangles": 366
+    },
+    {
+      "entity": "muscle_0438",
+      "sourceName": "Transverse head of adductor hallucis.r",
+      "muscles": [],
+      "vertices": 181,
+      "triangles": 366
+    },
+    {
+      "entity": "muscle_0439",
+      "sourceName": "Transverse head of adductor pollicis.l",
+      "muscles": [],
+      "vertices": 93,
+      "triangles": 182
+    },
+    {
+      "entity": "muscle_0440",
+      "sourceName": "Transverse head of adductor pollicis.r",
+      "muscles": [],
+      "vertices": 93,
+      "triangles": 182
+    },
+    {
+      "entity": "muscle_0441",
+      "sourceName": "Transverse part of trapezius muscle.l",
+      "muscles": [
+        "middleTrapezius"
+      ],
+      "vertices": 267,
+      "triangles": 538
+    },
+    {
+      "entity": "muscle_0442",
+      "sourceName": "Transverse part of trapezius muscle.r",
+      "muscles": [
+        "middleTrapezius"
+      ],
+      "vertices": 267,
+      "triangles": 538
+    },
+    {
+      "entity": "muscle_0443",
+      "sourceName": "Transversus abdominis muscle.l",
+      "muscles": [
+        "transverseAbdominis"
+      ],
+      "vertices": 3089,
+      "triangles": 6178
+    },
+    {
+      "entity": "muscle_0444",
+      "sourceName": "Transversus abdominis muscle.r",
+      "muscles": [
+        "transverseAbdominis"
+      ],
+      "vertices": 3089,
+      "triangles": 6178
+    },
+    {
+      "entity": "muscle_0445",
+      "sourceName": "Transversus thoracis muscle.l",
+      "muscles": [],
+      "vertices": 135,
+      "triangles": 300
+    },
+    {
+      "entity": "muscle_0446",
+      "sourceName": "Transversus thoracis muscle.r",
+      "muscles": [],
+      "vertices": 135,
+      "triangles": 300
+    },
+    {
+      "entity": "muscle_0447",
+      "sourceName": "Ulnar head of extensor carpi ulnaris.l",
+      "muscles": [
+        "forearmExtensors"
+      ],
+      "vertices": 91,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0448",
+      "sourceName": "Ulnar head of extensor carpi ulnaris.r",
+      "muscles": [
+        "forearmExtensors"
+      ],
+      "vertices": 91,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0449",
+      "sourceName": "Ulnar head of flexor carpi ulnaris.l",
+      "muscles": [
+        "forearmFlexors"
+      ],
+      "vertices": 123,
+      "triangles": 262
+    },
+    {
+      "entity": "muscle_0450",
+      "sourceName": "Ulnar head of flexor carpi ulnaris.r",
+      "muscles": [
+        "forearmFlexors"
+      ],
+      "vertices": 123,
+      "triangles": 262
+    },
+    {
+      "entity": "muscle_0451",
+      "sourceName": "Vastus intermedius muscle.l",
+      "muscles": [
+        "vastusIntermedius"
+      ],
+      "vertices": 548,
+      "triangles": 1108
+    },
+    {
+      "entity": "muscle_0452",
+      "sourceName": "Vastus intermedius muscle.r",
+      "muscles": [
+        "vastusIntermedius"
+      ],
+      "vertices": 548,
+      "triangles": 1108
+    },
+    {
+      "entity": "muscle_0453",
+      "sourceName": "Vastus lateralis muscle.l",
+      "muscles": [
+        "vastusLateralis"
+      ],
+      "vertices": 842,
+      "triangles": 1684
+    },
+    {
+      "entity": "muscle_0454",
+      "sourceName": "Vastus lateralis muscle.r",
+      "muscles": [
+        "vastusLateralis"
+      ],
+      "vertices": 842,
+      "triangles": 1684
+    },
+    {
+      "entity": "muscle_0455",
+      "sourceName": "Vastus medialis muscle.l",
+      "muscles": [
+        "vastusMedialis"
+      ],
+      "vertices": 583,
+      "triangles": 1162
+    },
+    {
+      "entity": "muscle_0456",
+      "sourceName": "Vastus medialis muscle.r",
+      "muscles": [
+        "vastusMedialis"
+      ],
+      "vertices": 583,
+      "triangles": 1162
+    },
+    {
+      "entity": "muscle_0457",
+      "sourceName": "Ventral parts of lateral intertransversarii lumborum muscles.l",
+      "muscles": [],
+      "vertices": 98,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0458",
+      "sourceName": "Ventral parts of lateral intertransversarii lumborum muscles.r",
+      "muscles": [],
+      "vertices": 98,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0459",
+      "sourceName": "Zygomaticus major muscle.l",
+      "muscles": [],
+      "vertices": 88,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0460",
+      "sourceName": "Zygomaticus major muscle.r",
+      "muscles": [],
+      "vertices": 88,
+      "triangles": 180
+    },
+    {
+      "entity": "muscle_0461",
+      "sourceName": "Zygomaticus minor muscle.l",
+      "muscles": [],
+      "vertices": 218,
+      "triangles": 432
+    },
+    {
+      "entity": "muscle_0462",
+      "sourceName": "Zygomaticus minor muscle.r",
+      "muscles": [],
+      "vertices": 218,
+      "triangles": 432
+    }
+  ]
+}

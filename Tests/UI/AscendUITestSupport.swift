@@ -35,7 +35,8 @@ import XCTest
 
     static func reveal(_ element: XCUIElement, screen: String, in app: XCUIApplication) {
         let scroll = app.scrollViews[screen]
-        let bottom = app.buttons["tab.dashboard"].frame.minY - 16
+        let tab = app.buttons["tab.dashboard"]
+        let bottom = tab.exists ? tab.frame.minY - 16 : scroll.frame.maxY - 16
         for _ in 0..<8 {
             if element.isHittable && element.frame.minY > scroll.frame.minY + 8 && element.frame.maxY < bottom { break }
             if element.exists && element.frame.minY <= scroll.frame.minY + 8 { scroll.swipeDown() }

@@ -8,7 +8,7 @@ public enum ObjectiveImportance: String, Codable, CaseIterable, Hashable, Sendab
 }
 public enum ObjectiveCadence: String, Codable, CaseIterable, Hashable, Sendable { case once, daily, weekly, weekdays }
 public enum ObjectiveKind: String, Codable, CaseIterable, Hashable, Sendable {
-    case custom, calories, protein, bodyWeight, workout, exercise
+    case custom, count, duration, calories, protein, bodyWeight, workout, exercise, sleep
 }
 public enum TrackingMode: String, Codable, CaseIterable, Hashable, Sendable { case reps, weightAndReps, duration, distance }
 public enum ExerciseCategory: String, Codable, Sendable { case strength, bodyweight, cardio, mobility }

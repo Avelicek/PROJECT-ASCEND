@@ -5,6 +5,18 @@ enum PreviewData {
     #if DEBUG
     @MainActor static func preparePresentationFixture(store: AppStore, arguments: [String] = ProcessInfo.processInfo.arguments) throws {
         guard store.isDemo, arguments.contains("--ui-testing") else { return }
+        if arguments.contains("--capture-onboarding") { store.ownerSystem.onboardingComplete = false }
+        if arguments.contains("--capture-sleep") || arguments.contains("--capture-end-sleep") {
+            store.ownerSystem.sleepStartedAt = store.now.addingTimeInterval(-8 * 3600)
+            try store.refresh(at: store.now)
+        }
+        if arguments.contains("--capture-sick") { store.startSick(note: "Training pause") }
+        if arguments.contains("--capture-objectives") {
+            var objective = ObjectiveDraft(); objective.title = "100 push-ups"; objective.kind = .exercise; objective.target = 100; objective.unit = "reps"; objective.exerciseCatalogID = "push_up"; objective.startsAt = store.now
+            _ = store.saveObjective(objective)
+            if let exercise = store.exercises.first(where: { $0.catalogID == "push_up" }) { _ = store.logWorkout(exercise: exercise, sets: [.init(reps: 60)], at: store.now, quick: true, exertion: 7) }
+            store.presentedSheet = .objectives
+        }
         if arguments.contains("--brain-low-data") {
             for entry in store.sleep { store.context.delete(entry) }
             for entry in store.nutrition { store.context.delete(entry) }

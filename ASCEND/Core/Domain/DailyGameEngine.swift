@@ -22,24 +22,26 @@ public struct DailyGameEngine: Sendable {
 }
 public struct StreakEngine: Sendable {
     public init() {}
-    public func daily(qualifyingDays: [Date], now: Date, policy: DayPolicy) -> Int {
+    public func daily(qualifyingDays: [Date], now: Date, policy: DayPolicy, protectedDays: [Date] = []) -> Int {
+        let protected = Set(protectedDays.filter { $0 <= now }.map { policy.start(of: $0) })
         let days = Set(qualifyingDays.filter { $0 <= now }.map { policy.start(of: $0) })
         var cursor = policy.start(of: now)
         if !days.contains(cursor) { cursor = policy.adding(days: -1, to: cursor) }
         var count = 0
-        while days.contains(cursor) { count += 1; cursor = policy.adding(days: -1, to: cursor) }
+        while days.contains(cursor) || protected.contains(cursor) { if days.contains(cursor) { count += 1 }; cursor = policy.adding(days: -1, to: cursor) }
         return count
     }
     // Consecutive weeks with two distinct training days: rest never breaks the streak.
-    public func workoutWeeks(dates: [Date], now: Date, policy: DayPolicy) -> Int {
+    public func workoutWeeks(dates: [Date], now: Date, policy: DayPolicy, protectedDays: [Date] = []) -> Int {
         let calendar = policy.calendar
         func week(_ date: Date) -> Date { calendar.dateInterval(of: .weekOfYear, for: date)?.start ?? policy.start(of: date) }
         let grouped = Dictionary(grouping: Set(dates.filter { $0 <= now }.map { policy.start(of: $0) })) { week($0) }
+        let protected = Set(protectedDays.filter { $0 <= now }.map { week($0) })
         let qualified = Set(grouped.filter { $0.value.count >= 2 }.map(\.key))
         var cursor = week(now)
         if !qualified.contains(cursor) { cursor = policy.adding(days: -7, to: cursor) }
         var count = 0
-        while qualified.contains(cursor) { count += 1; cursor = policy.adding(days: -7, to: cursor) }
+        while qualified.contains(cursor) || protected.contains(cursor) { if qualified.contains(cursor) { count += 1 }; cursor = policy.adding(days: -7, to: cursor) }
         return count
     }
 }

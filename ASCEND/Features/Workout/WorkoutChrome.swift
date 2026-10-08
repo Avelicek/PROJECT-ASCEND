@@ -59,6 +59,7 @@ enum WorkoutClockText {
 }
 
 struct LiveWorkoutHeader: View {
+    @Environment(\.scenePhase) private var scenePhase
     @Environment(AppStore.self) private var store
     let draft: LiveWorkout
     let selected: LiveExercise?
@@ -72,7 +73,7 @@ struct LiveWorkoutHeader: View {
             HStack {
                 Button(action: minimize) { Image(systemName: "chevron.down").frame(width: 44, height: 44) }.accessibilityLabel("Minimize").accessibilityIdentifier("live.minimize")
                 Spacer()
-                TimelineView(.periodic(from: .now, by: 1)) { _ in
+                TimelineView(.animation(minimumInterval: 1, paused: scenePhase != .active || AppMotion.snapshotMode)) { _ in
                     Text(WorkoutClockText.duration(store.actionDate().timeIntervalSince(draft.startedAt))).font(.system(.title3, design: .rounded, weight: .semibold))
                         .monospacedDigit().foregroundStyle(AppColor.strength).accessibilityIdentifier("live.elapsed")
                 }
@@ -101,11 +102,12 @@ struct LiveWorkoutHeader: View {
 }
 
 struct FloatingRestTimer: View {
+    @Environment(\.scenePhase) private var scenePhase
     @Environment(AppStore.self) private var store
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let exerciseID: String?
     var body: some View {
-        TimelineView(.periodic(from: .now, by: 1)) { timeline in
+        TimelineView(.animation(minimumInterval: 1, paused: scenePhase != .active || AppMotion.snapshotMode || store.activeWorkout?.rest.isActive != true)) { timeline in
             let rest = store.activeWorkout?.rest ?? RestClock()
             let seconds = rest.remaining(at: timeline.date)
             HStack(spacing: 12) {

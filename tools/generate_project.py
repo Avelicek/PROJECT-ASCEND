@@ -12,13 +12,16 @@ def quote(value): return json.dumps(str(value))
 sources = sorted(str(path.relative_to(root)).replace('\\', '/') for path in (root/'ASCEND').rglob('*.swift'))
 all_tests = sorted(str(path.relative_to(root)).replace('\\', '/') for path in (root/'Tests').rglob('*.swift'))
 tests = [path for path in all_tests if not path.startswith('Tests/UI/')]
+widget_sources = ["WidgetExtension/AscendRestWidget.swift", "ASCEND/LiveActivity/RestActivityAttributes.swift"]
 ui_tests = [path for path in all_tests if path.startswith('Tests/UI/')]
 objects = {}
 def obj(key, value): objects[uid(key)] = value; return uid(key)
 fileids = {}
-for name in sources + all_tests:
+for name in sorted(set(sources + all_tests + widget_sources)):
     fileids[name] = obj('file:'+name, f'isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = {quote(Path(name).name)}; path = {quote(name)}; sourceTree = SOURCE_ROOT;')
+widget_product = obj('widget-product', 'isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = AscendRestWidget.appex; sourceTree = BUILT_PRODUCTS_DIR;')
 asset = obj('assets', 'isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = ASCEND/Resources/Assets.xcassets; sourceTree = SOURCE_ROOT;')
+anatomy = obj('anatomy', 'isa = PBXFileReference; lastKnownFileType = folder; path = ASCEND/Resources/Anatomy; sourceTree = SOURCE_ROOT;')
 app_product = obj('app-product', 'isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ASCEND.app; sourceTree = BUILT_PRODUCTS_DIR;')
 test_product = obj('test-product', 'isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ASCENDTests.xctest; sourceTree = BUILT_PRODUCTS_DIR;')
 ui_product = obj('ui-product', 'isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ASCENDUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR;')
@@ -30,8 +33,10 @@ def sourcephase(key, names):
 app_sources = sourcephase('app-sources', sources)
 test_sources = sourcephase('test-sources', tests)
 ui_sources = sourcephase('ui-sources', ui_tests)
+widget_phase = sourcephase('widget-sources', widget_sources)
 asset_build = obj('asset-build', f'isa = PBXBuildFile; fileRef = {asset};')
-app_resources = obj('app-resources', f'isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = {array([asset_build])}; runOnlyForDeploymentPostprocessing = 0;')
+anatomy_build = obj('anatomy-build', f'isa = PBXBuildFile; fileRef = {anatomy};')
+app_resources = obj('app-resources', f'isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = {array([asset_build, anatomy_build])}; runOnlyForDeploymentPostprocessing = 0;')
 test_resources = obj('test-resources', 'isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0;')
 app_frameworks = obj('app-frameworks', 'isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0;')
 test_frameworks = obj('test-frameworks', 'isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0;')
@@ -42,10 +47,11 @@ def grouped(prefix, refs):
     descendants = sorted({name[len(prefix)+1:].split('/')[0] for name in refs if name.startswith(prefix+'/') and '/' in name[len(prefix)+1:]})
     children = [grouped(prefix+'/'+directory, refs) for directory in descendants]+direct
     return obj('group:'+prefix, f'isa = PBXGroup; children = {array(children)}; name = {quote(prefix.split("/")[-1])}; sourceTree = "<group>";')
-app_group = grouped('ASCEND', {name:ref for name,ref in fileids.items() if name.startswith('ASCEND/')} | {'ASCEND/Resources/Assets.xcassets':asset})
+app_group = grouped('ASCEND', {name:ref for name,ref in fileids.items() if name.startswith('ASCEND/')} | {'ASCEND/Resources/Assets.xcassets':asset, 'ASCEND/Resources/Anatomy':anatomy})
 test_group = grouped('Tests', {name:ref for name,ref in fileids.items() if name.startswith('Tests/')})
-product_group = obj('products', f'isa = PBXGroup; children = {array([app_product, test_product, ui_product])}; name = Products; sourceTree = "<group>";')
-main_group = obj('main', f'isa = PBXGroup; children = {array([app_group, test_group, product_group])}; sourceTree = "<group>";')
+widget_group = grouped('WidgetExtension', {name:ref for name,ref in fileids.items() if name.startswith('WidgetExtension/')})
+product_group = obj('products', f'isa = PBXGroup; children = {array([app_product, test_product, ui_product, widget_product])}; name = Products; sourceTree = "<group>";')
+main_group = obj('main', f'isa = PBXGroup; children = {array([app_group, test_group, widget_group, product_group])}; sourceTree = "<group>";')
 common = {
     'SDKROOT':'iphoneos', 'IPHONEOS_DEPLOYMENT_TARGET':'27.0', 'SWIFT_VERSION':'5.0',
     'CLANG_ENABLE_MODULES':'YES', 'CLANG_ENABLE_OBJC_ARC':'YES', 'ENABLE_USER_SCRIPT_SANDBOXING':'YES',
@@ -62,13 +68,14 @@ project_configs = []
 app_configs = []
 test_configs = []
 ui_configs = []
+widget_configs = []
 for name in ['Debug', 'Release']:
     options = common | ({'SWIFT_OPTIMIZATION_LEVEL':'-Onone', 'SWIFT_ACTIVE_COMPILATION_CONDITIONS':'DEBUG $(inherited)', 'ENABLE_TESTABILITY':'YES', 'DEBUG_INFORMATION_FORMAT':'dwarf'} if name == 'Debug' else {'SWIFT_OPTIMIZATION_LEVEL':'-O', 'SWIFT_COMPILATION_MODE':'wholemodule', 'DEBUG_INFORMATION_FORMAT':'dwarf-with-dsym'})
     project_configs.append(config('project-'+name, name, options))
     app_configs.append(config('app-'+name, name, {
         'PRODUCT_NAME':'$(TARGET_NAME)', 'PRODUCT_BUNDLE_IDENTIFIER':'com.karel.projectascend',
         'INFOPLIST_FILE':'ASCEND/Resources/Info.plist', 'CODE_SIGN_STYLE':'Automatic', 'DEVELOPMENT_TEAM':'',
-        'MARKETING_VERSION':'0.1.0', 'CURRENT_PROJECT_VERSION':'1', 'ASSETCATALOG_COMPILER_APPICON_NAME':'AppIcon',
+        'MARKETING_VERSION':'1.0.0', 'CURRENT_PROJECT_VERSION':'1', 'ASSETCATALOG_COMPILER_APPICON_NAME':'AppIcon',
         'ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME':'AccentColor', 'LD_RUNPATH_SEARCH_PATHS':'$(inherited) @executable_path/Frameworks',
     }))
     test_configs.append(config('tests-'+name, name, {
@@ -76,6 +83,12 @@ for name in ['Debug', 'Release']:
         'GENERATE_INFOPLIST_FILE':'YES', 'CODE_SIGN_STYLE':'Automatic', 'DEVELOPMENT_TEAM':'',
         'TEST_HOST':'$(BUILT_PRODUCTS_DIR)/ASCEND.app/ASCEND',
         'BUNDLE_LOADER':'$(TEST_HOST)', 'LD_RUNPATH_SEARCH_PATHS':'$(inherited) @executable_path/Frameworks @loader_path/Frameworks',
+    }))
+    widget_configs.append(config('widget-'+name, name, {
+        'PRODUCT_NAME':'AscendRestWidget', 'PRODUCT_BUNDLE_IDENTIFIER':'com.karel.projectascend.rest',
+        'INFOPLIST_FILE':'WidgetExtension/Info.plist', 'GENERATE_INFOPLIST_FILE':'YES',
+        'CODE_SIGN_STYLE':'Automatic', 'DEVELOPMENT_TEAM':'', 'MARKETING_VERSION':'1.0.0', 'CURRENT_PROJECT_VERSION':'1',
+        'APPLICATION_EXTENSION_API_ONLY':'YES', 'SKIP_INSTALL':'YES', 'LD_RUNPATH_SEARCH_PATHS':'$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks',
     }))
     ui_configs.append(config('ui-'+name, name, {
         'PRODUCT_NAME':'$(TARGET_NAME)', 'PRODUCT_BUNDLE_IDENTIFIER':'com.karel.projectascend.uitests',
@@ -87,8 +100,14 @@ proj_list = configlist('project-configs', project_configs)
 app_list = configlist('app-configs', app_configs)
 test_list = configlist('test-configs', test_configs)
 ui_list = configlist('ui-configs', ui_configs)
+widget_list = configlist('widget-configs', widget_configs)
+widget_target = obj('widget-target', f'isa = PBXNativeTarget; buildConfigurationList = {widget_list}; buildPhases = {array([widget_phase])}; buildRules = (); dependencies = (); name = AscendRestWidget; productName = AscendRestWidget; productReference = {widget_product}; productType = "com.apple.product-type.app-extension";')
 project_id = uid('project')
-app_target = obj('app-target', f'isa = PBXNativeTarget; buildConfigurationList = {app_list}; buildPhases = {array([app_sources,app_frameworks,app_resources])}; buildRules = (); dependencies = (); name = ASCEND; productName = ASCEND; productReference = {app_product}; productType = "com.apple.product-type.application";')
+widget_proxy = obj('widget-proxy', f'isa = PBXContainerItemProxy; containerPortal = {project_id}; proxyType = 1; remoteGlobalIDString = {widget_target}; remoteInfo = AscendRestWidget;')
+widget_dependency = obj('widget-dependency', f'isa = PBXTargetDependency; target = {widget_target}; targetProxy = {widget_proxy};')
+widget_build = obj('widget-embed-build', f'isa = PBXBuildFile; fileRef = {widget_product}; settings = {{ ATTRIBUTES = (RemoveHeadersOnCopy,); }};')
+widget_embed = obj('widget-embed-phase', f'isa = PBXCopyFilesBuildPhase; buildActionMask = 2147483647; dstPath = ""; dstSubfolderSpec = 13; files = {array([widget_build])}; runOnlyForDeploymentPostprocessing = 0; name = "Embed App Extensions";')
+app_target = obj('app-target', f'isa = PBXNativeTarget; buildConfigurationList = {app_list}; buildPhases = {array([app_sources,app_frameworks,app_resources,widget_embed])}; buildRules = (); dependencies = {array([widget_dependency])}; name = ASCEND; productName = ASCEND; productReference = {app_product}; productType = "com.apple.product-type.application";')
 proxy = obj('proxy', f'isa = PBXContainerItemProxy; containerPortal = {project_id}; proxyType = 1; remoteGlobalIDString = {app_target}; remoteInfo = ASCEND;')
 dependency = obj('dependency', f'isa = PBXTargetDependency; target = {app_target}; targetProxy = {proxy};')
 test_target = obj('test-target', f'isa = PBXNativeTarget; buildConfigurationList = {test_list}; buildPhases = {array([test_sources,test_frameworks,test_resources])}; buildRules = (); dependencies = {array([dependency])}; name = ASCENDTests; productName = ASCENDTests; productReference = {test_product}; productType = "com.apple.product-type.bundle.unit-test";')
@@ -97,7 +116,7 @@ obj('project', f'''isa = PBXProject; attributes = {{ BuildIndependentTargetsInPa
     TargetAttributes = {{ {app_target} = {{ CreatedOnToolsVersion = 27.0; }}; {test_target} = {{ CreatedOnToolsVersion = 27.0; TestTargetID = {app_target}; }}; {ui_target} = {{ CreatedOnToolsVersion = 27.0; TestTargetID = {app_target}; }}; }}; }};
     buildConfigurationList = {proj_list}; compatibilityVersion = "Xcode 14.0"; developmentRegion = en; hasScannedForEncodings = 0;
     knownRegions = (en, Base,); mainGroup = {main_group}; productRefGroup = {product_group}; projectDirPath = ""; projectRoot = "";
-    targets = {array([app_target,test_target,ui_target])};''')
+    targets = {array([app_target,test_target,ui_target,widget_target])};''')
 body = '\n'.join(f'\t\t{key} = {{ {value} }};' for key,value in sorted(objects.items()))
 write('ASCEND.xcodeproj/project.pbxproj', '// !$*UTF8*$!\n{\n\tarchiveVersion = 1;\n\tclasses = {};\n\tobjectVersion = 56;\n\tobjects = {\n'+body+'\n\t};\n\trootObject = '+project_id+';\n}\n')
 def ref(target, name, product):

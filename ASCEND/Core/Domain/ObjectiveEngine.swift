@@ -25,7 +25,7 @@ public struct ObjectiveEngine: Sendable {
         case .protein: protein ?? 0
         case .bodyWeight: weighed ? 1 : 0
         case .workout: workedOut ? 1 : 0
-        case .exercise, .custom: max(0, manual)
+        case .exercise, .custom, .count, .duration, .sleep: max(0, manual)
         }
     }
     public func shouldExempt(contributions: [MuscleContribution], recovery: ReadinessReport, cutoff: Double = 40) -> Bool {

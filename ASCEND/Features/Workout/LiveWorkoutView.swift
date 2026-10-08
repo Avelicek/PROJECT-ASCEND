@@ -1,8 +1,11 @@
-﻿import SwiftUI
+import SwiftUI
+
+private struct RestWakeKey: Hashable { let active: Bool; let deadline: Date? }
 
 struct LiveWorkoutView: View {
     @Environment(AppStore.self) private var store
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.scenePhase) private var scenePhase
     @State private var choosing = false
     @State private var discarding = false
     @State private var removing = false
@@ -116,11 +119,10 @@ struct LiveWorkoutView: View {
                 PrimaryAction(title: "Finish workout", symbol: "checkmark", tint: AppColor.strength) { finishing = true }
                     .disabled(draft.completedSets == 0).accessibilityIdentifier("live.finish")
             }.padding(.horizontal, 18).padding(.vertical, 10).background(.ultraThinMaterial)
-        }.task {
-            while !Task.isCancelled {
-                store.tickRest(at: .now)
-                do { try await Task.sleep(for: .seconds(1)) } catch { return }
-            }
+        }.task(id: RestWakeKey(active: scenePhase == .active, deadline: draft.rest.deadline)) {
+            guard scenePhase == .active, let deadline = draft.rest.deadline else { return }
+            do { try await Task.sleep(for: .seconds(max(0, deadline.timeIntervalSinceNow))) } catch { return }
+            store.tickRest(at: .now)
         }
     }
     private func move(_ id: UUID, by offset: Int) {

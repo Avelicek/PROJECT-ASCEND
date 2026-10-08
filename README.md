@@ -1,88 +1,30 @@
-# PROJECT ASCEND — Build 03
+# ASCEND V1 — Gold Master preparation
 
-Native, local-first personal fitness for iPhone / iOS 27. SwiftUI, SwiftData, Swift Charts and optional on-device Foundation Models. No account, backend, CloudKit, HealthKit or third-party UI dependencies.
+Private native personal fitness for iPhone / iOS 27. Local first: SwiftUI, SwiftData, deterministic engines, optional on-device Foundation Models explanations, RealityKit anatomy and a small ActivityKit widget. No account, analytics, backend, CloudKit or HealthKit.
 
-## Open and run
+## Run
 
-1. On a Mac with Xcode and the iOS 27 SDK, open `ASCEND.xcodeproj`.
-2. Select **ASCEND Demo** and an installed iPhone simulator to inspect the populated dashboard immediately. This Debug scheme passes `--demo` and uses **only an in-memory store**.
-3. Select **ASCEND** for production storage. It starts unranked, with no weight, nutrition, sleep, workout or rank history. Only the built-in exercise catalog and editable preference defaults are seeded.
-4. For a physical iPhone, set your personal signing team under Signing & Capabilities. No team or provisioning identity is supplied.
-5. Open Profile to set current/target weight and goals, My Gym equipment and Personal Brain preferences. Optional on-device AI defaults off; deterministic recommendations always work. Build 06 adds a recovery-aware Today decision, detail, explicit preference history and darker surfaces; see [Build06.md](Docs/Build06.md).
+1. On a Mac with Xcode 27 and iOS 27 SDK/runtime, open `ASCEND.xcodeproj`.
+2. **ASCEND Demo** previews deterministic in-memory data. Release ignores demo/test arguments.
+3. **ASCEND** uses real local storage. A fresh/reset owner completes seven setup steps; existing owners keep their history and skip setup.
+4. Physical-device installation requires signing both the app and its embedded widget. See [iPhone install instructions](Docs/iPhoneInstall.md).
 
-Release builds ignore `--demo`. Demo data never enters the production store.
+## V1 systems
 
-## Implemented
+- Five accessible dark navigation destinations, original 18 rank PNGs/thresholds and existing ELO/lifetime progression.
+- Live workouts and absolute persistent rest, local rest-complete notification and system-rendered Live Activity countdown.
+- Versioned structured backup, validated preview/atomic restore and hard-gated full reset in Profile → System → Data.
+- First-use onboarding, persistent dated circumference measurements, global timestamp-only Sleep Mode and user-declared Sick protection.
+- Exercise/count/duration/workout/fuel/sleep/weigh-in objectives, with real sets and Quick Logs counted once across history, recovery, exposure and Brain.
+- Catalog of 149 exercises, equipment/favorites/hidden preferences, saved routines, progression and PRs.
+- Real licensed Z-Anatomy muscle USDZ, native orbit/zoom/select, logical muscle mapping and accessible deterministic 2D fallback.
+- Central semantic labels/gradients, event-driven motion/haptics, Reduce Motion/snapshot endpoints and cached deterministic Brain decisions.
 
-- Dashboard with owner rank artwork and tier aura, animated ELO, provisional daily delta, rank progress, readiness gauge, momentum sparkline, interactive objectives, nutrition and contextual insight.
-- Five native navigation destinations with a custom accessible tab bar, dark reusable components, number/progress transitions, reduced-motion handling and contextual haptics.
-- Editable goals, timestamped weight entries, daily calorie/protein totals and sleep with optional bed/wake times.
-- Built-in catalog of 22 exercises, quick/full set logging, retroactive timestamps, previous performance, volume and PR engine.
-- Detailed muscle model, cumulative decaying load, confidence-aware readiness and a layered, shaded front/back anatomy canvas with honest unknown regions, touch selection and load/fatigue details.
-- Training console with working-set muscle focus and numbered rows; weekly consistency and goal/weight analytics; identity control center with real rank and responsive target metrics. See [Build03.md](Docs/Build03.md).
-- Exact 18-rank ladder; no XP. Lifetime level accumulates positive finalized ELO without decreasing.
-- Rolling personal baselines for 7/14/28/90 days, weight smoothing, distinct goal progress and signed momentum.
-- User-defined one-time, daily, weekly or weekday objectives with three importance weights and explicit recovery exemption.
-- Versioned SwiftData schema with all 16 requested entities, relationship deletion rules, safe startup errors and transactional editing.
-- Provider-independent fitness brain, immediate local fallback and optional guided on-device interpretation with output validation.
+Details, protection/scoring policy, migrations, scenario coverage and freeze gates: [V1 master update](Docs/V1MasterUpdate.md). Asset source, license, measured package size and conversion: [third-party anatomy](Docs/ThirdPartyAnatomy.md).
 
-## Structure
+## Structure and verification
 
-```text
-ASCEND.xcodeproj/          App + hosted XCTest + XCUITest targets; normal and demo schemes
-ASCEND/
-  App/                    Lifecycle, observable store, editing and daily evaluation services
-  Core/
-    Domain/               Platform-independent facts, engines and brain contracts
-    Persistence/          SwiftData entities and V1 migration plan
-    Intelligence/         Foundation Models adapter
-    DesignSystem/         Color, typography, spacing, animation and haptic tokens
-  Components/             Cards, rank badges, progress indicators, editors and objective rows
-  Features/               Dashboard, Workout, Recovery, Progress, Profile, Logging, Objectives
-  Resources/              Exercise catalog, isolated previews, assets, Info.plist
-Tests/Core/               Engine tests shared by SwiftPM and Xcode
-Tests/App/                SwiftData/store integration tests (Xcode only)
-Tests/UI/                 Real launch/tab smoke and seeded screenshot tests (Xcode only)
-Tests/Infrastructure/     Python CI failure/selection/export tests; no Swift execution
-Package.swift             AscendCore library + engine tests; no external dependencies
-tools/                    Windows SwiftPM, Apple CI, result export, summaries and project wiring
-.github/workflows/        Windows + Xcode 27 jobs and combined six-stage report
-Docs/                     Architecture, scoring contract, asset installation, validation and Build 02
-```
-
-## Verification
-
-Build 01.5 verification runs in the private GitHub repository on pushes to main, pull requests and manual dispatch. Read [PRIVATE_REPOSITORY_SETUP.md](PRIVATE_REPOSITORY_SETUP.md) for setup and artifact-download steps. Read [WINDOWS_SETUP.md](WINDOWS_SETUP.md) to install official Swift for native Core tests.
-
-| Stage | Actual local result |
-|---|---|
-| CORE WINDOWS | NOT RUN — Swift absent from PATH |
-| IOS COMPILE | NOT RUN — Windows has no Apple SDK/Xcode |
-| UNIT TESTS | NOT RUN |
-| UI SMOKE | NOT RUN |
-| SCREENSHOTS | NOT RUN |
-| FOUNDATION MODELS INFERENCE | NOT TESTED |
-
-The local Python infrastructure suite and source/project checks are separate from these results. They cannot validate Swift types, macro expansion, simulator behavior or appearance. No real screenshot has been produced locally.
-
-Remote Apple verification is available through Actions. The Build 06 pre-work check found commit `1ac6411` passed Windows Core, Xcode 27 compilation, hosted unit tests, UI smoke and simulator screenshots in [run 37635199225](https://github.com/Avelicek/PROJECT-ASCEND/actions/runs/37635199225). For a new commit, use its own run and stage artifacts rather than treating previous evidence as current verification.
-
-On a Mac:
-
-```sh
-swift test
-bash tools/verify_on_mac.sh
-```
-
-The script requires Xcode 27 and an iOS 27+ SDK/runtime. It builds both shared schemes/test targets, runs unit and three UI smoke suites separately, exports fifteen real screenshot attachments, preserves logs/result bundles and records stage statuses under `work/verification/ios`. Use `--output work/verification/ios-another-run` for another local run because a reused output directory is rejected. Manual device and accessibility checks remain necessary; see `Docs/Validation.md` and [the Build 01.5 audit](Docs/Build01.5-Audit.md).
-
-On Windows, after installing Swift:
-
-```powershell
-& .\tools\verify-windows.ps1
-```
-
-To verify CI infrastructure without claiming app execution:
+`ASCEND/Core/Domain` is the dependency-free SwiftPM engine library; `ASCEND/App` owns storage and derivation; `Features`/`Components` present it. `WidgetExtension` contains the embedded Live Activity. Tests are divided into Core, hosted App, UI and infrastructure; the checked-in project generator wires all four Xcode targets.
 
 ```sh
 python -m unittest discover -s Tests/Infrastructure -v
@@ -90,6 +32,10 @@ python tools/validate_structure.py
 python tools/check_delimiters.py
 ```
 
-To add files, run `python3 tools/generate_project.py`. It updates file references and preserves existing artwork metadata. Review any project customization before regenerating: the script owns the project and shared schemes.
+Windows Core, after installing official Swift: `pwsh -File tools/verify-windows.ps1` ([setup](WINDOWS_SETUP.md)). Mac: `swift test` and `bash tools/verify_on_mac.sh`.
 
-See `Docs/Build02.md` for intentionally deferred features and `Docs/Assets.md` for the owner's rank artwork slots.
+The private [GitHub repository](https://github.com/Avelicek/PROJECT-ASCEND) runs Windows Core and Xcode 27 on main pushes, PRs and manual dispatch. See [repository/Actions setup](PRIVATE_REPOSITORY_SETUP.md). Apple verification builds Debug, Demo and Release, executes hosted tests and four smoke suites, exports **22 real simulator screenshots**, and attempts an **unsigned device archive**. Find logs/xcresults, PNGs and signing status in run artifacts.
+
+Current local evidence is Python/static/asset verification. Swift is absent from this Windows environment; no current native Core test, Xcode compile, simulator screenshots, Foundation Models inference or iPhone acceptance is claimed. Use the Actions run for the exact commit, not historical results. Gold Master freeze requires the remaining real-device and visual acceptance in the V1 document.
+
+After adding Swift files, run `python tools/generate_project.py`; review project customizations first because it owns build settings/schemes and local signing selections. Raw anatomy downloads, runtimes and generated build/QA output must remain outside tracked source. `Docs/Build*.md` and the older validation audit are historical records.

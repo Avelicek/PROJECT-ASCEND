@@ -31,16 +31,22 @@ enum InputError: LocalizedError {
     var progress: ProgressReport
     var readiness: ReadinessReport
     var personalModel: PersonalModel
+    var protectedDays: [Date] = []
     var projectedScore: ELOResult = ELOEngine().evaluate(.init(), previousELO: 0)
     var activeWorkout: LiveWorkout?
     var liveWorkoutPresented = false
     var completedWorkout: CompletedWorkoutSummary?
+    var ownerSystem = OwnerSystem()
+    var replacementStore: AppStore?
+    var replacementID = UUID()
+    @ObservationIgnored var ownerStorage: OwnerSystemStorage?
     var training = PersonalTrainingState()
     var brainArchive = BrainArchive()
     var personalContext = PersonalContext(date: .distantPast)
     var brainDecision = PersonalBrainEngine().decide(PersonalContext(date: .distantPast))
     @ObservationIgnored var brainStorage: BrainStorage?
     @ObservationIgnored var brainStorageUnavailable = false
+    @ObservationIgnored var brainInputKey: Int?
     @ObservationIgnored let trainingStorage: PersonalTrainingStorage?
     @ObservationIgnored let workoutStorage: WorkoutDraftStorage?
     @ObservationIgnored let localPreferences: UserDefaults?
@@ -54,16 +60,18 @@ enum InputError: LocalizedError {
     var rank: RankStatus { RankEngine().status(elo: currentELO) }
     var lifetimeLevel: Int { ELOEngine().lifetimeLevel(credits: profile.lifetimeCredits) }
 
-    init(container: ModelContainer, demo: Bool = false, now: Date = .now, clock: @escaping () -> Date = { .now }, workoutStorage: WorkoutDraftStorage? = nil, trainingStorage: PersonalTrainingStorage? = nil, brainStorage: BrainStorage? = nil) throws {
+    init(container: ModelContainer, demo: Bool = false, now: Date = .now, clock: @escaping () -> Date = { .now }, workoutStorage: WorkoutDraftStorage? = nil, trainingStorage: PersonalTrainingStorage? = nil, brainStorage: BrainStorage? = nil, storageFolder: URL? = nil, restored: BackupPayload? = nil, activateServices: Bool = true) throws {
         let modelContext = ModelContext(container)
         modelContext.autosaveEnabled = false
+        if let restored { try restored.insert(into: modelContext) }
         if demo {
             guard container.configurations.allSatisfy({ $0.isStoredInMemoryOnly }) else {
                 throw InputError.invalid("Demo data requires an in-memory container.")
             }
             try PreviewData.populate(context: modelContext, now: now)
         }
-        let owner = try modelContext.fetch(FetchDescriptor<UserProfile>()).first ?? UserProfile(createdAt: now)
+        let existingOwner = try modelContext.fetch(FetchDescriptor<UserProfile>()).first
+        let owner = existingOwner ?? UserProfile(createdAt: now)
         let preferences = try modelContext.fetch(FetchDescriptor<UserSettings>()).first ?? UserSettings()
         if owner.modelContext == nil { modelContext.insert(owner) }
         if preferences.modelContext == nil { modelContext.insert(preferences) }
@@ -71,16 +79,26 @@ enum InputError: LocalizedError {
         self.container = container; self.context = modelContext; self.isDemo = demo; self.now = now; self.currentDate = clock
         self.profile = owner; self.settings = preferences
         let memoryOnly = container.configurations.allSatisfy { $0.isStoredInMemoryOnly }
-        self.workoutStorage = try workoutStorage ?? (memoryOnly ? nil : WorkoutDraftStorage.production())
-        self.localPreferences = memoryOnly ? nil : UserDefaults.standard
-        let personalStorage = try trainingStorage ?? (memoryOnly ? nil : PersonalTrainingStorage.production())
+        self.workoutStorage = try workoutStorage ?? storageFolder.map { WorkoutDraftStorage(url: $0.appendingPathComponent("active-workout-v1.json")) } ?? (memoryOnly ? nil : WorkoutDraftStorage.production())
+        let productionFolder = try storageFolder ?? (memoryOnly ? nil : OwnerStoreLocation.selectedFolder())
+        self.localPreferences = memoryOnly || productionFolder?.lastPathComponent != "ASCEND" ? nil : UserDefaults.standard
+        let personalStorage = try trainingStorage ?? storageFolder.map { PersonalTrainingStorage(url: $0.appendingPathComponent("personal-training-v1.json")) } ?? (memoryOnly ? nil : PersonalTrainingStorage.production())
         self.trainingStorage = personalStorage
-        self.training = try personalStorage?.read() ?? PersonalTrainingState()
+        self.training = try restored?.training ?? personalStorage?.read() ?? PersonalTrainingState()
+        let ownerFolder = productionFolder
+        self.ownerStorage = ownerFolder.map { OwnerSystemStorage(url: $0.appendingPathComponent("owner-system-v1.json")) }
+        if let state = try restored?.system ?? ownerStorage?.read() { self.ownerSystem = state }
+        else {
+            self.ownerSystem.onboardingComplete = demo || existingOwner != nil
+            self.ownerSystem.exerciseRest = localPreferences?.dictionary(forKey: "exercise-rest-v1") as? [String: Int] ?? [:]
+            self.ownerSystem.lastSeenDay = localPreferences?.string(forKey: "seen-daily-evaluation-v1")
+            try ownerStorage?.write(ownerSystem)
+        }
         self.progress = ProgressEngine().report(samples: [], start: nil, target: nil, desiredWeeklyChange: 0.25, now: now, policy: dayPolicy)
         self.readiness = RecoveryEngine().evaluate(loads: [], context: .init(), now: now)
         self.personalModel = PersonalModel(weights: [], nutrition: [], sleep: [], workoutDates: [], now: now, policy: dayPolicy)
-        self.brainStorage = try brainStorage ?? (memoryOnly ? nil : BrainStorage.production())
-        do { self.brainArchive = try self.brainStorage?.read() ?? BrainArchive() }
+        self.brainStorage = try brainStorage ?? storageFolder.map { BrainStorage(url: $0.appendingPathComponent("personal-brain-v1.json")) } ?? (memoryOnly ? nil : BrainStorage.production())
+        do { self.brainArchive = try restored?.brain ?? self.brainStorage?.read() ?? BrainArchive() }
         catch { self.brainStorageUnavailable = true; self.errorMessage = "Brain history file preserved: \(error.localizedDescription)" }
         if demo {
             self.training.profile.equipment = [.bodyweight, .dumbbells, .pullUpBar, .latPulldown, .chestPress]
@@ -89,8 +107,13 @@ enum InputError: LocalizedError {
         try ExerciseCatalog.seed(in: modelContext)
         try refresh(at: now)
         do {
-            if let restored = try self.workoutStorage?.read(), !sessions.contains(where: { $0.id == restored.id }) { activeWorkout = restored }
+            if let draft = try restored?.live ?? self.workoutStorage?.read(), !sessions.contains(where: { $0.id == draft.id }) { activeWorkout = draft }
         } catch { errorMessage = "Unfinished workout file preserved: \(error.localizedDescription)" }
+        if activeWorkout != nil { deriveBrain() }
+        if activateServices && !memoryOnly && !AppMotion.snapshotMode {
+            RestNotifications.synchronize(activeWorkout?.rest, enabled: true)
+            RestLiveActivity.synchronize(activeWorkout, enabled: true)
+        }
         #if DEBUG
         try PreviewData.preparePresentationFixture(store: self)
         #endif
@@ -150,12 +173,14 @@ enum InputError: LocalizedError {
     }
 
     private func synchronizeToday() {
-        for occurrence in todayObjectives where !occurrence.recoveryExempt {
+        for occurrence in todayObjectives {
+            let trainingKind = [ObjectiveKind.exercise, .workout].contains(ObjectiveKind(rawValue: occurrence.kindRaw) ?? .custom)
             let kind = ObjectiveKind(rawValue: occurrence.kindRaw) ?? .custom
             if kind == .exercise, let id = occurrence.objective?.exerciseCatalogID {
                 occurrence.value = sessions.filter { policy.sameDay($0.evaluationDate, now) && $0.hasWorkingSets }
                     .flatMap(\.exercises).filter { $0.exercise?.catalogID == id }.flatMap(\.sets)
-                    .filter { !$0.isWarmup }.reduce(0) { $0 + Double($1.reps) }
+                    .filter { !$0.isWarmup }.reduce(0) { $0 + (occurrence.unit == "seconds" ? $1.durationSeconds : Double($1.reps)) }
+            } else if kind == .sleep { occurrence.value = todaySleep?.durationHours ?? 0
             } else {
                 occurrence.value = ObjectiveEngine().value(kind: kind, manual: occurrence.value,
                     calories: todayNutrition?.calories, protein: todayNutrition?.proteinGrams,
@@ -163,10 +188,24 @@ enum InputError: LocalizedError {
                     workedOut: sessions.contains { policy.sameDay($0.evaluationDate, now) && $0.hasWorkingSets })
             }
             occurrence.completedAt = occurrence.value >= occurrence.target ? occurrence.completedAt ?? now : nil
+            if trainingKind && occurrence.completedAt != nil {
+                // Protection never erases real recorded performance or turns it into duplicate load.
+                occurrence.recoveryExempt = false; occurrence.replacementTitle = nil
+            } else if trainingKind && ownerSystem.protectsTraining(on: occurrence.date, policy: policy) {
+                occurrence.recoveryExempt = true; occurrence.replacementTitle = "Sick Mode · protected"
+            }
         }
     }
 
     private func deriveState() {
+        var protected = Set<Date>()
+        let earliest = (sessions.map(\.startedAt) + occurrences.map(\.date)).min() ?? policy.start(of: now)
+        for interval in ownerSystem.sickIntervals {
+            var day = policy.start(of: max(earliest, interval.start))
+            let end = policy.start(of: min(now, interval.end ?? now))
+            while day <= end && protected.count < 36_500 { protected.insert(day); day = policy.adding(days: 1, to: day) }
+        }
+        protectedDays = protected.sorted()
         let weightSamples = weights.map { WeightSample(date: $0.measuredAt, kilograms: $0.kilograms) }
         let nutritionSamples = nutrition.map { NutritionSample(date: $0.date, calories: $0.calories, protein: $0.proteinGrams) }
         let sleepSamples = sleep.map { SleepSample(date: $0.date, hours: $0.durationHours, quality: $0.quality) }

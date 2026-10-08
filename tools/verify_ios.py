@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 import json, os, platform, re, shlex, shutil, struct, subprocess, sys
 
 ROOT = Path(__file__).resolve().parents[1]
-SCREENSHOTS = ('01_dashboard', '02_workout', '03_recovery', '04_progress', '05_profile', '06_live_workout', '07_workout_summary', '08_daily_evaluation', '09_exercise_library', '10_routine', '11_exercise_history', '12_brain_today', '13_brain_detail', '14_brain_low_confidence', '15_post_workout_brain')
+SCREENSHOTS = ('01_dashboard', '02_workout', '03_recovery', '04_progress', '05_profile', '06_live_workout', '07_workout_summary', '08_daily_evaluation', '09_exercise_library', '10_routine', '11_exercise_history', '12_brain_today', '13_brain_detail', '14_brain_low_confidence', '15_post_workout_brain', '16_onboarding', '17_sleep_mode', '18_end_sleep', '19_daily_objectives', '20_sick_mode', '21_data_management', '22_anatomy_3d')
 
 def select_simulator(inventory):
     runtimes = {r['identifier']: r for r in inventory['runtimes'] if r.get('isAvailable') and 'iOS' in r.get('name', '')}
@@ -154,7 +154,7 @@ class Verification:
         self.run('xcresult-summary-help', ['xcrun', 'xcresulttool', 'get', 'test-results', 'summary', '--help'])
         self.run('xcresult-attachments-help', ['xcrun', 'xcresulttool', 'export', 'attachments', '--help'])
         unit_ok, _ = self.test('UNIT TESTS', 'unit', 'ASCENDTests', base)
-        smoke_ok, _ = self.test('UI SMOKE', 'smoke', 'ASCENDUITests/AscendSmokeTests', base + ['-only-testing:ASCENDUITests/PersonalTrainingSmokeTests', '-only-testing:ASCENDUITests/PersonalBrainSmokeTests'])
+        smoke_ok, _ = self.test('UI SMOKE', 'smoke', 'ASCENDUITests/AscendSmokeTests', base + ['-only-testing:ASCENDUITests/PersonalTrainingSmokeTests', '-only-testing:ASCENDUITests/PersonalBrainSmokeTests', '-only-testing:ASCENDUITests/OwnerSystemSmokeTests'])
         screenshot_ok, bundle = self.test('SCREENSHOTS', 'visual', 'ASCENDUITests/AscendScreenshotTests', base)
         try:
             export = self.output / 'attachments'
@@ -163,7 +163,7 @@ class Verification:
             provenance = {key: self.report[key] for key in ('commit', 'xcode', 'sdk', 'simulator')}
             provenance.update(images=images, testSuitePassed=screenshot_ok, demoClock='2026-10-06T12:00:00Z', origin='Real XCUIApplication.screenshot() attachments from ASCEND Demo')
             (self.output / 'screenshots/provenance.json').write_text(json.dumps(provenance, indent=2) + '\n', encoding='utf-8')
-            self.status('SCREENSHOTS', 'GENERATED' if screenshot_ok else 'FAILED', 'Fifteen real simulator PNGs exported' if screenshot_ok else 'Images exported but screenshot test failed')
+            self.status('SCREENSHOTS', 'GENERATED' if screenshot_ok else 'FAILED', 'Twenty-two real simulator PNGs exported' if screenshot_ok else 'Images exported but screenshot test failed')
         except (RuntimeError, ValueError, OSError) as error:
             self.status('SCREENSHOTS', 'FAILED', str(error)); screenshot_ok = False
         return unit_ok and smoke_ok and screenshot_ok

@@ -10,10 +10,13 @@ enum AppDestination: String, CaseIterable, Identifiable {
 }
 enum LogDestination: String, Identifiable { case weight, nutrition, sleep, workout, objectives; var id: String { rawValue } }
 
+private struct DayWakeKey: Hashable { let active: Bool; let day: String }
+
 struct RootView: View {
     @Environment(AppStore.self) private var store
     @State private var destination: AppDestination
     @Namespace private var tabHighlight
+    @Environment(\.scenePhase) private var scenePhase
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     init() {
         var initial = AppDestination.dashboard
@@ -21,6 +24,10 @@ struct RootView: View {
         let arguments = ProcessInfo.processInfo.arguments
         if arguments.contains("--demo"), arguments.contains("--ui-testing"), arguments.contains(where: { ["--capture-library", "--capture-routine", "--capture-history"].contains($0) }) { initial = .workout }
         #endif
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("--demo") && ProcessInfo.processInfo.arguments.contains("--capture-data") { initial = .profile }
+        #endif
+        if AppMotion.nativeAnatomyCapture { initial = .recovery }
         _destination = State(initialValue: initial)
     }
     var body: some View {
@@ -51,10 +58,18 @@ struct RootView: View {
             .alert("Couldn't save", isPresented: Binding(get: { store.errorMessage != nil }, set: { if !$0 { store.errorMessage = nil } })) {
                 Button("OK") { store.errorMessage = nil }
             } message: { Text(store.errorMessage ?? "Please try again.") }
-            .task {
-                while !Task.isCancelled {
-                    do { try await Task.sleep(for: .seconds(60)) } catch { return }
-                    store.refreshSafely()
+            .task(id: DayWakeKey(active: scenePhase == .active, day: store.policy.key(for: store.now))) {
+                guard scenePhase == .active, !AppMotion.snapshotMode else { return }
+                let date = store.actionDate()
+                let nextDay = store.policy.adding(days: 1, to: store.policy.start(of: date))
+                do { try await Task.sleep(for: .seconds(max(1, nextDay.timeIntervalSince(date)))) } catch { return }
+                store.refreshSafely()
+            }
+            .onChange(of: destination) { _, _ in store.refreshSafely() }
+            .safeAreaInset(edge: .top, spacing: 0) {
+                if store.ownerSystem.sleepStartedAt != nil || store.ownerSystem.sickActive {
+                    Label(store.ownerSystem.sleepStartedAt != nil ? "SLEEP MODE" : "SICK MODE · TRAINING PROTECTED", systemImage: store.ownerSystem.sleepStartedAt != nil ? "moon.fill" : "shield.lefthalf.filled")
+                        .font(.caption2.weight(.medium)).foregroundStyle(AppColor.muted).padding(8).frame(maxWidth: .infinity).background(AppColor.background)
                 }
             }
     }

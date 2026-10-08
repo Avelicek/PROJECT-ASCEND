@@ -14,16 +14,18 @@ struct DashboardView: View {
     @State private var showBrain = false
     @State private var pendingBrainStart = false
     @State private var dailyPresentation: DailyPresentation?
+    @State private var objectiveLog: DailyObjectiveCompletion?
     @State private var keptObjectives: Set<String> = []
     var body: some View {
         ScrollViewReader { proxy in
         ScrollView {
             VStack(alignment: .leading, spacing: AppSpacing.lg) {
                 header
+                if store.ownerSystem.sleepStartedAt != nil || store.ownerSystem.sickActive { OwnerModeCard() }
                 RankHeroView(showScore: $showScore)
                 VStack(spacing: 4) {
-                    if store.brainArchive.settings.enabled { BrainHeroView { showBrain = true }.id("brain.hero.anchor") }
-                    if !store.brainArchive.settings.enabled || store.brainDecision.session == nil || (store.nextAction.kind != .train && store.nextAction.kind != .resume) {
+                    if store.ownerSystem.sleepStartedAt == nil && !store.ownerSystem.sickActive && store.brainArchive.settings.enabled { BrainHeroView { showBrain = true }.id("brain.hero.anchor") }
+                    if store.ownerSystem.sleepStartedAt == nil && !store.ownerSystem.sickActive && (!store.brainArchive.settings.enabled || store.brainDecision.session == nil || (store.nextAction.kind != .train && store.nextAction.kind != .resume)) {
                         NextActionCard { dailyPresentation = .pending }
                     }
                 }
@@ -32,6 +34,7 @@ struct DashboardView: View {
                 DailyCommandCard { dailyPresentation = .pending }
                 objectives
                 DashboardNutritionView()
+                if store.ownerSystem.sleepStartedAt == nil && !store.ownerSystem.sickActive { OwnerModeCard() }
             }.padding(.horizontal, AppSpacing.page).padding(.bottom, AppSpacing.lg)
                 .opacity(appeared || AppMotion.snapshotMode ? 1 : 0).offset(y: appeared || reduceMotion || AppMotion.snapshotMode ? 0 : 10)
         }.accessibilityIdentifier("screen.dashboard").featureBackground().scrollIndicators(.hidden)
@@ -44,6 +47,7 @@ struct DashboardView: View {
                 }
                 #endif
             }
+            .sheet(item: $objectiveLog) { occurrence in NavigationStack { ObjectiveActivityView(occurrence: occurrence).environment(store) }.preferredColorScheme(.dark) }
             .sheet(isPresented: $showScore) { NavigationStack { ScoreBreakdownView().environment(store) }.preferredColorScheme(.dark) }
             .sheet(isPresented: $showBrain, onDismiss: {
                 if pendingBrainStart { pendingBrainStart = false; store.startBrainSession() }
@@ -108,11 +112,11 @@ struct DashboardView: View {
     private var objectives: some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
             HStack {
-                let done = store.todayObjectives.filter { $0.completedAt != nil || $0.recoveryExempt }.count
+                let done = store.todayObjectives.filter { $0.completedAt != nil }.count
                 ZStack {
                     ProgressRing(progress: Double(done) / Double(max(1, store.todayObjectives.count)), tint: AppColor.positive, lineWidth: 3)
                     Text("\(done)").font(.caption2.weight(.semibold))
-                }.frame(width: 29, height: 29).accessibilityLabel("\(done) of \(store.todayObjectives.count) objectives complete or recovery protected")
+                }.frame(width: 29, height: 29).accessibilityLabel("\(done) of \(store.todayObjectives.count) objectives complete; protected objectives are paused")
                 SectionHeader(title: "Today's objectives")
                 Button { store.presentedSheet = .objectives } label: {
                     Image(systemName: "slider.horizontal.3").frame(width: 44, height: 44).foregroundStyle(AppColor.muted)
@@ -129,7 +133,9 @@ struct DashboardView: View {
                         switch ObjectiveKind(rawValue: occurrence.kindRaw) {
                         case .calories, .protein: store.presentedSheet = .nutrition
                         case .bodyWeight: store.presentedSheet = .weight
-                        case .workout, .exercise: store.startLiveWorkout()
+                        case .workout: if occurrence.recoveryExempt { objectiveLog = occurrence } else { store.startLiveWorkout() }
+                        case .exercise, .count, .duration: objectiveLog = occurrence
+                        case .sleep: store.presentedSheet = .sleep
                         default:
                             if store.toggleObjective(occurrence) { AppHaptics.success(enabled: store.settings.hapticsEnabled) }
                         }
@@ -140,9 +146,10 @@ struct DashboardView: View {
                                 Eyebrow(text: "RECOVERY ALTERNATIVE")
                                 Text("\(alternative.0) · \(Int(alternative.1.rounded()))% estimated recovery").font(.subheadline.weight(.medium))
                                 HStack {
-                                    Button("Recovery day") { if store.chooseRecoveryAlternative(occurrence) { AppHaptics.success(enabled: store.settings.hapticsEnabled) } }
+                                    Button("Protect today") { if store.chooseRecoveryAlternative(occurrence) { AppHaptics.success(enabled: store.settings.hapticsEnabled) } }
+                                    Button("Reduce today") { _ = store.reduceObjectiveToday(occurrence); keptObjectives.insert(occurrence.occurrenceKey) }
                                     Spacer()
-                                    Button("Keep objective") { keptObjectives.insert(occurrence.occurrenceKey) }
+                                    Button("Keep") { keptObjectives.insert(occurrence.occurrenceKey) }
                                 }.font(.caption.weight(.semibold)).frame(minHeight: 44)
                             }
                         }

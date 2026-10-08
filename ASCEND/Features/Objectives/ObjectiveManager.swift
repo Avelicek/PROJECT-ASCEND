@@ -5,38 +5,58 @@ struct ObjectiveManager: View {
     @Environment(\.dismiss) private var dismiss
     @State private var adding = false
     @State private var editing: DailyObjective?
+    @State private var activity: DailyObjectiveCompletion?
+    @State private var metric: LogDestination?
     var body: some View {
-        List {
-            Section {
-                ForEach(store.objectives.filter(\.isActive), id: \.id) { objective in
-                    Button { editing = objective } label: {
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text(objective.title).foregroundStyle(AppColor.text)
-                            Text("\(objective.cadenceRaw.capitalized) · \(objective.importanceRaw.capitalized) · \(objective.target.formatted()) \(objective.unit)")
-                                .font(.caption).foregroundStyle(AppColor.muted)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 24) {
+                FeatureHeader(eyebrow: "DAILY SYSTEM", title: "Your rhythm")
+                Text("Real activity drives exercise objectives. Protected training stays visibly paused.").font(.caption).foregroundStyle(AppColor.muted)
+                ForEach(store.todayObjectives, id: \.occurrenceKey) { occurrence in
+                    ObjectiveRow(occurrence: occurrence) {
+                        switch ObjectiveKind(rawValue: occurrence.kindRaw) {
+                        case .exercise, .count, .duration: activity = occurrence
+                        case .custom: _ = store.toggleObjective(occurrence)
+                        case .calories, .protein: metric = .nutrition
+                        case .bodyWeight: metric = .weight
+                        case .sleep: metric = .sleep
+                        case .workout:
+                            if occurrence.recoveryExempt { activity = occurrence } else { dismiss(); store.navigationRequest = .workout }
+                        case nil: break
                         }
-                    }.swipeActions { Button("Archive", role: .destructive) { _ = store.archiveObjective(objective) } }
+                    }
                 }
-                Button("Add objective", systemImage: "plus") { adding = true }
-            } footer: { Text("Weekly objectives are due on the weekday of their start date. Edits affect today and future occurrences; closed-day snapshots stay intact.") }
-            Section {
-                ForEach(store.todayObjectives.filter { $0.kindRaw == ObjectiveKind.exercise.rawValue || $0.kindRaw == ObjectiveKind.workout.rawValue }, id: \.occurrenceKey) { occurrence in
-                    Button(occurrence.recoveryExempt ? "Protected · \(occurrence.title)" : "Choose recovery day for \(occurrence.title)") {
-                        _ = store.chooseRecoveryAlternative(occurrence)
-                    }.disabled(occurrence.recoveryExempt || occurrence.completedAt != nil)
+                PrimaryAction(title: "Add objective", symbol: "plus", tint: AppColor.blue) { adding = true }.accessibilityIdentifier("objective.add")
+                SectionHeader(title: "Recurring rules")
+                ForEach(store.objectives.filter(\.isActive), id: \.id) { objective in
+                    PremiumCard(role: .inline) {
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text(objective.title).font(.subheadline.weight(.medium))
+                            Text("\(objective.cadenceRaw.capitalized) · \(objective.target.formatted()) \(objective.unit)").font(.caption).foregroundStyle(AppColor.muted)
+                            HStack { Button("Edit") { editing = objective }; Spacer(); Button("Archive", role: .destructive) { _ = store.archiveObjective(objective) } }.font(.caption).frame(minHeight: 44)
+                        }
+                    }
                 }
-            } header: {
-                Text("Recovery alternatives")
-            } footer: {
-                Text("If training is inappropriate today, explicitly choose recovery. This occurrence is exempt from a missed-objective penalty. Sufficiently supported muscle estimates can also suggest an alternative on your dashboard.")
-            }
-        }.scrollContentBackground(.hidden).background(AppColor.background)
-            .navigationTitle("Your objectives").navigationBarTitleDisplayMode(.inline)
+                Text("Edits affect today and future occurrences. Closed-day snapshots and ELO stay intact.").font(.caption2).foregroundStyle(AppColor.muted)
+            }.padding(20)
+        }.featureBackground().accessibilityIdentifier("screen.objectives").toolbar(.visible, for: .navigationBar).navigationTitle("Objectives").navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
+            .sheet(item: $metric) { destination in
+                NavigationStack {
+                    switch destination {
+                    case .nutrition: NutritionEditor().environment(store)
+                    case .weight: WeightEditor().environment(store)
+                    case .sleep: SleepEditor().environment(store)
+                    default: EmptyView()
+                    }
+                }
+            }
             .sheet(isPresented: $adding) { NavigationStack { ObjectiveEditor().environment(store) } }
             .sheet(item: $editing) { objective in NavigationStack { ObjectiveEditor(existing: objective).environment(store) } }
+            .sheet(item: $activity) { occurrence in NavigationStack { ObjectiveActivityView(occurrence: occurrence).environment(store) } }
     }
 }
+
 struct ObjectiveEditor: View {
     @Environment(AppStore.self) private var store
     @Environment(\.dismiss) private var dismiss
@@ -62,7 +82,7 @@ struct ObjectiveEditor: View {
                 if draft.kind == .exercise {
                     Picker("Exercise", selection: $draft.exerciseCatalogID) {
                         Text("Choose exercise").tag(String?.none)
-                        ForEach(store.exercises.filter { $0.trackingMode == .reps || $0.trackingMode == .weightAndReps }, id: \.catalogID) {
+                        ForEach(store.exercises.filter { $0.trackingMode != .distance }, id: \.catalogID) {
                             Text($0.name).tag(Optional($0.catalogID))
                         }
                     }
@@ -90,6 +110,8 @@ struct ObjectiveEditor: View {
             }
         }.editor(title: existing == nil ? "New objective" : "Edit objective") {
             if store.saveObjective(draft, editing: existing) { AppHaptics.success(enabled: store.settings.hapticsEnabled); dismiss() }
+        }.onChange(of: draft.exerciseCatalogID) { _, id in
+            draft.unit = store.exercises.first(where: { $0.catalogID == id })?.trackingMode == .duration ? "seconds" : "reps"
         }.onChange(of: draft.kind) { _, kind in
             switch kind {
             case .calories: draft.target = store.profile.calorieGoal; draft.unit = "kcal"
@@ -98,6 +120,9 @@ struct ObjectiveEditor: View {
             case .workout: draft.target = 1; draft.unit = "session"
             case .exercise: draft.target = 50; draft.unit = "reps"
             case .custom: draft.target = 1; draft.unit = "times"
+            case .sleep: draft.target = store.profile.sleepTargetHours; draft.unit = "hours"
+            case .count: draft.target = 10; draft.unit = "count"
+            case .duration: draft.target = 60; draft.unit = "seconds"
             }
         }
     }

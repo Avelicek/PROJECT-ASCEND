@@ -4,6 +4,14 @@ struct BodyMapView: View {
     @Environment(AppStore.self) private var store
     let report: ReadinessReport
     @State private var presentation = AnatomyPresentation()
+    @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.accessibilityVoiceOverEnabled) private var voiceOver
+    @State private var native = false
+    @State private var nativeFailed = false
+    @State private var cameraReset = 0
+    @State private var cameraSide = false
+    @State private var selectedMesh: String?
+    @State private var visible = false
     @State private var metric = AnatomyMetricMode.recovery
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     private let states: [RegionVisualization]
@@ -28,7 +36,7 @@ struct BodyMapView: View {
                 }.accessibilityElement(children: .contain)
                 HStack(spacing: 4) {
                     ForEach(BodyViewMode.allCases) { mode in
-                        Button { change { presentation.show(mode) } } label: {
+                        Button { change { cameraSide = false; cameraReset += 1; presentation.show(mode) } } label: {
                             Text(mode.rawValue).font(.subheadline.weight(.semibold)).frame(maxWidth: .infinity, minHeight: 44)
                                 .background(presentation.mode == mode ? AppColor.blue.opacity(0.18) : .clear, in: RoundedRectangle(cornerRadius: 12))
                                 .overlay(RoundedRectangle(cornerRadius: 12).stroke(presentation.mode == mode ? AppColor.blue.opacity(0.4) : .clear))
@@ -38,24 +46,43 @@ struct BodyMapView: View {
                     }
                 }.padding(4).background(AppColor.background.opacity(0.6), in: RoundedRectangle(cornerRadius: 16))
                     .accessibilityElement(children: .contain)
-                AnatomyCanvas(mode: presentation.mode, selected: presentation.selected, regions: states, metric: metric) { region in
-                    change { presentation.select(region) }
-                }.frame(height: 320).id(presentation.mode).transition(.opacity)
+                HStack {
+                    Button(native ? "Use accessible body map" : "Explore 3D anatomy") { native.toggle() }.font(.caption).frame(minHeight: 44).accessibilityIdentifier("anatomy.toggle")
+                    Spacer()
+                    if native { Button("Side") { cameraSide.toggle(); cameraReset += 1 }.font(.caption).frame(minHeight: 44); Button("Reset camera") { cameraSide = false; cameraReset += 1 }.font(.caption).frame(minHeight: 44) }
+                }
+                if native && !nativeFailed && visible && scenePhase == .active && !voiceOver && (!AppMotion.snapshotMode || AppMotion.nativeAnatomyCapture) {
+                    NativeAnatomyView(report: report, metric: metric, selected: presentation.selected, back: presentation.mode == .back, cameraReset: cameraReset, cameraSide: cameraSide, selectedMesh: selectedMesh, onSelect: { region, mesh in change { selectedMesh = mesh; presentation.select(region) } }, onFailure: { nativeFailed = true })
+                        .frame(height: 340).clipShape(RoundedRectangle(cornerRadius: 18))
+                    Text("Drag to orbit · pinch to zoom · tap a muscle. Z-Anatomy / BodyParts3D · CC BY-SA 4.0.").font(.caption2).foregroundStyle(AppColor.muted)
+                } else {
+                    AnatomyCanvas(mode: presentation.mode, selected: presentation.selected, regions: states, metric: metric) { region in change { presentation.select(region) } }.frame(height: 320).id(presentation.mode).transition(.opacity)
+                    if nativeFailed { Text("3D could not load. The body map and every estimate remain available.").font(.caption2).foregroundStyle(AppColor.muted) }
+                }
                 if metric == .recovery { LazyVGrid(columns: [GridItem(.adaptive(minimum: 76))], alignment: .leading, spacing: 8) {
                     ForEach(SemanticStatus.allCases, id: \.rawValue) { status in
                         HStack(spacing: 4) { Circle().fill(status.gradient).frame(width: 5, height: 5); Text(status.title).font(.caption2).foregroundStyle(AppColor.muted) }
                     }
                 }.frame(maxWidth: .infinity, alignment: .center) }
                 else { Text(metric == .load ? "Relative exposure · high load needs attention" : "Fatigue · green is low, orange is elevated, red is high").font(.caption2).foregroundStyle(AppColor.muted) }
+                if native, let mesh = selectedMesh, let name = AnatomyMeshMapping.sourceNames[mesh] {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(name).font(.subheadline.weight(.medium))
+                        ForEach(AnatomyMeshMapping.muscles[mesh] ?? []) { muscle in
+                            let estimate = report.muscles.first { $0.muscle == muscle && $0.lastTrainedAt != nil }
+                            RecoveryStatusRow(name: muscle.title, percent: estimate?.recoveryPercent)
+                        }
+                    }.padding(12).background(AppColor.background, in: RoundedRectangle(cornerRadius: 12))
+                }
                 selectionPanel
                 regionControls
             }
-        }.accessibilityIdentifier("recovery.bodymap")
+        }.accessibilityIdentifier("recovery.bodymap").onScrollVisibilityChange(threshold: 0.1) { visible = $0 }.onAppear { visible = true; if AppMotion.nativeAnatomyCapture { native = true } }.onDisappear { visible = false; native = false }
     }
     private var regionControls: some View {
         LazyVGrid(columns: [GridItem(.adaptive(minimum: 74), spacing: 6)], spacing: 7) {
             ForEach(states) { state in
-                Button { change { presentation.select(state.region) } } label: {
+                Button { change { selectedMesh = nil; presentation.select(state.region) } } label: {
                     HStack(spacing: 5) {
                         Circle().fill(metric.tint(state, maximumLoad: states.compactMap(\.load).max() ?? 1)).frame(width: 4, height: 4)
                         Text(state.region.rawValue).font(.caption.weight(.medium))

@@ -5,11 +5,11 @@ struct CountUpText: View {
     var fractionDigits = 0
     var signed = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var displayed: Double?
+    @State private var displayed = 0.0
     var body: some View {
-        Text(formatted(displayed ?? value))
+        Text(formatted(reduceMotion || AppMotion.snapshotMode ? value : displayed))
             .monospacedDigit()
-            .contentTransition(.numericText(value: value))
+            .contentTransition(.numericText(value: displayed))
             .accessibilityLabel(formatted(value))
             .onChange(of: value, initial: true) { _, newValue in
                 withAnimation(reduceMotion || AppMotion.snapshotMode ? nil : AppAnimation.reward) { displayed = newValue }

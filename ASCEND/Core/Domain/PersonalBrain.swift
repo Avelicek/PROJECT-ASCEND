@@ -72,6 +72,9 @@ public struct BrainArchive: Codable, Sendable {
 public struct PersonalContext: Sendable {
     public var date: Date
     public var dayKey = ""
+    public var sickMode = false
+    public var sleepMode = false
+    public var activeWorkout = false
     public var currentELO = 0
     public var rank = "Unranked"
     public var weight: Double?
@@ -174,6 +177,11 @@ public struct PersonalBrainEngine: Sendable {
     }
     public func decide(_ context: PersonalContext, catalog: [TrainingExercise] = TrainingCatalog.definitions) -> BrainDecision {
         let settings = context.archive.settings
+        if settings.enabled && (context.sickMode || context.sleepMode || context.activeWorkout) {
+            let focus = context.sickMode ? "Recovery protection" : context.sleepMode ? "Sleep" : "Active session"
+            return BrainDecision(id: context.dayKey + ":mode:" + focus, action: context.activeWorkout && !context.sickMode && !context.sleepMode ? .maintain : .recover, focus: focus, routineID: nil, session: nil, duration: nil, confidence: context.recovery.confidence, intensity: .recoverySession,
+                reasons: [context.sickMode ? "User-declared Sick Mode: training pressure paused. Fuel and sleep remain active." : context.sleepMode ? "A recorded sleep interval is in progress." : "Resume the active workout before starting another session."], warnings: [], missing: [], muscles: [], opportunities: [])
+        }
         let history = context.history.filter { $0.date <= context.date && !$0.quick }
         let poorSleep = settings.useSleep && ((context.sleepHours.map { $0 < 6 } ?? false) || (context.sleepQuality.map { $0 <= 2 } ?? false))
         let poorFuel = settings.useNutrition && ((context.proteinAdherence.map { $0 < 0.7 } ?? false) || (context.calorieAdherence.map { $0 < 0.75 } ?? false))

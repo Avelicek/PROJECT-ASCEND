@@ -53,16 +53,20 @@ for identifier, obj in objects.items():
         for reference in obj.get(key,[]): check(reference in objects,f'{identifier}: {key} reference resolves')
 file_refs={obj['path']:identifier for identifier,obj in objects.items() if obj['isa']=='PBXFileReference' and obj.get('sourceTree')=='SOURCE_ROOT'}
 for path in file_refs: check((ROOT/path).exists(),f'Project file exists: {path}')
-actual_sources={str(path.relative_to(ROOT)).replace('\\','/') for folder in ['ASCEND','Tests'] for path in (ROOT/folder).rglob('*.swift')}
+actual_sources={str(path.relative_to(ROOT)).replace('\\','/') for folder in ['ASCEND','Tests','WidgetExtension'] for path in (ROOT/folder).rglob('*.swift')}
 check(actual_sources == {path for path in file_refs if path.endswith('.swift')},'All Swift sources referenced exactly once')
 targets={obj['name']:obj for obj in objects.values() if obj['isa']=='PBXNativeTarget'}
-check(set(targets)=={'ASCEND','ASCENDTests','ASCENDUITests'},'Application, hosted unit-test and UI-test targets exist')
+check(set(targets)=={'ASCEND','ASCENDTests','ASCENDUITests','AscendRestWidget'},'Application, hosted unit-test and UI-test targets exist')
 check(targets['ASCENDUITests']['productType']=='com.apple.product-type.bundle.ui-testing','UI target has the XCUITest product type')
 for target, prefix in [('ASCEND','ASCEND/'),('ASCENDTests','Tests/'),('ASCENDUITests','Tests/UI/')]:
     source_phase=[objects[phase] for phase in targets[target]['buildPhases'] if objects[phase]['isa']=='PBXSourcesBuildPhase']
     check(len(source_phase)==1,f'{target}: one source build phase')
     wired={objects[objects[entry]['fileRef']]['path'] for entry in source_phase[0]['files']}
     check(wired == {path for path in actual_sources if path.startswith(prefix) and (target != 'ASCENDTests' or not path.startswith('Tests/UI/'))},f'{target}: source build phase is complete')
+widget_phase = [objects[phase] for phase in targets['AscendRestWidget']['buildPhases'] if objects[phase]['isa']=='PBXSourcesBuildPhase'][0]
+widget_wired = {objects[objects[entry]['fileRef']]['path'] for entry in widget_phase['files']}
+check(widget_wired == {'WidgetExtension/AscendRestWidget.swift', 'ASCEND/LiveActivity/RestActivityAttributes.swift'}, 'Live Activity extension shares its attributes and includes its WidgetBundle')
+check(any(objects[phase]['isa']=='PBXCopyFilesBuildPhase' for phase in targets['ASCEND']['buildPhases']), 'Live Activity extension embedded in app')
 for scheme in (ROOT/'ASCEND.xcodeproj/xcshareddata/xcschemes').glob('*.xcscheme'):
     xml=ET.parse(scheme)
     for ref in xml.findall('.//BuildableReference'): check(ref.attrib['BlueprintIdentifier'] in objects,f'{scheme.name}: buildable resolves')
@@ -100,7 +104,7 @@ all_app='\n'.join(path.read_text(encoding='utf8') for path in (ROOT/'ASCEND').rg
 for prohibited in ['fatalError(', 'URLSession', 'import HealthKit', 'import CloudKit']:
     check(prohibited not in all_app,f'No prohibited normal app path: {prohibited}')
 app=(ROOT/'ASCEND/App/AscendApp.swift').read_text(encoding='utf8')
-check('#if DEBUG' in app and 'inMemory: demo' in app and 'demo = false' in app,'Demo data is Debug-only and memory-only at launch')
+check('#if DEBUG' in app and 'var memoryOnly = demo' in app and 'inMemory: memoryOnly' in app and 'demo = false' in app,'Demo data is Debug-only and memory-only at launch')
 package=(ROOT/'Package.swift').read_text(encoding='utf8')
 check('path: "ASCEND/Core/Domain"' in package and 'path: "Tests/Core"' in package,'Swift package targets independent domain and core tests')
 for path in (ROOT/'ASCEND/Core/Domain').glob('*.swift'):
