@@ -57,8 +57,13 @@ final class OwnerSystemSmokeTests: XCTestCase {
         AscendUITestSupport.navigate("dashboard", in: app)
         let sick = app.buttons["sick.open"]; AscendUITestSupport.reveal(sick, screen: "screen.dashboard", in: app); sick.tap()
         XCTAssertTrue(app.buttons["sick.start"].waitForExistence(timeout: 10)); app.buttons["sick.start"].tap()
+        let done = app.buttons["Done"].firstMatch
+        XCTAssertTrue(done.waitForExistence(timeout: 10)); done.tap()
+        let protection = app.staticTexts["Training pressure paused. Fuel and sleep remain active."]
+        XCTAssertTrue(protection.waitForExistence(timeout: 10))
+        let endSick = app.buttons["sick.end"]
+        AscendUITestSupport.reveal(endSick, screen: "screen.dashboard", in: app); endSick.tap()
+        XCTAssertTrue(app.descendants(matching: .any)["screen.sickmode"].firstMatch.waitForExistence(timeout: 10))
         XCTAssertTrue(app.buttons["sick.finish"].waitForExistence(timeout: 10))
-        app.buttons["Done"].firstMatch.tap()
-        XCTAssertTrue(app.staticTexts["Training pressure paused. Fuel and sleep remain active."].exists)
     }
 }
