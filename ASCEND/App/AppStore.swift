@@ -85,6 +85,14 @@ enum InputError: LocalizedError {
         let personalStorage = try trainingStorage ?? storageFolder.map { PersonalTrainingStorage(url: $0.appendingPathComponent("personal-training-v1.json")) } ?? (memoryOnly ? nil : PersonalTrainingStorage.production())
         self.trainingStorage = personalStorage
         self.training = try restored?.training ?? personalStorage?.read() ?? PersonalTrainingState()
+
+        // Initialize every required stored property before accessing self-backed state below.
+        // Xcode 27 correctly rejects touching ownerSystem/localPreferences via self while
+        // progress/readiness/personalModel are still uninitialized.
+        self.progress = ProgressEngine().report(samples: [], start: nil, target: nil, desiredWeeklyChange: 0.25, now: now, policy: dayPolicy)
+        self.readiness = RecoveryEngine().evaluate(loads: [], context: .init(), now: now)
+        self.personalModel = PersonalModel(weights: [], nutrition: [], sleep: [], workoutDates: [], now: now, policy: dayPolicy)
+
         let ownerFolder = productionFolder
         self.ownerStorage = ownerFolder.map { OwnerSystemStorage(url: $0.appendingPathComponent("owner-system-v1.json")) }
         if let state = try restored?.system ?? ownerStorage?.read() { self.ownerSystem = state }
@@ -94,9 +102,6 @@ enum InputError: LocalizedError {
             self.ownerSystem.lastSeenDay = localPreferences?.string(forKey: "seen-daily-evaluation-v1")
             try ownerStorage?.write(ownerSystem)
         }
-        self.progress = ProgressEngine().report(samples: [], start: nil, target: nil, desiredWeeklyChange: 0.25, now: now, policy: dayPolicy)
-        self.readiness = RecoveryEngine().evaluate(loads: [], context: .init(), now: now)
-        self.personalModel = PersonalModel(weights: [], nutrition: [], sleep: [], workoutDates: [], now: now, policy: dayPolicy)
         self.brainStorage = try brainStorage ?? storageFolder.map { BrainStorage(url: $0.appendingPathComponent("personal-brain-v1.json")) } ?? (memoryOnly ? nil : BrainStorage.production())
         do { self.brainArchive = try restored?.brain ?? self.brainStorage?.read() ?? BrainArchive() }
         catch { self.brainStorageUnavailable = true; self.errorMessage = "Brain history file preserved: \(error.localizedDescription)" }
