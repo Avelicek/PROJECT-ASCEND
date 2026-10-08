@@ -5,7 +5,6 @@ struct ProfileView: View {
     @Environment(\.dynamicTypeSize) private var typeSize
     @State private var editing = false
     @State private var trainingProfile = false
-    @State private var showBrainSettings = false
     @State private var showData = false
     var body: some View {
         ScrollView {
@@ -36,7 +35,9 @@ struct ProfileView: View {
                     }
                 }
                 SectionHeader(title: "Intelligence")
-                Button { showBrainSettings = true } label: {
+                NavigationLink {
+                    BrainSettingsView().environment(store)
+                } label: {
                     settingsRow("Personal Brain", symbol: "waveform.path")
                 }
                 .buttonStyle(PremiumPressStyle())
@@ -79,7 +80,6 @@ struct ProfileView: View {
                 #endif
             }
             .navigationDestination(isPresented: $showData) { DataVaultView().environment(store) }
-            .navigationDestination(isPresented: $showBrainSettings) { BrainSettingsView().environment(store) }
             .sheet(isPresented: $editing) { NavigationStack { ProfileEditor(store: store).environment(store) }.preferredColorScheme(.dark) }
             .sheet(isPresented: $trainingProfile) { NavigationStack { TrainingProfileView().environment(store) }.preferredColorScheme(.dark) }
     }

@@ -8,6 +8,7 @@ struct BodyMapView: View {
     @Environment(\.accessibilityVoiceOverEnabled) private var voiceOver
     @State private var native = AppMotion.nativeAnatomyCapture
     @State private var nativeFailed = false
+    @State private var nativeReady = false
     @State private var cameraReset = 0
     @State private var cameraSide = false
     @State private var selectedMesh: String?
@@ -47,13 +48,35 @@ struct BodyMapView: View {
                 }.padding(4).background(AppColor.background.opacity(0.6), in: RoundedRectangle(cornerRadius: 16))
                     .accessibilityElement(children: .contain)
                 HStack {
-                    Button(native ? "Use accessible body map" : "Explore 3D anatomy") { native.toggle() }.font(.caption).frame(minHeight: 44).accessibilityIdentifier("anatomy.toggle")
+                    Button(native ? "Use accessible body map" : "Explore 3D anatomy") {
+                        native.toggle()
+                        nativeReady = false
+                    }.font(.caption).frame(minHeight: 44).accessibilityIdentifier("anatomy.toggle")
                     Spacer()
                     if native { Button("Side") { cameraSide.toggle(); cameraReset += 1 }.font(.caption).frame(minHeight: 44); Button("Reset camera") { cameraSide = false; cameraReset += 1 }.font(.caption).frame(minHeight: 44) }
                 }
                 if native && !nativeFailed && (AppMotion.nativeAnatomyCapture || (visible && scenePhase == .active && !voiceOver && !AppMotion.snapshotMode)) {
-                    NativeAnatomyView(report: report, metric: metric, selected: presentation.selected, back: presentation.mode == .back, cameraReset: cameraReset, cameraSide: cameraSide, selectedMesh: selectedMesh, onSelect: { region, mesh in change { selectedMesh = mesh; presentation.select(region) } }, onFailure: { nativeFailed = true })
-                        .frame(height: 340).clipShape(RoundedRectangle(cornerRadius: 18))
+                    NativeAnatomyView(
+                        report: report,
+                        metric: metric,
+                        selected: presentation.selected,
+                        back: presentation.mode == .back,
+                        cameraReset: cameraReset,
+                        cameraSide: cameraSide,
+                        selectedMesh: selectedMesh,
+                        onSelect: { region, mesh in change { selectedMesh = mesh; presentation.select(region) } },
+                        onReady: { nativeReady = true },
+                        onFailure: {
+                            nativeReady = false
+                            nativeFailed = true
+                        }
+                    )
+                    .frame(height: 340)
+                    .clipShape(RoundedRectangle(cornerRadius: 18))
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel("Z-Anatomy muscle model")
+                    .accessibilityIdentifier("anatomy.native")
+                    .accessibilityValue(nativeReady ? "Ready" : "Loading")
                     Text("Drag to orbit · pinch to zoom · tap a muscle. Z-Anatomy / BodyParts3D · CC BY-SA 4.0.").font(.caption2).foregroundStyle(AppColor.muted)
                 } else {
                     AnatomyCanvas(mode: presentation.mode, selected: presentation.selected, regions: states, metric: metric) { region in change { presentation.select(region) } }.frame(height: 320).id(presentation.mode).transition(.opacity)
@@ -77,7 +100,18 @@ struct BodyMapView: View {
                 selectionPanel
                 regionControls
             }
-        }.accessibilityIdentifier("recovery.bodymap").onScrollVisibilityChange(threshold: 0.1) { visible = $0 }.onAppear { visible = true; if AppMotion.nativeAnatomyCapture { native = true } }.onDisappear { visible = false; native = false }
+        }.accessibilityIdentifier("recovery.bodymap").onScrollVisibilityChange(threshold: 0.1) { visible = $0 }.onAppear {
+            visible = true
+            if AppMotion.nativeAnatomyCapture {
+                nativeFailed = false
+                nativeReady = false
+                native = true
+            }
+        }.onDisappear {
+            visible = false
+            nativeReady = false
+            native = false
+        }
     }
     private var regionControls: some View {
         LazyVGrid(columns: [GridItem(.adaptive(minimum: 74), spacing: 6)], spacing: 7) {

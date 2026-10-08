@@ -76,26 +76,38 @@ struct SickModeView: View {
     @Environment(AppStore.self) private var store
     @State private var note = ""
     @State private var ending = false
+    @State private var active = false
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
                 FeatureHeader(eyebrow: "USER DECLARED", title: "Sick Mode")
                 PremiumCard(role: .hero, tint: AppColor.blue) {
                     VStack(alignment: .leading, spacing: 18) {
-                        Label(store.ownerSystem.sickActive ? "Training protection active" : "Give your system room", systemImage: "shield.lefthalf.filled").font(.headline)
+                        Label(active ? "Training protection active" : "Give your system room", systemImage: "shield.lefthalf.filled").font(.headline)
                         Text("Training recommendations pause. Exercise and workout objectives are protected without free ELO. Fuel and sleep stay active. Recorded muscle estimates stay unchanged.").font(.subheadline).foregroundStyle(AppColor.muted)
-                        if store.ownerSystem.sickActive {
+                        if active {
                             if let interval = store.ownerSystem.sickIntervals.last { Text("Started \(interval.start.formatted())").font(.caption); if !interval.note.isEmpty { Text(interval.note).font(.caption).foregroundStyle(AppColor.muted) } }
                             PrimaryAction(title: "End Sick Mode", symbol: "shield", tint: AppColor.blue) { ending = true }.accessibilityIdentifier("sick.finish")
                         } else {
                             TextField("Optional personal note", text: $note, axis: .vertical).lineLimit(2...4)
-                            PrimaryAction(title: "I'M SICK · protect training", symbol: "shield", tint: AppColor.blue) { store.startSick(note: note) }.accessibilityIdentifier("sick.start")
+                            PrimaryAction(title: "I'M SICK · protect training", symbol: "shield", tint: AppColor.blue) {
+                                store.startSick(note: note)
+                                active = store.ownerSystem.sickActive
+                            }.accessibilityIdentifier("sick.start")
                         }
                         Text("This is your declaration, not a diagnosis. Manual training remains available.").font(.caption2).foregroundStyle(AppColor.muted)
                     }
                 }
             }.padding(24)
         }.featureBackground(tint: AppColor.blue).accessibilityIdentifier("screen.sickmode").toolbar(.visible, for: .navigationBar).navigationTitle("Sick Mode")
-            .confirmationDialog("End Sick Mode and resume future training recommendations? Protected history will remain protected.", isPresented: $ending, titleVisibility: .visible) { Button("End protection") { store.endSick() }; Button("Keep protection", role: .cancel) {} }
+            .onAppear { active = store.ownerSystem.sickActive }
+            .onChange(of: store.ownerSystem.sickActive) { _, value in active = value }
+            .confirmationDialog("End Sick Mode and resume future training recommendations? Protected history will remain protected.", isPresented: $ending, titleVisibility: .visible) {
+                Button("End protection") {
+                    store.endSick()
+                    active = store.ownerSystem.sickActive
+                }
+                Button("Keep protection", role: .cancel) {}
+            }
     }
 }

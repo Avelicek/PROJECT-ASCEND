@@ -13,6 +13,7 @@ struct NativeAnatomyView: UIViewRepresentable {
     let cameraSide: Bool
     let selectedMesh: String?
     let onSelect: (BodyRegion, String) -> Void
+    let onReady: () -> Void
     let onFailure: () -> Void
     func makeCoordinator() -> Coordinator { Coordinator(self) }
     func makeUIView(context: Context) -> ARView {
@@ -63,10 +64,20 @@ struct NativeAnatomyView: UIViewRepresentable {
                     self.orbit.addChild(entity)
                     self.collect(entity)
                     guard !self.models.isEmpty else { throw OwnerSystemError.invalid }
-                    // Collision shapes only for mapped selectable muscles; contextual neck/face remain neutral.
-                    for model in self.models where AnatomyMeshMapping.muscles[self.meshKey(model)] != nil { model.generateCollisionShapes(recursive: false) }
                     self.update(self.parent)
                     self.view?.accessibilityValue = "Ready"
+                    self.parent.onReady()
+
+                    // Collision generation across hundreds of meshes is intentionally incremental so
+                    // RealityKit never blocks the main UI/accessibility loop for tens of seconds.
+                    // Screenshot mode does not need hit-testing at all.
+                    if !AppMotion.nativeAnatomyCapture {
+                        for model in self.models where AnatomyMeshMapping.muscles[self.meshKey(model)] != nil {
+                            guard !Task.isCancelled, self.view != nil else { return }
+                            model.generateCollisionShapes(recursive: false)
+                            await Task.yield()
+                        }
+                    }
                 } catch { if !Task.isCancelled { self.parent.onFailure() } }
             }
         }
