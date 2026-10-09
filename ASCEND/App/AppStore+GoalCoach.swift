@@ -10,10 +10,13 @@ extension AppStore {
     func goalNegotiation(deadline: Date?, faster: Bool) -> GoalNegotiation {
         let reviewing = ownerSystem.goalPlanReviewAt.map { $0 > now } ?? false
         let underage = ownerSystem.birthDate.map { (policy.calendar.dateComponents([.year], from: $0, to: now).year ?? 0) < 18 } ?? false
-        return GoalCoachEngine().negotiate(projection: goalProjection, deadline: deadline, faster: faster,
+        var result = GoalCoachEngine().negotiate(projection: goalProjection, deadline: deadline, faster: faster,
             calories: profile.calorieGoal, fuelCoverage: goalFuelDays >= 7 ? goalFuelCoverage : 0,
             protected: ownerSystem.sickActive || ownerSystem.sleepStartedAt != nil || reviewing || underage,
             now: now, policy: policy)
+        if reviewing { result.headline = "Give your adjustment time"; result.explanation = "Keep logging your morning weight. Review the current experiment after two weeks before changing fuel again." }
+        if underage { result.headline = "Review this goal with support"; result.explanation = "Growing bodies need an individual plan. ASCEND won't accelerate your weight goal automatically." }
+        return result
     }
     @discardableResult func applyGoalNegotiation(deadline: Date?, faster: Bool) -> Bool {
         let proposal = goalNegotiation(deadline: deadline, faster: faster)

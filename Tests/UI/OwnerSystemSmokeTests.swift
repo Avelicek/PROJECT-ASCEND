@@ -64,10 +64,10 @@ final class OwnerSystemSmokeTests: XCTestCase {
         XCTAssertTrue(app.buttons["sick.start"].waitForExistence(timeout: 10)); app.buttons["sick.start"].tap()
         let done = app.buttons["Done"].firstMatch
         AscendUITestSupport.reveal(done, screen: "screen.sickmode", in: app); done.tap()
-        let protection = app.staticTexts["Training pressure paused. Fuel and sleep remain active."]
+        let protection = app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "Recovery prioritized")).firstMatch
         XCTAssertTrue(protection.waitForExistence(timeout: 10))
-        let endSick = app.buttons["sick.end"]
-        AscendUITestSupport.reveal(endSick, screen: "screen.dashboard", in: app); endSick.tap()
+        let endSick = app.buttons["sick.global.end"]
+        XCTAssertTrue(endSick.isHittable); endSick.tap()
         XCTAssertTrue(app.descendants(matching: .any)["screen.sickmode"].firstMatch.waitForExistence(timeout: 10))
         XCTAssertTrue(app.buttons["sick.finish"].waitForExistence(timeout: 10))
     }

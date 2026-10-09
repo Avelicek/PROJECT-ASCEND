@@ -22,7 +22,6 @@ struct DashboardView: View {
             VStack(alignment: .leading, spacing: AppSpacing.lg) {
                 header.id("dashboard.top")
                 CompactRankIdentity { showScore = true }
-                if store.ownerSystem.sleepStartedAt != nil || store.ownerSystem.sickActive { OwnerModeCard() }
                 TodayCoachHero { showScore = true }
                 NextCoachActionCard { showBrain = true }.id("brain.hero.anchor")
                 MetricStrip(metrics: [
@@ -39,7 +38,7 @@ struct DashboardView: View {
                 DisclosureGroup("Daily ELO & rank") {
                     VStack(spacing: 16) { RankHeroView(showScore: $showScore); DailyCommandCard { dailyPresentation = .pending } }.padding(.top, 12)
                 }.font(.subheadline)
-                if store.ownerSystem.sleepStartedAt == nil && !store.ownerSystem.sickActive { OwnerModeCard() }
+                OwnerModeCard()
             }.padding(.horizontal, AppSpacing.page).padding(.bottom, 96)
                 .opacity(appeared || AppMotion.snapshotMode ? 1 : 0).offset(y: appeared || reduceMotion || AppMotion.snapshotMode ? 0 : 10)
         }.accessibilityIdentifier("screen.dashboard").featureBackground().scrollIndicators(.hidden)

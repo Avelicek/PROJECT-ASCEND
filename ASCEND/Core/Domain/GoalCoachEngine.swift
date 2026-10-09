@@ -18,7 +18,8 @@ public struct GoalCoachEngine: Sendable {
                           now: Date, policy: DayPolicy) -> GoalNegotiation {
         var result = GoalNegotiation(headline: "Learning your trend", explanation: projection.explanation)
         guard let current = projection.current, let target = projection.target,
-              current.isFinite, target.isFinite, abs(target - current) >= 0.15 else {
+              current.isFinite, target.isFinite, current > 0, target > 0,
+              calories.isFinite, fuelCoverage.isFinite, abs(target - current) >= 0.15 else {
             if projection.withinGoalRange { result.headline = "You're at your goal"; result.explanation = "Keep a steady routine and review a maintenance goal." }
             return result
         }

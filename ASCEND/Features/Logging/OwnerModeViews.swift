@@ -5,16 +5,13 @@ struct OwnerModeCard: View {
     @State private var endingSleep = false
     @State private var sick = false
     var body: some View {
-        PremiumCard(role: store.ownerSystem.sleepStartedAt != nil || store.ownerSystem.sickActive ? .hero : .inline, tint: AppColor.sleep) {
+        PremiumCard(role: .inline, tint: AppColor.sleep) {
             VStack(alignment: .leading, spacing: 14) {
                 if let start = store.ownerSystem.sleepStartedAt {
                     Eyebrow(text: "SLEEP MODE"); Text("Sleep in progress").font(.title2.weight(.medium))
                     Text("Started \(start.formatted(date: .abbreviated, time: .shortened))").font(.caption).foregroundStyle(AppColor.muted)
                     PrimaryAction(title: "END SLEEP", symbol: "sunrise", tint: AppColor.sleep) { endingSleep = true }.accessibilityIdentifier("sleep.end")
                 } else if store.ownerSystem.sickActive {
-                    Eyebrow(text: "RECOVERY PROTECTION"); Text("Sick Mode active").font(.title2.weight(.medium))
-                    Text("Training pressure paused. Fuel and sleep remain active.").font(.subheadline).foregroundStyle(AppColor.muted)
-                    Button("End Sick Mode", systemImage: "shield") { sick = true }.frame(minHeight: 44).accessibilityIdentifier("sick.end")
                     Button("Start sleep", systemImage: "moon") { store.presentedSheet = .sleepSummary }.frame(minHeight: 44).accessibilityIdentifier("sleep.start")
                 } else {
                     HStack {

@@ -12,7 +12,11 @@ enum PreviewData {
         if arguments.contains("--capture-weekly") { store.presentedSheet = .weekly }
         if arguments.contains("--capture-timer"), let plank = store.exercises.first(where: { $0.catalogID == "plank" }) {
             store.startLiveWorkout(); store.addLiveExercise(plank)
-            if let exercise = store.activeWorkout?.exercises.first { store.startExerciseClock(exerciseID: exercise.id, setID: exercise.sets[0].id); store.pauseExerciseClock() }
+            if let exercise = store.activeWorkout?.exercises.first {
+                store.startExerciseClock(exerciseID: exercise.id, setID: exercise.sets[0].id)
+                store.pauseExerciseClock()
+                _ = store.updateWorkout { $0?.exerciseClock?.accumulated = 58 }
+            }
         }
         if arguments.contains("--capture-onboarding") { store.ownerSystem.onboardingComplete = false }
         if arguments.contains("--capture-sleep") || arguments.contains("--capture-end-sleep") {

@@ -64,6 +64,7 @@ struct ScoreBreakdownView: View {
                 ForEach(store.projectedScore.components) { component in
                     LabeledContent(component.label, value: component.points.formatted(.number.sign(strategy: .always())))
                 }
+                ContextualCoachButton(title: "Why this ELO?", question: "Why did I get this ELO today?")
             } footer: { Text("Today's score is a preview. Incomplete objectives receive no final penalty until the day closes. Scores are finalized on the next launch or refresh after midnight.") }
             Section("Finalized evaluations") {
                 ForEach(store.evaluations.reversed(), id: \.dayKey) { evaluation in

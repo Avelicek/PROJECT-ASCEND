@@ -6,7 +6,7 @@ struct TodayCoachHero: View {
     var body: some View {
         PremiumCard(role: .hero) {
             VStack(alignment: .leading, spacing: 14) {
-                HStack { Eyebrow(text: "TODAY"); Spacer(); Text("LIVE · NOT FINALIZED").font(.caption2).foregroundStyle(AppColor.muted) }
+                HStack { Eyebrow(text: "TODAY"); Spacer(); Text("IN PROGRESS").font(.caption2).foregroundStyle(AppColor.muted) }
                 Button(action: showScore) {
                     HStack(alignment: .firstTextBaseline, spacing: 10) {
                         CountUpText(value: Double(store.projectedScore.delta), signed: true).font(.system(.largeTitle, design: .rounded, weight: .semibold)).foregroundStyle(AppColor.text)
@@ -16,7 +16,7 @@ struct TodayCoachHero: View {
                 }.buttonStyle(.plain).accessibilityIdentifier("dashboard.daily.elo")
                 Text(DailyELOEngine().description(store.projectedScore.delta)).font(.headline).foregroundStyle(AppColor.secondary)
                 let done = store.todayObjectives.filter { $0.completedAt != nil }.count
-                HStack { Text("\(done) / \(store.todayObjectives.count) objectives"); Spacer(); Text(store.rank.rank.title) }.font(.caption).foregroundStyle(AppColor.muted)
+                Text("\(done) / \(store.todayObjectives.count) objectives").font(.caption).foregroundStyle(AppColor.muted)
                 LinearProgress(progress: Double(done) / Double(max(1, store.todayObjectives.count)), tint: AppColor.positive)
                 if let previous = store.history.last {
                     Text("\(previous.dayKey) · \(previous.delta.formatted(.number.sign(strategy: .always()))) ELO finalized")

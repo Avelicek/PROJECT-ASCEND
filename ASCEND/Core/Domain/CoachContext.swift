@@ -99,7 +99,7 @@ public struct CoachReasoningEngine: Sendable {
                 if !entry.rpe.isEmpty { answer.observed.append("Recorded RPE: \(entry.rpe.map { $0.formatted() }.joined(separator: " / ")).") }
                 answer.recommendation = entry.recommendation; answer.confidence = entry.rpe.isEmpty ? .low : .medium
             } else { answer.recommendation = "Log a comparable session for that exercise. Without observed loads and reps I cannot recommend a weight increase." }
-        } else if q.contains("recovery") || q.contains("chest") || q.contains("enough") || q.contains("remove") {
+        } else if q.contains("recover") || q.contains("chest") || q.contains("enough") || q.contains("remove") {
             let muscle = c.muscleLoad.keys.sorted().first { q.contains($0.lowercased()) } ?? (q.contains("chest") ? "Chest" : nil)
             if let muscle {
                 if c.muscleLoad[muscle, default: 0] > 0 { answer.observed.append("\(muscle) worked today, including quick activities.") }

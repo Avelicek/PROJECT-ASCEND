@@ -11,11 +11,10 @@ struct GeneratedWorkoutCard: View {
                 Text(decision.session?.name ?? "Recovery today").font(.title2.weight(.semibold))
                 if let plan = decision.session {
                     Text("~\(decision.duration ?? 0) min · \(plan.exercises.count) exercises").font(.subheadline).foregroundStyle(AppColor.secondary)
-                    Button("Why this workout?", systemImage: "info.circle") { showPlan = true }.font(.subheadline).frame(minHeight: 44).accessibilityIdentifier("workout.why")
                     PrimaryAction(title: "Start workout", symbol: "play.fill", tint: AppColor.strength) { store.startBrainSession() }.accessibilityIdentifier("workout.start")
                     // Stable accessibility target for the existing generated-session journey.
                     Button("Review exercises") { showPlan = true }.font(.caption).frame(minHeight: 44).accessibilityIdentifier("workout.brain.start")
-                    ContextualCoachButton(title: "Talk about this workout", question: "Why this workout?")
+                    ContextualCoachButton(title: "Why this workout?", question: "Why this workout?")
                 } else {
                     Text(decision.reasons.last ?? "Give recovery time today.").font(.subheadline).foregroundStyle(AppColor.secondary)
                     PrimaryAction(title: "Review recovery", symbol: "figure.stand", tint: AppColor.recovery) { store.navigationRequest = .recovery }

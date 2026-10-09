@@ -18,14 +18,11 @@ extension AppStore {
             guard ownerSystem.sleepStartedAt != nil else { throw InputError.invalid("No sleep interval is active.") }
             let hours = try RecordedSleep.hours(start: start, end: end, now: actionDate())
             guard replace || !sleep.contains(where: { $0.dayKey == policy.key(for: end) }) else { throw InputError.invalid("Confirm replacement of the existing sleep log for this wake day.") }
-            let previous = ownerSystem
-            var staged = previous; staged.sleepStartedAt = nil; staged.sleepEndedAt = nil
-            try staged.validate(); try ownerStorage?.write(staged)
-            guard logSleep(hours: hours, quality: quality, on: end, bedtime: start, wakeTime: end) else {
-                try ownerStorage?.write(previous)
-                return false
-            }
-            ownerSystem = staged; refreshSafely(); presentedSheet = .checkIn
+            // Commit the recorded interval before unlocking. A failed owner-file write keeps
+            // the lock and permits a reviewed retry; a process interruption never loses sleep.
+            guard logSleep(hours: hours, quality: quality, on: end, bedtime: start, wakeTime: end) else { return false }
+            guard saveOwnerSystem({ $0.sleepStartedAt = nil; $0.sleepEndedAt = nil }) else { return false }
+            presentedSheet = .checkIn
             return true
         } catch { errorMessage = error.localizedDescription; return false }
     }
