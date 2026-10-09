@@ -132,6 +132,17 @@ final class AdaptiveCoachTests: XCTestCase {
         XCTAssertEqual(engine.seconds(pattern: .elbowFlexion, goal: .strengthAndMuscle, rpe: 7, fatigue: nil), 60)
         XCTAssertEqual(engine.seconds(pattern: .elbowFlexion, goal: .strength, rpe: 10, fatigue: 90, preference: 75), 75)
     }
+    func testLoadChangesRespectAvailableStepsForSmallAndMixedLoads() throws {
+        var exercise = LiveExercise(catalogID: "chest_press", name: "Chest press", mode: .weightAndReps, bodyweight: false, addedWeight: false, contributions: [])
+        let history = [1, 3].map { days in ExerciseHistory(exerciseID: exercise.catalogID, date: now.addingTimeInterval(Double(-days) * 86400), mode: .weightAndReps,
+            sets: [.init(.init(reps: 12, kilograms: 60), rpe: 7), .init(.init(reps: 12, kilograms: 60), rpe: 7), .init(.init(reps: 12, kilograms: 20), rpe: 7)]) }
+        let targets = try XCTUnwrap(ProgressionPlanEngine().targets(history: history, exercise: exercise, count: 3, now: now, recoveryLimited: false))
+        XCTAssertEqual(targets.map(\.kilograms), [62.5, 62.5, 20])
+        exercise.sets = [10, 9, 5].map { reps in var set = LiveSet(); set.reps = reps; set.kilograms = 10; set.completedAt = now; return set }
+        let restOnly = try XCTUnwrap(AdaptiveRestEngine().advice(exercise))
+        XCTAssertNil(restOnly.kilograms, "Do not invent a one-kilogram plate when the available step is 2.5 kg")
+        XCTAssertEqual(restOnly.extraRest, 45)
+    }
     func testAutoregulationIsBoundedAndOnlyForComparableDrop() throws {
         var exercise = LiveExercise(catalogID: "chest_press", name: "Chest press", mode: .weightAndReps, bodyweight: false, addedWeight: false, contributions: [])
         exercise.sets = [10, 9, 5].map { reps in var set = LiveSet(); set.reps = reps; set.kilograms = 60; set.completedAt = now; return set }

@@ -10,9 +10,10 @@ public struct ProgressionPlanEngine: Sendable {
             let p = set.performance
             guard exercise.mode == .reps || exercise.mode == .weightAndReps else { return p }
             if recoveryLimited { return .init(reps: max(1, p.reps - 1), kilograms: p.kilograms) }
-            if let target = suggestion.target, target.kilograms > p.kilograms {
-                let safe = min(target.kilograms, p.kilograms + min(exercise.weightStep, p.kilograms * 0.05))
-                return .init(reps: target.reps, kilograms: safe)
+            if let target = suggestion.target, target.kilograms > p.kilograms,
+               exercise.weightStep > 0, exercise.weightStep <= p.kilograms * 0.05, (set.rpe ?? 7) < 9,
+               target.kilograms >= p.kilograms + exercise.weightStep {
+                return .init(reps: target.reps, kilograms: p.kilograms + exercise.weightStep)
             }
             // A difficult final set is an opportunity for stable reps, never an automatic load jump.
             let reps = min(previous.working.first?.performance.reps ?? p.reps, p.reps + (index > 0 ? 1 : 0))

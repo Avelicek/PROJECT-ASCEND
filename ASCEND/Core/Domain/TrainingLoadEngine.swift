@@ -58,8 +58,8 @@ public struct AdaptiveRestEngine: Sendable {
               exercise.mode == .reps || exercise.mode == .weightAndReps,
               first.reps >= 5, Double(last.reps) / Double(first.reps) < 0.65,
               abs(first.kilograms - last.kilograms) < 0.001 else { return nil }
-        let step = min(exercise.weightStep, last.kilograms * 0.1)
-        let lower = step > 0 ? max(0, last.kilograms - step * max(1, floor(last.kilograms * 0.08 / step))) : nil
+        let step = exercise.weightStep
+        let lower = step > 0 && step <= last.kilograms * 0.1 ? max(0, last.kilograms - step * max(1, floor(last.kilograms * 0.08 / step))) : nil
         return .init(id: last.id, explanation: "Reps fell from \(first.reps) to \(last.reps) at the same load. Take 45 seconds more rest before continuing; an optional small load reduction is available. If the next set still declines or form breaks down, stop here instead of adding work.", extraRest: 45, kilograms: lower)
     }
 }
