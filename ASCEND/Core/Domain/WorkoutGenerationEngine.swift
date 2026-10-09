@@ -26,7 +26,13 @@ public struct WorkoutGenerationEngine: Sendable {
             let goal = context.training.profile.goal == .strength && compound.contains(exercise.pattern) ? 5.0 : 0
             return (readiness.minimum ?? 75) - min(30, weekly * 4) - today(exercise) * 30 + preferred + familiar + FitnessMath.clamp(learned, -6...6) + goal
         }
-        let ordered = available.map { (exercise: $0, score: value($0)) }.sorted { $0.score == $1.score ? $0.exercise.id < $1.exercise.id : $0.score > $1.score }
+        let ranked: [(exercise: TrainingExercise, score: Double)] = available.map { exercise in
+            (exercise: exercise, score: value(exercise))
+        }
+        let ordered = ranked.sorted { left, right in
+            if left.score == right.score { return left.exercise.id < right.exercise.id }
+            return left.score > right.score
+        }
         var entries: [RoutineExercise] = [], patterns = Set<MovementPattern>(), families = Set<String>(), usedMinutes = 5
         let light = base.action == .trainLight || context.feeling.map { $0 <= 2 } == true || context.soreness.map { $0 >= 4 } == true
         for candidate in ordered where candidate.score > -900 {
