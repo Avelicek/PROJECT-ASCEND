@@ -8,7 +8,7 @@ enum AppDestination: String, CaseIterable, Identifiable {
         switch self { case .dashboard: "square.grid.2x2"; case .workout: "dumbbell"; case .recovery: "figure.stand"; case .progress: "chart.xyaxis.line"; case .profile: "person.crop.circle" }
     }
 }
-enum LogDestination: String, Identifiable { case weight, nutrition, sleep, workout, objectives, checkIn, ask, weekly; var id: String { rawValue } }
+enum LogDestination: String, Identifiable { case weight, nutrition, sleep, endSleep, workout, objectives, checkIn, ask, weekly; var id: String { rawValue } }
 
 private struct DayWakeKey: Hashable { let active: Bool; let day: String }
 
@@ -50,6 +50,7 @@ struct RootView: View {
                     case .weight: WeightEditor()
                     case .nutrition: NutritionEditor()
                     case .sleep: SleepEditor()
+                    case .endSleep: EndSleepView(start: store.ownerSystem.sleepStartedAt ?? store.actionDate(), end: store.actionDate())
                     case .workout: WorkoutEditor()
                     case .objectives: ObjectiveManager()
                     case .checkIn: MorningCheckInView()
@@ -77,11 +78,15 @@ struct RootView: View {
                 case "weekly": store.presentedSheet = .weekly
                 case "nutrition": store.presentedSheet = .nutrition
                 case "objectives": store.presentedSheet = .objectives
+                case "sleep": store.presentedSheet = store.ownerSystem.sleepStartedAt == nil ? .sleep : .endSleep
+                case "weight": store.presentedSheet = .weight
                 case "recovery": destination = .recovery
                 case "progress": destination = .progress
                 default: destination = .workout
                 }
             }
+            .onAppear { CoachNotifications.synchronize(store: store, requestPermission: false) }
+            .onChange(of: store.revision) { _, _ in if scenePhase == .active { CoachNotifications.synchronize(store: store, requestPermission: false) } }
             .onChange(of: scenePhase) { _, phase in if phase == .active { CoachNotifications.synchronize(store: store, requestPermission: false) } }
             .safeAreaInset(edge: .top, spacing: 0) {
                 if store.ownerSystem.sleepStartedAt != nil || store.ownerSystem.sickActive {

@@ -75,7 +75,7 @@ for name in ['Debug', 'Release']:
     app_configs.append(config('app-'+name, name, {
         'PRODUCT_NAME':'$(TARGET_NAME)', 'PRODUCT_BUNDLE_IDENTIFIER':'com.karel.projectascend',
         'INFOPLIST_FILE':'ASCEND/Resources/Info.plist', 'CODE_SIGN_STYLE':'Automatic', 'DEVELOPMENT_TEAM':'',
-        'MARKETING_VERSION':'1.0.0', 'CURRENT_PROJECT_VERSION':'1', 'ASSETCATALOG_COMPILER_APPICON_NAME':'AppIcon',
+        'MARKETING_VERSION':'1.1.0', 'CURRENT_PROJECT_VERSION':'2', 'ASSETCATALOG_COMPILER_APPICON_NAME':'AppIcon',
         'ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME':'AccentColor', 'LD_RUNPATH_SEARCH_PATHS':'$(inherited) @executable_path/Frameworks',
     }))
     test_configs.append(config('tests-'+name, name, {
@@ -87,7 +87,7 @@ for name in ['Debug', 'Release']:
     widget_configs.append(config('widget-'+name, name, {
         'PRODUCT_NAME':'AscendRestWidget', 'PRODUCT_BUNDLE_IDENTIFIER':'com.karel.projectascend.rest',
         'INFOPLIST_FILE':'WidgetExtension/Info.plist', 'GENERATE_INFOPLIST_FILE':'YES',
-        'CODE_SIGN_STYLE':'Automatic', 'DEVELOPMENT_TEAM':'', 'MARKETING_VERSION':'1.0.0', 'CURRENT_PROJECT_VERSION':'1',
+        'CODE_SIGN_STYLE':'Automatic', 'DEVELOPMENT_TEAM':'', 'MARKETING_VERSION':'1.1.0', 'CURRENT_PROJECT_VERSION':'2',
         'APPLICATION_EXTENSION_API_ONLY':'YES', 'SKIP_INSTALL':'YES', 'LD_RUNPATH_SEARCH_PATHS':'$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks',
     }))
     ui_configs.append(config('ui-'+name, name, {

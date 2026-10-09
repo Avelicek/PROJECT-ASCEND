@@ -9,6 +9,9 @@ public struct ExerciseEducation: Sendable {
         switch exercise.id {
         case "push_up", "close_grip_push_up", "wide_push_up": steps = ["Place hands under or slightly outside shoulders; keep a straight line from head to heels.", "Bend elbows to lower your chest under control, then press the floor away."]
         case "plank", "side_plank": steps = ["Support yourself on forearms (or one forearm for side plank), keeping ribs and pelvis stacked.", "Brace the trunk, breathe steadily and stop the hold before your hips sag."]
+        case "dead_hang": steps = ["Take a secure grip on a stable overhead bar, with enough clearance beneath you.", "Hold with controlled shoulder position and steady breathing; step down before your grip slips."]
+        case "hip_thrust", "db_hip_thrust", "glute_bridge": steps = ["Support your upper back on a stable bench (or lie on the floor for a bridge); plant your feet and brace.", "Drive through the heels to extend your hips, pause with ribs down, then lower under control."]
+        case "leg_press": steps = ["Sit with back and pelvis supported, feet planted on the platform; release the machine safeties after taking the load.", "Bend the knees without lifting your pelvis, then press through your feet without locking the knees."]
         case "wall_sit": steps = ["Lean your back against a wall and slide into a comfortable squat.", "Keep feet planted and hold the position while breathing steadily."]
         default:
             switch exercise.pattern {

@@ -35,6 +35,8 @@ enum InputError: LocalizedError {
     var personalModel: PersonalModel
     var protectedDays: [Date] = []
     var projectedScore: ELOResult = ELOEngine().evaluate(.init(), previousELO: 0)
+    var goalProjection = ProjectionEngine().weight(samples: [], target: nil, now: .distantPast, policy: DayPolicy(timeZoneIdentifier: "UTC"))
+    var nextBestAction = NextBestAction(action: .checkIn, title: "Start your check-in", reason: "Learning your baseline.", button: "Check in", opportunity: nil)
     var activeWorkout: LiveWorkout?
     var liveWorkoutPresented = false
     var completedWorkout: CompletedWorkoutSummary?
@@ -235,6 +237,8 @@ enum InputError: LocalizedError {
         readiness = RecoveryEngine().evaluate(loads: loads, context: context, now: now)
         projectedScore = DailyELOEngine().evaluate(dailyScoreInput(for: now), previousELO: currentELO)
         deriveBrain()
+        goalProjection = ProjectionEngine().weight(samples: weightSamples, target: profile.targetWeightKG, now: now, policy: policy)
+        nextBestAction = makeNextBestAction()
 
     }
 

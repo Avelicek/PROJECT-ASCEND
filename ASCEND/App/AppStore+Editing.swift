@@ -124,9 +124,7 @@ extension AppStore {
                 if let occurrence = todayObjectives.first(where: { $0.objective?.id == existing.id }) {
                     occurrence.title = title; occurrence.kindRaw = draft.kind.rawValue; occurrence.importanceRaw = draft.importance.rawValue
                     occurrence.target = draft.target; occurrence.unit = draft.unit
-                    if !ObjectiveEngine().isDue(existing.schedule, on: now, policy: policy), occurrence.completedAt == nil {
-                        context.delete(occurrence)
-                    }
+                    // Preserve the already-materialized day even when the future schedule changes.
                 }
             } else {
                 context.insert(DailyObjective(title: title, kind: draft.kind, cadence: draft.cadence, importance: draft.importance,
@@ -138,9 +136,7 @@ extension AppStore {
     func archiveObjective(_ objective: DailyObjective) -> Bool {
         perform {
             objective.isActive = false
-            for occurrence in todayObjectives where occurrence.objective?.id == objective.id && occurrence.completedAt == nil {
-                context.delete(occurrence)
-            }
+            // Archiving changes future scheduling; today remains an intact snapshot.
         }
     }
     func chooseRecoveryAlternative(_ occurrence: DailyObjectiveCompletion) -> Bool {
@@ -150,7 +146,7 @@ extension AppStore {
             occurrence.completedAt = nil
         }
     }
-    func logWorkout(exercise: Exercise, sets: [SetPerformance], at date: Date, quick: Bool, exertion: Double) -> Bool {
+    func logWorkout(exercise: Exercise, sets: [SetPerformance], at date: Date, quick: Bool, exertion: Double, measurement: ActivityMeasurement? = nil) -> Bool {
         perform {
             try validateDate(date)
             guard !sets.isEmpty, sets.count <= 30, (1...10).contains(exertion), sets.allSatisfy({ set in
@@ -161,6 +157,7 @@ extension AppStore {
             }) else { throw InputError.invalid("Check each set's values and effort.") }
             let session = WorkoutSession(startedAt: date, title: exercise.name, isQuickLog: quick)
             session.completedAt = date
+            if let measurement { session.notes = try measurement.encodedNote() }
             let loggedExercise = WorkoutExercise(exercise: exercise, order: 0)
             session.exercises.append(loggedExercise); loggedExercise.session = session
             for (index, performance) in sets.enumerated() {

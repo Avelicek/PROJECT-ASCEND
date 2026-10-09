@@ -62,6 +62,6 @@ public struct DailyELOEngine: Sendable {
         return .init(previousELO: old, elo: next, delta: next - old, components: parts, rank: RankEngine().status(elo: next, previousELO: old))
     }
     public func description(_ score: Int) -> String {
-        switch score { case 25...: "Exceptional day"; case 15...24: "Excellent day"; case 6...14: "Good day"; case -5...5: "Building your day"; case -14...(-6): "Needs attention"; default: "Reset your rhythm" }
+        switch score { case 25...30: "Exceptional day"; case 15...24: "Excellent day"; case 6...14: "Good day"; case -5...5: "Building your day"; case -14...(-6): "Needs attention"; default: "Reset your rhythm" }
     }
 }

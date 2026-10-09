@@ -45,7 +45,7 @@ struct NativeAnatomyView: UIViewRepresentable {
         private var reset = 0
         private var cameraOffset = SIMD2<Float>(0, 0)
         private var materialKeys: [ObjectIdentifier: String] = [:]
-        init(_ parent: NativeAnatomyView) { self.parent = parent; super.init() }
+        init(_ parent: NativeAnatomyView) { self.parent = parent; yaw = parent.cameraSide ? .pi / 2 : parent.back ? .pi : 0; super.init() }
         func install(_ view: ARView) {
             self.view = view; camera.camera.fieldOfViewInDegrees = 42; camera.position = [0, 0, zoom]
             anchor.addChild(camera); anchor.addChild(orbit); view.scene.anchors.append(anchor)

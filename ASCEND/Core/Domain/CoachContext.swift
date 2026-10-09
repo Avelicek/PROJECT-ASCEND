@@ -36,6 +36,10 @@ public struct CoachContext: Codable, Sendable {
     public var targetWeight: Double?
     public var projectionWeeks: [Int]?
     public var projectionConfidence: Confidence
+    public var projectionEarliest: Date?
+    public var projectionLatest: Date?
+    public var targetDeadline: Date?
+    public var timeZoneIdentifier: String
     public var projectionReason: String
     public var workoutTitle: String?
     public var workoutReasons: [String]
@@ -65,11 +69,24 @@ public struct CoachReasoningEngine: Sendable {
             if let protein = c.protein { answer.observed.append("\(Int(protein)) / \(Int(c.proteinGoal)) g protein logged today.") }
             answer.recommendation = c.calories.map { "Your configured target has \(Int(max(0, c.calorieGoal - $0))) kcal remaining. Log what you actually eat; include a protein source if protein coverage is low." } ?? "Log today's intake first so ASCEND can compare it with your configured calorie and protein goals."
             answer.confidence = c.calories == nil ? .low : .medium
-        } else if q.contains("reach") || q.contains("goal") || q.contains("december") || q.contains("weight") {
+        } else if (q.contains("reach") || q.contains("goal") || q.contains("december") || q.contains("weight")) && !["bench", "press", "increase", "load"].contains(where: { q.contains($0) }) {
             answer.observed = [c.weight.map { "Latest weigh-in: \($0.formatted()) kg." } ?? "No recent weigh-in."]
-            if let target = c.targetWeight { answer.observed.append("Configured target: \(target.formatted()) kg.") }
+            if let target = c.targetWeight { answer.observed.append("Bodyweight target for this comparison: \(target.formatted()) kg.") }
             if let weeks = c.projectionWeeks, weeks.count == 2 { answer.estimates.append("Estimated \(weeks[0])–\(weeks[1]) weeks to your configured target.") }
             answer.estimates.append(c.projectionReason)
+            var deadline = c.targetDeadline
+            let calendar = DayPolicy(timeZoneIdentifier: c.timeZoneIdentifier).calendar
+            let months = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"]
+            if let month = months.firstIndex(where: { q.contains($0) }) {
+                var year = calendar.component(.year, from: c.date)
+                let beginning = calendar.date(from: DateComponents(year: year, month: month + 1, day: 1))
+                if let beginning, beginning < c.date { year += 1 }
+                deadline = calendar.date(from: DateComponents(year: year, month: month + 1, day: 1))
+                answer.estimates.append("For this comparison, ‘by \(months[month].capitalized)’ means the start of that month in \(year).")
+            }
+            if let deadline, let earliest = c.projectionEarliest, let latest = c.projectionLatest {
+                answer.estimates.append(latest <= deadline ? "The current estimated range falls before your deadline." : earliest > deadline ? "The current estimated range falls after your deadline." : "Your deadline overlaps the estimated range; the outcome remains uncertain.")
+            } else if deadline != nil { answer.estimates.append("There is not enough reliable trend data to compare that deadline.") }
             answer.recommendation = "Keep comparable morning weigh-ins and consistent intake. Use the projected date range to judge a deadline; ASCEND cannot guarantee a future result."
             answer.confidence = c.projectionConfidence
         } else if q.contains("increase") || q.contains("bench") || q.contains("press") || q.contains("progression") {

@@ -1,6 +1,6 @@
 import Foundation
 
-public enum EffortRating: Int, CaseIterable, Sendable {
+public enum EffortRating: Int, CaseIterable, Hashable, Sendable {
     case easy = 6, moderate = 7, hard = 8, nearFailure = 9, failure = 10
     public var rir: Int { 10 - rawValue }
     public var title: String { switch self { case .easy: "Easy · 4+ left"; case .moderate: "Moderate · 3 left"; case .hard: "Hard · 2 left"; case .nearFailure: "Near failure · 1 left"; case .failure: "Failure · 0 left" } }
@@ -59,7 +59,7 @@ public struct AdaptiveRestEngine: Sendable {
               abs(first.kilograms - last.kilograms) < 0.001 else { return nil }
         let step = min(exercise.weightStep, last.kilograms * 0.1)
         let lower = step > 0 ? max(0, last.kilograms - step * max(1, floor(last.kilograms * 0.08 / step))) : nil
-        return .init(id: last.id, explanation: "Reps fell from \(first.reps) to \(last.reps) at the same load. Take 45 seconds more rest before continuing; an optional small load reduction is available.", extraRest: 45, kilograms: lower)
+        return .init(id: last.id, explanation: "Reps fell from \(first.reps) to \(last.reps) at the same load. Take 45 seconds more rest before continuing; an optional small load reduction is available. If the next set still declines or form breaks down, stop here instead of adding work.", extraRest: 45, kilograms: lower)
     }
 }
 

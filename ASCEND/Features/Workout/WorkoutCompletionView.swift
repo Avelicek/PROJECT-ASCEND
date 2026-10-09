@@ -71,6 +71,7 @@ struct WorkoutCompletionView: View {
                         HStack { Text("Recovery estimates updated").font(.caption2).foregroundStyle(AppColor.muted); Spacer(); Text("\(summary.progressedExercises) progressed").font(.caption2).foregroundStyle(AppColor.positive) }
                     }
                 }
+                WorkoutLoadImpactView(sessionID: summary.id)
                 if let bestExercise {
                     PremiumCard(role: .status, tint: AppColor.strength) {
                         VStack(alignment: .leading, spacing: 8) {
@@ -84,5 +85,53 @@ struct WorkoutCompletionView: View {
                 PrimaryAction(title: "Done", symbol: "checkmark", tint: AppColor.positive, action: done).accessibilityIdentifier("live.summary.done")
             }.padding(20)
         }.accessibilityIdentifier("screen.workoutsummary").featureBackground(tint: AppColor.positive)
+    }
+}
+
+
+/// Compares actual same-day weighted stimulus before and after the saved session.
+struct WorkoutLoadImpactView: View {
+    @Environment(AppStore.self) private var store
+    let sessionID: UUID
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var anatomy = false
+    @State private var after = false
+    private var loads: (before: [Muscle: Double], after: [Muscle: Double]) {
+        var prior: [Muscle: Double] = [:], current: [Muscle: Double] = [:]
+        for session in store.sessions where store.policy.sameDay(session.evaluationDate, store.now) {
+            for exercise in session.exercises {
+                let muscleLoad = TrainingLoadEngine().muscles(stimulus: store.stimulus(for: exercise, quick: session.isQuickLog), contributions: exercise.contributions)
+                for (muscle, value) in muscleLoad {
+                    current[muscle, default: 0] += value
+                    if session.id != sessionID { prior[muscle, default: 0] += value }
+                }
+            }
+        }
+        return (prior, current)
+    }
+    var body: some View {
+        let values = loads
+        let groups = Dictionary(grouping: values.after.keys, by: \.group).map { group, muscles in
+            (group, muscles.reduce(0) { $0 + (values.before[$1] ?? 0) }, muscles.reduce(0) { $0 + (values.after[$1] ?? 0) })
+        }.sorted { $0.2 > $1.2 }
+        let maximum = max(1, groups.first?.2 ?? 1)
+        PremiumCard(role: .analytics) {
+            VStack(alignment: .leading, spacing: 14) {
+                Eyebrow(text: "YOUR ACTION CHANGED THE SYSTEM")
+                Text("Today's modeled stimulus · before → after").font(.caption).foregroundStyle(AppColor.muted)
+                ForEach(groups.prefix(5), id: \.0) { name, before, final in
+                    VStack(alignment: .leading, spacing: 7) {
+                        HStack { Text(name); Spacer(); Text("\(before.formatted(.number.precision(.fractionLength(1)))) → \(final.formatted(.number.precision(.fractionLength(1))))") }.font(.caption)
+                        LinearProgress(progress: (after ? final : before) / maximum, tint: AppColor.strength)
+                    }
+                }
+                Button(anatomy ? "Hide muscle map" : "See the updated muscle map", systemImage: "figure.stand") { anatomy.toggle() }.font(.caption).frame(minHeight: 44)
+                if anatomy {
+                    let highest = max(0.01, values.after.values.max() ?? 1)
+                    ExerciseAnatomyPreview(contributions: values.after.map { .init($0.key, $0.value / highest) })
+                }
+            }
+        }.accessibilityIdentifier("workout.load.impact")
+            .onAppear { withAnimation(reduceMotion || AppMotion.snapshotMode ? nil : AppAnimation.reveal) { after = true } }
     }
 }

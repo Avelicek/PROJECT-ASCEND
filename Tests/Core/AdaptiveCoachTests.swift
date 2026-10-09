@@ -118,6 +118,13 @@ final class AdaptiveCoachTests: XCTestCase {
         XCTAssertTrue(result.explanation.contains("Repeat"))
     }
     func testRIRMapsExactlyToStoredRPE() { XCTAssertEqual(EffortRating.failure.rir, 0); XCTAssertEqual(EffortRating.hard.rir, 2); XCTAssertEqual(EffortRating.easy.rir, 4) }
+    func testDifficultSessionPrescribesStablePerSetRepsAtSixty() throws {
+        let exercise = LiveExercise(catalogID: "chest_press", name: "Chest press", mode: .weightAndReps, bodyweight: false, addedWeight: false, contributions: [])
+        let history = [ExerciseHistory(exerciseID: "chest_press", date: now.addingTimeInterval(-86400), mode: .weightAndReps,
+            sets: [.init(.init(reps: 10, kilograms: 60), rpe: 8), .init(.init(reps: 9, kilograms: 60), rpe: 9), .init(.init(reps: 7, kilograms: 60), rpe: 10)])]
+        let targets = try XCTUnwrap(ProgressionPlanEngine().targets(history: history, exercise: exercise, count: 3, now: now, recoveryLimited: false))
+        XCTAssertEqual(targets.map(\.kilograms), [60, 60, 60]); XCTAssertEqual(targets.map(\.reps), [10, 10, 8])
+    }
     func testRestDependsOnTypeEffortAndPreference() {
         let engine = AdaptiveRestEngine()
         XCTAssertEqual(engine.seconds(pattern: .horizontalPush, goal: .strength, rpe: 9, fatigue: nil), 150)
@@ -166,4 +173,18 @@ final class AdaptiveCoachTests: XCTestCase {
     func testEveryCatalogExerciseHasExecutionAndCues() {
         for exercise in TrainingCatalog.definitions { let guide = ExerciseEducation.guide(exercise); XCTAssertGreaterThanOrEqual(guide.steps.count, 2); XCTAssertFalse(guide.cues.isEmpty) }
     }
+    func testSupplementaryMeasurementRoundTripDoesNotInterpretArbitraryUnitsAsLoad() throws {
+        let calories = ActivityMeasurement(mode: .caloriesDuration, value: 220, unit: "kcal")
+        XCTAssertEqual(ActivityMeasurement.decodeNote(try calories.encodedNote())?.value, 220)
+        let custom = ActivityMeasurement(mode: .custom, value: 42, unit: "laps")
+        XCTAssertEqual(ActivityMeasurement.decodeNote(try custom.encodedNote())?.unit, "laps")
+        XCTAssertNil(ActivityMeasurement.decodeNote("My original workout notes"))
+        XCTAssertFalse(ActivityMeasurement(mode: .custom, value: .nan, unit: "laps").isValid)
+        XCTAssertFalse(ActivityMeasurement(mode: .caloriesDuration, value: 100, unit: "kg").isValid)
+        XCTAssertFalse(ActivityMeasurement(mode: .custom, value: 1, unit: "").isValid)
+        XCTAssertEqual(ExerciseMeasurementMode.allCases.count, 8)
+        let plank = try XCTUnwrap(TrainingCatalog.definitions.first { $0.id == "plank" })
+        XCTAssertEqual(ExerciseMeasurementMode.standard(for: plank), .hold)
+    }
+
 }

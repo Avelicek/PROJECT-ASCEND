@@ -12,7 +12,7 @@ final class PersonalTrainingTests: XCTestCase {
     private func exercise(_ id: String) throws -> TrainingExercise { try XCTUnwrap(TrainingCatalog.definitions.first { $0.id == id }) }
     func testCatalogHasUsefulUniqueMetadataAndStableLegacyIDs() {
         let catalog = TrainingCatalog.definitions
-        XCTAssertEqual(catalog.count, 149); XCTAssertEqual(Set(catalog.map(\.id)).count, catalog.count)
+        XCTAssertEqual(catalog.count, 150); XCTAssertEqual(Set(catalog.map(\.id)).count, catalog.count)
         XCTAssertEqual(Set(catalog.map(\.focus)), Set(TrainingFocus.allCases))
         for entry in catalog {
             XCTAssertFalse(entry.required.isEmpty, entry.id); XCTAssertFalse(entry.muscles.isEmpty, entry.id)

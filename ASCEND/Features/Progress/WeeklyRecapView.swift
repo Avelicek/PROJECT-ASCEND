@@ -69,6 +69,6 @@ struct WeeklyRecapView: View {
                 WeeklyCoachAnalysisView()
                 PrimaryAction(title: "Done", symbol: "checkmark") { dismiss() }
             }.padding(20)
-        }.background(AppColor.background).navigationTitle("Weekly recap").navigationBarTitleDisplayMode(.inline)
+        }.background(AppColor.background).accessibilityIdentifier("screen.weeklyrecap").navigationTitle("Weekly recap").navigationBarTitleDisplayMode(.inline)
     }
 }

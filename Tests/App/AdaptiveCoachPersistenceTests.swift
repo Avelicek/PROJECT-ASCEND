@@ -109,4 +109,52 @@ final class AdaptiveCoachPersistenceTests: XCTestCase {
         XCTAssertFalse(value.saveOwnerSystem { $0.checkIns = [.init(date: self.date, feeling: 99, soreness: 0)] })
         XCTAssertNil(value.ownerSystem.checkIns); XCTAssertEqual(value.sessions.map(\.id), sessions)
     }
+    @MainActor func testContextualSuggestionsAreOptionalAndPreserveExistingDay() throws {
+        let value = try store()
+        var objective = ObjectiveDraft(); objective.kind = .bodyWeight; objective.title = "My weigh-in"; objective.startsAt = date
+        XCTAssertTrue(value.saveObjective(objective))
+        let occurrence = try XCTUnwrap(value.todayObjectives.first { $0.kindRaw == ObjectiveKind.bodyWeight.rawValue })
+        let key = occurrence.occurrenceKey
+        XCTAssertFalse(value.suggestedObjectives.contains { $0.draft.kind == .bodyWeight })
+        let rule = try XCTUnwrap(value.objectives.first { $0.kind == .bodyWeight })
+        XCTAssertTrue(value.archiveObjective(rule))
+        XCTAssertTrue(value.todayObjectives.contains { $0.occurrenceKey == key })
+        XCTAssertFalse(value.suggestedObjectives.contains { $0.draft.kind == .bodyWeight })
+    }
+    @MainActor func testCoachSleepActionOpensExistingInterval() throws {
+        let value = try store(); value.startSleep()
+        XCTAssertEqual(value.nextBestAction.action, .sleep)
+        value.openCoachAction(.sleep)
+        XCTAssertEqual(value.presentedSheet, .endSleep)
+        XCTAssertEqual(value.ownerSystem.sleepStartedAt, date)
+    }
+
+    @MainActor func testAskedWeightTargetAndDeadlineUseRealTrendWithoutChangingProfile() throws {
+        let value = try store()
+        for day in -14...0 { XCTAssertTrue(value.logWeight(56 + Double(day + 14) * 0.04, at: value.policy.adding(days: day, to: date))) }
+        value.profile.targetWeightKG = 65; try value.refresh(at: date)
+        let context = value.coachContext(for: "Can I reach 60 kg by December?")
+        XCTAssertEqual(context.targetWeight, 60); XCTAssertEqual(value.profile.targetWeightKG, 65)
+        XCTAssertNotNil(context.projectionLatest)
+        let answer = CoachReasoningEngine().answer("Can I reach 60 kg by December?", context: context)
+        XCTAssertTrue(answer.estimates.contains { $0.contains("start of that month") })
+        XCTAssertTrue(answer.estimates.contains { $0.contains("deadline") })
+        let bench = value.coachContext(for: "Should I increase my bench weight?")
+        let strength = CoachReasoningEngine().answer("Should I increase my bench weight?", context: bench)
+        XCTAssertFalse(strength.estimates.contains { $0.contains("weeks") })
+    }
+
+    @MainActor func testObservedActivityMeasurementsSurviveBackupWithoutSchemaChanges() throws {
+        let value = try store(), walking = try XCTUnwrap(value.exercises.first { $0.catalogID == "walking" })
+        let measurement = ActivityMeasurement(mode: .caloriesDuration, value: 220, unit: "kcal")
+        XCTAssertTrue(value.logWorkout(exercise: walking, sets: [.init(reps: 0, seconds: 1200)], at: date, quick: true, exertion: 7, measurement: measurement))
+        let session = try XCTUnwrap(value.sessions.first), original = session.notes
+        XCTAssertEqual(ActivityMeasurement.decodeNote(original)?.value, 220)
+        let payload = try value.backupEnvelope().payload
+        let restored = try AppStore(container: PersistenceController.makeContainer(inMemory: true), now: date, clock: { [date] in date }, restored: payload, activateServices: false)
+        XCTAssertEqual(restored.sessions.first?.id, session.id); XCTAssertEqual(restored.sessions.first?.notes, original)
+        XCTAssertEqual(restored.projectedScore.delta, value.projectedScore.delta)
+        XCTAssertEqual(restored.sessions.first?.exercises.first?.sets.first?.durationSeconds, 1200)
+    }
+
 }

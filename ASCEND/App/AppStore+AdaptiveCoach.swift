@@ -2,6 +2,30 @@ import Foundation
 import SwiftData
 
 extension AppStore {
+    struct ObjectiveSuggestion: Identifiable {
+        var id: String { draft.kind.rawValue + ":" + draft.title }
+        let draft: ObjectiveDraft
+        let reason: String
+    }
+    var suggestedObjectives: [ObjectiveSuggestion] {
+        var suggestions: [ObjectiveSuggestion] = []
+        func suggest(_ kind: ObjectiveKind, _ title: String, _ target: Double, _ unit: String, _ reason: String) {
+            guard !todayObjectives.contains(where: { $0.kindRaw == kind.rawValue }),
+                  !objectives.contains(where: { $0.isActive && $0.kind == kind }) else { return }
+            var draft = ObjectiveDraft(); draft.kind = kind; draft.title = title; draft.target = target
+            draft.unit = unit; draft.cadence = .once; draft.startsAt = policy.start(of: now)
+            suggestions.append(.init(draft: draft, reason: reason))
+        }
+        if checkInToday == nil { suggest(.bodyWeight, "Log morning weight", 1, "entry", "More distinct weigh-ins improve your goal trend.") }
+        if let plan = brainDecision.session { suggest(.workout, "Complete today's generated training", 1, "session", "Today's plan is \(plan.name), selected for your current equipment and exposure.") }
+        if todayNutrition == nil || (todayNutrition?.calories ?? 0) < profile.calorieGoal * 0.9 {
+            suggest(.calories, "Reach your configured fuel target", profile.calorieGoal, "kcal", "Fuel coverage supports the work you record; your configured goal stays unchanged.")
+        }
+        if ownerSystem.sickActive || (personalContext.sleepHours.map { $0 < 5 } ?? false) {
+            suggest(.sleep, "Prioritize sleep tonight", profile.sleepTargetHours, "hours", "Recovery support is today's priority. No extra training is required.")
+        }
+        return Array(suggestions.prefix(3))
+    }
     func stimulus(for exercise: WorkoutExercise, quick: Bool) -> Double { activityStimulus[exercise.id] ?? 0 }
     var canonicalLoads: [TrainingLoad] { activityLoads }
     func rebuildActivityLoads() {
@@ -39,9 +63,6 @@ extension AppStore {
         input.recoveryLimited = ownerSystem.protectsTraining(on: date, policy: policy) || (input.sleepHours.map { $0 < 5 } ?? false) || (recovery.percent.map { $0 < 55 } ?? false)
         input.checkIn = ownerSystem.checkIns?.contains { policy.sameDay($0.date, date) } ?? false
         return input
-    }
-    var goalProjection: GoalProjection {
-        ProjectionEngine().weight(samples: weights.map { .init(date: $0.measuredAt, kilograms: $0.kilograms) }, target: profile.targetWeightKG, now: now, policy: policy)
     }
     func score(for date: Date) -> ELOResult? {
         if policy.sameDay(date, now) { return projectedScore }

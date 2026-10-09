@@ -24,7 +24,7 @@ final class AscendNotificationDelegate: NSObject, UIApplicationDelegate, UNUserN
         guard !store.isDemo, !AppMotion.snapshotMode, !store.container.configurations.allSatisfy(\.isStoredInMemoryOnly) else { return }
         let preferences = store.ownerSystem.coachPreferences ?? .init()
         let policy = store.policy, now = store.actionDate(), checked = store.checkInToday != nil
-        let action = store.nextBestAction, score = store.projectedScore.delta, projection = store.goalProjection
+        let action = store.nextBestAction, projection = store.goalProjection
         task?.cancel()
         task = Task {
             let center = UNUserNotificationCenter.current()
@@ -35,7 +35,7 @@ final class AscendNotificationDelegate: NSObject, UIApplicationDelegate, UNUserN
             var allowed = status.authorizationStatus == .authorized || status.authorizationStatus == .provisional
             if requestPermission && status.authorizationStatus == .notDetermined { allowed = (try? await center.requestAuthorization(options: [.alert, .sound, .badge])) ?? false }
             guard allowed, !Task.isCancelled else { return }
-            func schedule(id: String, title: String, body: String, route: String, at date: Date) async {
+            @MainActor func schedule(id: String, title: String, body: String, route: String, at date: Date) async {
                 guard date > now, !Task.isCancelled else { return }
                 let content = UNMutableNotificationContent(); content.title = title; content.body = body; content.sound = .default
                 content.userInfo = ["ascendRoute": route]
@@ -65,7 +65,7 @@ final class AscendNotificationDelegate: NSObject, UIApplicationDelegate, UNUserN
             if preferences.enabled.contains(.weekly) {
                 let offset = (1 - policy.calendar.component(.weekday, from: now) + 7) % 7
                 if let sunday = policy.calendar.date(bySettingHour: 19, minute: 0, second: 0, of: policy.adding(days: offset, to: now)) {
-                    await schedule(id: "weekly", title: "Your weekly coach report", body: "Review your recorded training, trend and plan adjustments. Today's projected ELO: \(score).", route: "weekly", at: sunday)
+                    await schedule(id: "weekly", title: "Your weekly coach report", body: "Review your recorded training, trend and plan adjustments.", route: "weekly", at: sunday)
                 }
             }
         }

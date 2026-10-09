@@ -30,7 +30,8 @@ public struct WorkoutSummaryEngine: Sendable {
         for exercise in exercises {
             let working = exercise.completedWorkingSets
             if exercise.mode == .reps || exercise.mode == .weightAndReps { volume += WorkoutEngine().volume(working.map(\.performance)) }
-            let setLoad = TrainingLoadEngine().stimulus(working.map { .init($0.performance(for: exercise.mode), rpe: $0.rpe) }, mode: exercise.mode, quick: false)
+            let reference = history.filter { $0.exerciseID == exercise.catalogID && !$0.quick && $0.mode == exercise.mode && $0.date < workout.startedAt && workout.startedAt.timeIntervalSince($0.date) <= 42 * 86400 }.max { $0.date < $1.date }?.working.first?.performance.kilograms
+            let setLoad = TrainingLoadEngine().stimulus(working.map { .init($0.performance(for: exercise.mode), rpe: $0.rpe) }, mode: exercise.mode, quick: false, referenceLoad: reference)
             load += setLoad
             for contribution in exercise.contributions { weighted[contribution.muscle.group, default: 0] += setLoad * max(0, contribution.fraction) }
             records += PersonalRecordEngine().detect(exercise: exercise, history: history, at: workout.startedAt)

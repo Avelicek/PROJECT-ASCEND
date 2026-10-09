@@ -61,6 +61,8 @@ struct GoalProjectionCard: View {
                     if let weeks = projection.weeks {
                         Text("Estimated \(weeks.lowerBound)–\(weeks.upperBound) weeks").font(.title3.weight(.semibold)).contentTransition(.numericText())
                         Text("\(projection.confidence.rawValue.capitalized) confidence").font(.caption).foregroundStyle(AppColor.muted)
+                    } else if let target = projection.target, let current = projection.current, projection.observedDays >= 6, abs(target - current) < 0.15 {
+                        Text("Within your goal range").font(.headline)
                     } else { Text("Learning your trend").font(.headline) }
                     DisclosureGroup("What this estimate uses") { Text(projection.explanation).font(.caption).foregroundStyle(AppColor.secondary).padding(.top, 8) }.font(.caption)
                 }
@@ -146,7 +148,7 @@ struct AskAscendView: View {
         Group { if !facts.isEmpty { PremiumCard { VStack(alignment: .leading, spacing: 10) { Eyebrow(text: title); ForEach(Array(facts.enumerated()), id: \.offset) { _, fact in Text(fact).font(.subheadline).foregroundStyle(AppColor.secondary).fixedSize(horizontal: false, vertical: true) } } } } }
     }
     private func ask() {
-        let context = store.coachContext
+        let context = store.coachContext(for: question)
         let result = CoachReasoningEngine().answer(String(question.prefix(1000)), context: context)
         answer = result; interpretation = nil
         guard store.settings.onDeviceAIEnabled else { return }

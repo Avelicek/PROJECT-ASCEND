@@ -11,7 +11,7 @@ struct GeneratedWorkoutCard: View {
                 Text(decision.session?.name ?? "Recovery today").font(.title2.weight(.semibold))
                 if let plan = decision.session {
                     Text("\(store.training.profile.goal == .strength ? "Strength" : "Balanced stimulus") · ~\(decision.duration ?? 0) min · \(plan.exercises.reduce(0) { $0 + $1.sets }) sets").font(.caption).foregroundStyle(AppColor.secondary)
-                    WorkoutFocusMap(exerciseIDs: plan.exercises.map(\.exerciseID))
+                    WorkoutFocusMap(exerciseIDs: plan.exercises.map(\.exerciseID), sets: Dictionary(grouping: plan.exercises, by: \.exerciseID).mapValues { $0.reduce(0) { $0 + $1.sets } })
                     Button("Why this workout?", systemImage: "info.circle") { showPlan = true }.font(.subheadline).frame(minHeight: 44).accessibilityIdentifier("workout.why")
                     PrimaryAction(title: "Start workout", symbol: "play.fill", tint: AppColor.strength) { store.startBrainSession() }.accessibilityIdentifier("workout.start")
                     // Stable accessibility target for the existing generated-session journey.
@@ -41,7 +41,7 @@ struct GeneratedPlanView: View {
                 Eyebrow(text: "WHY THIS WORKOUT?")
                 ForEach(Array((store.brainDecision.reasons + store.brainDecision.warnings).enumerated()), id: \.offset) { _, reason in Text(reason).font(.subheadline).foregroundStyle(AppColor.secondary) }
                 if let plan = store.brainDecision.session {
-                    WorkoutFocusMap(exerciseIDs: plan.exercises.map(\.exerciseID))
+                    WorkoutFocusMap(exerciseIDs: plan.exercises.map(\.exerciseID), sets: Dictionary(grouping: plan.exercises, by: \.exerciseID).mapValues { $0.reduce(0) { $0 + $1.sets } })
                     ForEach(plan.exercises) { item in
                         let exercise = store.trainingMetadata(item.exerciseID)
                         PremiumCard {
@@ -97,6 +97,9 @@ struct QuickActivityEditor: View {
     @State private var amount = 20.0
     @State private var distance = 1.0
     @State private var rating: EffortRating = .moderate
+    @State private var measurementMode: ExerciseMeasurementMode = .repsBodyweight
+    @State private var measuredValue = 0.0
+    @State private var measuredUnit = "count"
     @State private var saved = false
     @State private var before = 0
     private var exercise: Exercise? { store.exercises.first { $0.catalogID == exerciseID } }
@@ -105,14 +108,27 @@ struct QuickActivityEditor: View {
             if saved {
                 Section("Activity integrated") {
                     Text("\(before.formatted(.number.sign(strategy: .always()))) → \(store.projectedScore.delta.formatted(.number.sign(strategy: .always()))) ELO").font(.title2.weight(.semibold)).contentTransition(.numericText())
-                    if let exercise { MuscleActivationPreview(contributions: exercise.contributions, pattern: store.trainingMetadata(exerciseID)?.pattern ?? .coreStability) }
+                    if let exercise { MuscleActivationPreview(contributions: exercise.contributions, pattern: store.trainingMetadata(exerciseID)?.pattern ?? .coreStability, exerciseID: exerciseID) }
                     Text("Muscle exposure, recovery and today's plan updated.")
+                    if measurementMode == .caloriesDuration || measurementMode == .custom { Text("Observed \(measuredValue.formatted()) \(measurementMode == .caloriesDuration ? "kcal" : measuredUnit)").font(.caption) }
                     Text(store.brainDecision.reasons.joined(separator: " ")).font(.caption)
                 }
             } else if let exercise {
                 Section(exercise.name) {
                     NumericField(title: exercise.trackingMode == .duration || exercise.trackingMode == .distance ? "Minutes" : "Total reps", value: $amount)
                     if exercise.trackingMode == .distance { NumericField(title: "Distance · km", value: $distance) }
+                    if exercise.trackingMode == .duration || exercise.trackingMode == .distance {
+                        Picker("Measurement", selection: $measurementMode) {
+                            Text(exercise.trackingMode == .distance ? "Distance and duration" : "Duration / hold").tag(exercise.trackingMode == .distance ? ExerciseMeasurementMode.distanceDuration : .duration)
+                            Text("Observed calories + duration").tag(ExerciseMeasurementMode.caloriesDuration)
+                            Text("Custom quantity + duration").tag(ExerciseMeasurementMode.custom)
+                        }
+                        if measurementMode == .caloriesDuration || measurementMode == .custom {
+                            NumericField(title: measurementMode == .caloriesDuration ? "Observed kcal" : "Observed quantity", value: $measuredValue)
+                            if measurementMode == .custom { TextField("Unit", text: $measuredUnit) }
+                            Text("Use your observed device reading or own count. Duration and effort determine modeled training load; arbitrary units are not converted into calories or muscle fatigue.").font(.caption).foregroundStyle(AppColor.muted)
+                        }
+                    }
                     Picker("Effort", selection: $rating) { ForEach(EffortRating.allCases, id: \.self) { Text($0.title).tag($0) } }
                 }
                 Section { PrimaryAction(title: "Log activity", symbol: "checkmark") {
@@ -120,12 +136,17 @@ struct QuickActivityEditor: View {
                           (0...500).contains(distance), exercise.trackingMode != .reps || amount.rounded() == amount else { store.errorMessage = "Enter a valid amount; repetitions must be whole numbers."; return }
                     let timed = exercise.trackingMode == .duration || exercise.trackingMode == .distance
                     let performance = SetPerformance(reps: timed ? 0 : Int(amount), seconds: timed ? amount * 60 : 0, distanceMeters: exercise.trackingMode == .distance ? distance * 1000 : 0)
+                    let measurement = measurementMode == .caloriesDuration || measurementMode == .custom ? ActivityMeasurement(mode: measurementMode, value: measuredValue, unit: measurementMode == .caloriesDuration ? "kcal" : measuredUnit.trimmingCharacters(in: .whitespacesAndNewlines)) : nil
+                    if let measurement, !measurement.isValid { store.errorMessage = "Enter a positive observed quantity and a short unit."; return }
                     before = store.projectedScore.delta
-                    if store.logWorkout(exercise: exercise, sets: [performance], at: store.actionDate(), quick: true, exertion: Double(rating.rawValue)) { saved = true; AppHaptics.success(enabled: store.settings.hapticsEnabled) }
+                    if store.logWorkout(exercise: exercise, sets: [performance], at: store.actionDate(), quick: true, exertion: Double(rating.rawValue), measurement: measurement) { saved = true; AppHaptics.success(enabled: store.settings.hapticsEnabled) }
                 }.accessibilityIdentifier("quick.save") }
             }
         }.navigationTitle("Quick activity").navigationBarTitleDisplayMode(.inline).accessibilityIdentifier("screen.quickactivity")
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
-            .onAppear { if exercise?.trackingMode == .duration { amount = 1 } }
+            .onAppear {
+                if exercise?.trackingMode == .duration { amount = 1; measurementMode = .duration }
+                if exercise?.trackingMode == .distance { measurementMode = .distanceDuration }
+            }
     }
 }

@@ -72,7 +72,8 @@ struct DashboardView: View {
         }
     }
     private var header: some View {
-        HStack {
+        HStack(spacing: 12) {
+            AscendMark().fill(AppColor.accent).frame(width: 30, height: 30).accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 6) {
                 Text("ASCEND").font(.system(.title2, design: .rounded, weight: .bold)).tracking(4)
                 Text("Your ascent, \(store.profile.displayName).")

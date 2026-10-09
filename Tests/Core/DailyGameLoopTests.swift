@@ -104,8 +104,8 @@ final class DailyGameLoopTests: XCTestCase {
         draft.exercises = [exercise]
         let summary = WorkoutSummaryEngine().summarize(draft, history: [], finishedAt: now)
         XCTAssertEqual(summary.durationSeconds, 600); XCTAssertEqual(summary.exerciseCount, 1); XCTAssertEqual(summary.workingSets, 1)
-        XCTAssertEqual(summary.volumeKG, 440); XCTAssertEqual(summary.trainingLoad, 1)
-        XCTAssertEqual(try XCTUnwrap(summary.muscles.first { $0.name == "Chest" }).setLoad, 0.7, accuracy: 0.001)
+        XCTAssertEqual(summary.volumeKG, 440); XCTAssertEqual(summary.trainingLoad, 0.84, accuracy: 0.001)
+        XCTAssertEqual(try XCTUnwrap(summary.muscles.first { $0.name == "Chest" }).setLoad, 0.588, accuracy: 0.001)
     }
     func testDailyGradeELOBreakdownAndMomentumConfidence() {
         var input = ELOInput(); input.calorieAdherence = 1; input.proteinAdherence = 1; input.completedWorkout = true

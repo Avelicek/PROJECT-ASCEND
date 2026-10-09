@@ -246,6 +246,7 @@ public enum TrainingCatalog {
         movement("db_calf_raise", "Dumbbell calf raise", .calves, .calf, [.dumbbells], calves),
         movement("seated_db_calf_raise", "Seated dumbbell calf raise", .calves, .calf, [.dumbbells, .bench], soleus),
         movement("band_calf_raise", "Band calf raise", .calves, .calf, [.bands], calves),
+        movement("dead_hang", "Dead hang", .back, .verticalPull, [.pullUpBar], [.init(.forearmFlexors, 0.65), .init(.latissimus, 0.20), .init(.lowerTrapezius, 0.15)], bodyweight: true, mode: .duration),
         movement("side_plank", "Side plank", .core, .coreStability, [.bodyweight], oblique, bodyweight: true, mode: .duration),
         movement("hanging_knee_raise", "Hanging knee raise", .core, .coreFlexion, [.pullUpBar], abs, bodyweight: true, mode: .reps, added: true),
         movement("hanging_leg_raise", "Hanging leg raise", .core, .coreFlexion, [.pullUpBar], abs, bodyweight: true, mode: .reps, added: true),

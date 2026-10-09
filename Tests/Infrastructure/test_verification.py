@@ -155,7 +155,7 @@ class FixtureVerification(Verification):
         return text, 0
 
 class PropagationTests(unittest.TestCase):
-    def test_all_four_smoke_suites_and_twenty_two_images_are_required(self):
+    def test_all_five_smoke_suites_and_twenty_nine_images_are_required(self):
         with temporary_directory() as temp, patch('verify_ios.platform.system', return_value='Darwin'), contextlib.redirect_stdout(io.StringIO()):
             verification = FixtureVerification(temp)
             self.assertTrue(verification.execute())

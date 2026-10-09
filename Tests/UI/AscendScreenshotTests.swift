@@ -46,8 +46,11 @@ final class AscendScreenshotTests: XCTestCase {
         for (argument, name, screen) in [("--capture-checkin", "23_morning_checkin", "screen.checkin"), ("--capture-ask", "24_ask_ascend", "screen.askascend"), ("--capture-plan", "25_generated_plan", "screen.generatedplan"), ("--capture-quick", "26_quick_activity", "screen.quickactivity"), ("--capture-timer", "27_exercise_timer", "screen.exercisetimer"), ("--capture-guide", "28_exercise_guide", "screen.exerciseguide"), ("--capture-weekly", "29_weekly_coach", "coach.weekly.analysis")] {
             let capture = XCUIApplication(); capture.launchArguments = ["--demo", "--ui-testing", argument]; capture.launch()
             let target = capture.descendants(matching: .any)[screen].firstMatch
+            if screen == "coach.weekly.analysis" {
+                XCTAssertTrue(capture.descendants(matching: .any)["screen.weeklyrecap"].firstMatch.waitForExistence(timeout: 20))
+                for _ in 0..<10 { if target.exists && target.isHittable { break }; capture.scrollViews.firstMatch.swipeUp() }
+            }
             XCTAssertTrue(target.waitForExistence(timeout: 20))
-            if screen == "coach.weekly.analysis" { for _ in 0..<6 { if target.isHittable { break }; capture.scrollViews.firstMatch.swipeUp() } }
             let attachment = XCTAttachment(screenshot: capture.screenshot()); attachment.name = name; attachment.lifetime = .keepAlways; add(attachment); capture.terminate()
         }
         let anatomy = XCUIApplication(); anatomy.launchArguments = ["--demo", "--ui-testing", "--capture-anatomy-3d"]; anatomy.launch()

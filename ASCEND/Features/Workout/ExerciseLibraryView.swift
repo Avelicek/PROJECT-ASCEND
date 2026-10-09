@@ -186,6 +186,9 @@ struct ExerciseHistoryView: View {
                             VStack(alignment: .leading, spacing: 8) {
                                 HStack { Text(session.date.formatted(date: .abbreviated, time: .omitted)).font(.caption).foregroundStyle(AppColor.muted); Spacer(); if session.quick { PillStatus(title: "QUICK") } }
                                 Text(session.working.map { describe($0.performance, mode: session.mode) }.joined(separator: "  /  ")).font(.subheadline).foregroundStyle(AppColor.secondary)
+                                if let source = store.sessions.first(where: { $0.id == session.sessionID }), let measurement = ActivityMeasurement.decodeNote(source.notes) {
+                                    Text(measurement.summary).font(.caption).foregroundStyle(AppColor.muted)
+                                }
                             }
                         }
                     }
