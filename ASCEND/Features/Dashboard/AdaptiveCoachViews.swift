@@ -20,7 +20,7 @@ struct TodayCoachHero: View {
                 LinearProgress(progress: Double(done) / Double(max(1, store.todayObjectives.count)), tint: AppColor.positive)
                 if let previous = store.history.last {
                     Text("\(previous.dayKey) · \(previous.delta.formatted(.number.sign(strategy: .always()))) ELO finalized")
-                        .font(.caption).foregroundStyle(AppColor.muted).accessibilityIdentifier("dashboard.previous.elo")
+                        .font(.caption).foregroundStyle(AppColor.muted).accessibilityIdentifier("dashboard.previous.elo").accessibilityValue(String(previous.elo))
                 }
             }
         }

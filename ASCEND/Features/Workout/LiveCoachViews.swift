@@ -56,7 +56,7 @@ struct TimedExerciseView: View {
                 let index = (exercise.sets.firstIndex { $0.id == clock.setID } ?? 0) + 1
                 Text("SET \(index) / \(exercise.sets.count)").font(.caption).foregroundStyle(AppColor.muted)
                 TimelineView(.periodic(from: .now, by: 1, paused: phase != .active || clock.startedAt == nil || AppMotion.snapshotMode)) { timeline in
-                    let seconds = Int(clock.elapsed(at: timeline.date))
+                    let seconds = Int(clock.elapsed(at: store.isDemo ? store.actionDate() : timeline.date))
                     Text(String(format: "%02d:%02d", seconds / 60, seconds % 60)).font(.system(size: 76, weight: .light, design: .rounded)).monospacedDigit().contentTransition(.numericText())
                 }
                 let target = exercise.sets.first { $0.id == clock.setID }?.seconds ?? 60

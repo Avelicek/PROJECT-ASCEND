@@ -12,12 +12,11 @@ import XCTest
         XCTAssertTrue(app.wait(for: .runningForeground, timeout: 20))
         XCTAssertTrue(app.scrollViews["screen.dashboard"].waitForExistence(timeout: 20))
         XCTAssertTrue(app.staticTexts["demo.marker"].exists)
-        let elo = app.staticTexts["dashboard.elo"]
-        XCTAssertTrue(elo.waitForExistence(timeout: 10))
-        XCTAssertEqual(elo.value as? String, "1084", "The screenshot fixture must contain seeded history")
-        let badge = app.descendants(matching: .any)["dashboard.rank.badge"].firstMatch
-        XCTAssertTrue(badge.exists)
-        XCTAssertEqual(badge.value as? String, "rank_platinum_2", "The real compiled badge must be loaded")
+        XCTAssertTrue(app.buttons["dashboard.daily.elo"].waitForExistence(timeout: 10))
+        let finalized = app.staticTexts["dashboard.previous.elo"]
+        XCTAssertTrue(finalized.waitForExistence(timeout: 10))
+        XCTAssertEqual(finalized.value as? String, "1084", "The fixture must preserve its finalized ELO history")
+        // Rank artwork is exercised on Profile and in capture tests; collapsed detail is not a launch requirement.
         return app
     }
 
