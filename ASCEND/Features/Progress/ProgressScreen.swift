@@ -19,7 +19,7 @@ struct ProgressScreen: View {
                 }.pickerStyle(.segmented).padding(5).background(AppColor.surface, in: RoundedRectangle(cornerRadius: 13))
                 SectionHeader(title: "Current direction")
                 momentumCard(report)
-                goalCard(report)
+                GoalProjectionCard()
                 SectionHeader(title: "Week & recent history")
                 weeklySummary
                 Button { showRecap = true } label: {

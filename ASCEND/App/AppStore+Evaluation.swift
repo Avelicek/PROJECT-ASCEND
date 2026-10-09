@@ -37,8 +37,9 @@ extension AppStore {
             if let lastEvaluated, date <= lastEvaluated { continue }
             let key = policy.key(for: date)
             guard !evaluations.contains(where: { $0.dayKey == key }) else { continue }
-            let result = ELOEngine().evaluate(evaluationInput(for: date), previousELO: history.last?.elo ?? 0)
+            let result = DailyELOEngine().evaluate(dailyScoreInput(for: date, closed: true), previousELO: history.last?.elo ?? 0)
             let evaluation = try DailyEvaluation(dayKey: key, date: date, result: result, evaluatedAt: now)
+            evaluation.scoringVersion = 2
             let entry = ELOHistoryEntry(dayKey: key, date: date, previousELO: result.previousELO, elo: result.elo, delta: result.delta)
             evaluation.history = entry; entry.evaluation = evaluation
             context.insert(evaluation); context.insert(entry)

@@ -1,6 +1,7 @@
 import SwiftUI
 
 @main @MainActor struct AscendApp: App {
+    @UIApplicationDelegateAdaptor(AscendNotificationDelegate.self) private var notificationDelegate
     @State private var store: AppStore?
     @State private var startupError: String?
     @Environment(\.scenePhase) private var scenePhase
@@ -23,6 +24,7 @@ import SwiftUI
                     }.padding(32).frame(maxWidth: .infinity, maxHeight: .infinity).background(AppColor.background)
                 } else {
                     VStack(spacing: 20) {
+                        AscendMark().fill(AppColor.text).frame(width: 92, height: 92)
                         Text("ASCEND").font(.system(.title, design: .rounded, weight: .bold)).tracking(8)
                         ProgressView().tint(AppColor.accent)
                     }.frame(maxWidth: .infinity, maxHeight: .infinity).background(AppColor.background).task { load() }

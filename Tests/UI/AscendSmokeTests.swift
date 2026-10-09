@@ -5,11 +5,18 @@ final class AscendSmokeTests: XCTestCase {
         continueAfterFailure = false
         let app = AscendUITestSupport.launchDemo()
         let dashboard = app.scrollViews["screen.dashboard"]
-        let next = app.buttons["dashboard.next.action"]
+        let next = app.buttons["coach.next.action"]
         AscendUITestSupport.reveal(next, screen: "screen.dashboard", in: app)
-        XCTAssertTrue(next.isHittable); XCTAssertEqual(next.value as? String, "fuel"); next.tap()
+        XCTAssertTrue(next.isHittable); next.tap()
         XCTAssertTrue(app.textFields["nutrition.calories"].waitForExistence(timeout: 10))
         app.buttons["Cancel"].tap()
+        let score = app.buttons["dashboard.daily.elo"]
+        for _ in 0..<5 { if score.isHittable { break }; dashboard.swipeDown() }
+        score.tap()
+        XCTAssertTrue(app.navigationBars["Your ELO, explained"].waitForExistence(timeout: 10))
+        app.buttons["Done"].firstMatch.tap()
+        let disclosure = app.buttons["Daily ELO & rank"]
+        AscendUITestSupport.reveal(disclosure, screen: "screen.dashboard", in: app); disclosure.tap()
         let details = app.buttons["daily.open"]
         for _ in 0..<5 { if details.isHittable { break }; dashboard.swipeUp() }
         XCTAssertTrue(details.isHittable); details.tap()
@@ -40,7 +47,8 @@ final class AscendSmokeTests: XCTestCase {
         continueAfterFailure = false
         let app = AscendUITestSupport.launchDemo()
         AscendUITestSupport.navigate("workout", in: app)
-        let start = app.buttons["workout.start"]
+        let start = app.buttons["workout.manual.start"]
+        AscendUITestSupport.reveal(start, screen: "screen.workout", in: app)
         XCTAssertTrue(start.waitForExistence(timeout: 10)); start.tap()
         let add = app.buttons["live.add.exercise"]
         XCTAssertTrue(add.waitForExistence(timeout: 10)); add.tap()

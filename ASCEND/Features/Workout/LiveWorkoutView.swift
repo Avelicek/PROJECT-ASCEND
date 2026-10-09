@@ -26,6 +26,7 @@ struct LiveWorkoutView: View {
             else { Text("No active workout").task { dismiss() } }
         }.preferredColorScheme(.dark).tint(AppColor.blue).background(AppColor.background)
             .onChange(of: store.activeWorkout?.selectedExerciseID) { _, _ in setFocus = nil; inputFocused = false }
+            .fullScreenCover(isPresented: Binding(get: { store.activeWorkout?.exerciseClock != nil }, set: { _ in })) { TimedExerciseView().environment(store).preferredColorScheme(.dark) }
             .interactiveDismissDisabled().toolbar(.hidden, for: .navigationBar)
             .safeAreaInset(edge: .bottom, spacing: 0) {
                 if let keyboardTarget = setFocus, let selected {
@@ -121,7 +122,11 @@ struct LiveWorkoutView: View {
             }.padding(.horizontal, 18).padding(.vertical, 10).background(.ultraThinMaterial)
         }.task(id: RestWakeKey(active: scenePhase == .active, deadline: draft.rest.deadline)) {
             guard scenePhase == .active, let deadline = draft.rest.deadline else { return }
-            do { try await Task.sleep(for: .seconds(max(0, deadline.timeIntervalSinceNow))) } catch { return }
+            do {
+                let warning = deadline.addingTimeInterval(-10).timeIntervalSinceNow
+                if warning > 0 { try await Task.sleep(for: .seconds(warning)); AppHaptics.tap(enabled: store.settings.hapticsEnabled) }
+                try await Task.sleep(for: .seconds(max(0, deadline.timeIntervalSinceNow)))
+            } catch { return }
             store.tickRest(at: .now)
         }
     }

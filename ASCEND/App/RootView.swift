@@ -8,7 +8,7 @@ enum AppDestination: String, CaseIterable, Identifiable {
         switch self { case .dashboard: "square.grid.2x2"; case .workout: "dumbbell"; case .recovery: "figure.stand"; case .progress: "chart.xyaxis.line"; case .profile: "person.crop.circle" }
     }
 }
-enum LogDestination: String, Identifiable { case weight, nutrition, sleep, workout, objectives; var id: String { rawValue } }
+enum LogDestination: String, Identifiable { case weight, nutrition, sleep, workout, objectives, checkIn, ask, weekly; var id: String { rawValue } }
 
 private struct DayWakeKey: Hashable { let active: Bool; let day: String }
 
@@ -22,7 +22,7 @@ struct RootView: View {
         var initial = AppDestination.dashboard
         #if DEBUG
         let arguments = ProcessInfo.processInfo.arguments
-        if arguments.contains("--demo"), arguments.contains("--ui-testing"), arguments.contains(where: { ["--capture-library", "--capture-routine", "--capture-history"].contains($0) }) { initial = .workout }
+        if arguments.contains("--demo"), arguments.contains("--ui-testing"), arguments.contains(where: { ["--capture-library", "--capture-routine", "--capture-history", "--capture-plan", "--capture-quick", "--capture-guide"].contains($0) }) { initial = .workout }
         #endif
         #if DEBUG
         if ProcessInfo.processInfo.arguments.contains("--demo") && ProcessInfo.processInfo.arguments.contains("--capture-data") { initial = .profile }
@@ -52,6 +52,9 @@ struct RootView: View {
                     case .sleep: SleepEditor()
                     case .workout: WorkoutEditor()
                     case .objectives: ObjectiveManager()
+                    case .checkIn: MorningCheckInView()
+                    case .ask: AskAscendView()
+                    case .weekly: WeeklyRecapView()
                     }
                 }.environment(store).preferredColorScheme(.dark).tint(AppColor.accent)
             }
@@ -66,6 +69,20 @@ struct RootView: View {
                 store.refreshSafely()
             }
             .onChange(of: destination) { _, _ in store.refreshSafely() }
+            .onChange(of: CoachNotificationRouter.shared.route, initial: true) { _, route in
+                guard let route else { return }
+                CoachNotificationRouter.shared.route = nil
+                switch route {
+                case "checkIn": store.presentedSheet = .checkIn
+                case "weekly": store.presentedSheet = .weekly
+                case "nutrition": store.presentedSheet = .nutrition
+                case "objectives": store.presentedSheet = .objectives
+                case "recovery": destination = .recovery
+                case "progress": destination = .progress
+                default: destination = .workout
+                }
+            }
+            .onChange(of: scenePhase) { _, phase in if phase == .active { CoachNotifications.synchronize(store: store, requestPermission: false) } }
             .safeAreaInset(edge: .top, spacing: 0) {
                 if store.ownerSystem.sleepStartedAt != nil || store.ownerSystem.sickActive {
                     Label(store.ownerSystem.sleepStartedAt != nil ? "SLEEP MODE" : "SICK MODE · TRAINING PROTECTED", systemImage: store.ownerSystem.sleepStartedAt != nil ? "moon.fill" : "shield.lefthalf.filled")

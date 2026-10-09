@@ -6,6 +6,7 @@ struct ProfileView: View {
     @State private var editing = false
     @State private var trainingProfile = false
     @State private var showData = false
+    @State private var brainSettings = false
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: AppSpacing.lg) {
@@ -35,13 +36,7 @@ struct ProfileView: View {
                     }
                 }
                 SectionHeader(title: "Intelligence")
-                NavigationLink {
-                    BrainSettingsView().environment(store)
-                } label: {
-                    settingsRow("Personal Brain", symbol: "waveform.path")
-                }
-                .buttonStyle(PremiumPressStyle())
-                .accessibilityIdentifier("profile.brain")
+                Button { brainSettings = true } label: { settingsRow("ASCEND Brain", symbol: "waveform.path") }.buttonStyle(PremiumPressStyle()).accessibilityIdentifier("profile.brain")
                 SectionHeader(title: "Goals")
                 PremiumCard(role: .glass) {
                     VStack(alignment: .leading, spacing: 16) {
@@ -60,6 +55,7 @@ struct ProfileView: View {
                 }
                 NavigationLink { BodyMeasurementsView() } label: { settingsRow("Body measurements", symbol: "ruler") }
                 NavigationLink { SickModeView() } label: { settingsRow(store.ownerSystem.sickActive ? "Sick Mode active" : "Sick Mode", symbol: "shield.lefthalf.filled") }
+                NavigationLink { CoachNotificationSettingsView() } label: { settingsRow("Notifications", symbol: "bell") }
                 SectionHeader(title: "System")
                 Button { showData = true } label: { settingsRow("Data · backup & restore", symbol: "externaldrive") }.accessibilityIdentifier("profile.data")
                 PremiumCard(role: .inline) {
@@ -80,6 +76,7 @@ struct ProfileView: View {
                 #endif
             }
             .navigationDestination(isPresented: $showData) { DataVaultView().environment(store) }
+            .sheet(isPresented: $brainSettings) { NavigationStack { BrainSettingsView().environment(store) }.preferredColorScheme(.dark) }
             .sheet(isPresented: $editing) { NavigationStack { ProfileEditor(store: store).environment(store) }.preferredColorScheme(.dark) }
             .sheet(isPresented: $trainingProfile) { NavigationStack { TrainingProfileView().environment(store) }.preferredColorScheme(.dark) }
     }

@@ -1,7 +1,7 @@
 import Foundation
 
 public enum ScoreCategory: String, Codable, Sendable {
-    case nutrition, training, consistency, progress, personalRecord, objective, recovery
+    case nutrition, training, consistency, progress, personalRecord, objective, recovery, sleep, adherence
 }
 public struct ScoreComponent: Codable, Sendable, Identifiable {
     public let category: ScoreCategory

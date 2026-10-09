@@ -1,4 +1,4 @@
-name: ASCEND V1 verification
+name: ASCEND adaptive coach verification
 
 on:
   push:
@@ -17,7 +17,7 @@ jobs:
   windows-core:
     name: Native Windows Core
     runs-on: windows-2025
-    timeout-minutes: 60
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v7
         with:
@@ -71,7 +71,7 @@ jobs:
     name: Xcode 27 compile, XCTest and screenshots
     # Official public-preview image. Never assume macos-latest supplies Xcode 27.
     runs-on: xcode-27
-    timeout-minutes: 60
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v7
         with:

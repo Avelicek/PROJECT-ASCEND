@@ -66,6 +66,7 @@ struct WeeklyRecapView: View {
                         ContextExplanationView(focus: "Week explained", facts: [store.weeklyExplanation], confidence: recap.fuelDays >= 4 && recap.trainingDays >= 2 ? .medium : .low)
                     }
                 }
+                WeeklyCoachAnalysisView()
                 PrimaryAction(title: "Done", symbol: "checkmark") { dismiss() }
             }.padding(20)
         }.background(AppColor.background).navigationTitle("Weekly recap").navigationBarTitleDisplayMode(.inline)

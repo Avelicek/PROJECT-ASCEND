@@ -32,6 +32,8 @@ final class PersonalTrainingSmokeTests: XCTestCase {
         continueAfterFailure = false
         let app = AscendUITestSupport.launchDemo()
         AscendUITestSupport.navigate("workout", in: app)
+        let templates = app.buttons["Saved templates & favorites"]
+        AscendUITestSupport.reveal(templates, screen: "screen.workout", in: app); templates.tap()
         let routine = app.buttons["workout.routine.Bodyweight push"]
         for _ in 0..<8 { if routine.isHittable && routine.frame.maxY < app.buttons["tab.workout"].frame.minY - 12 { break }; app.scrollViews["screen.workout"].swipeUp() }
         XCTAssertTrue(routine.isHittable); routine.tap()

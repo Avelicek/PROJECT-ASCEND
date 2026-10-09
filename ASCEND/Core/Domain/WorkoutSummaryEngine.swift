@@ -30,8 +30,7 @@ public struct WorkoutSummaryEngine: Sendable {
         for exercise in exercises {
             let working = exercise.completedWorkingSets
             if exercise.mode == .reps || exercise.mode == .weightAndReps { volume += WorkoutEngine().volume(working.map(\.performance)) }
-            let effort = (FitnessMath.average(working.compactMap(\.rpe)) ?? 7) / 8
-            let setLoad = WorkoutEngine().load(sets: working.map(\.performance), mode: exercise.mode, quick: false) * effort
+            let setLoad = TrainingLoadEngine().stimulus(working.map { .init($0.performance(for: exercise.mode), rpe: $0.rpe) }, mode: exercise.mode, quick: false)
             load += setLoad
             for contribution in exercise.contributions { weighted[contribution.muscle.group, default: 0] += setLoad * max(0, contribution.fraction) }
             records += PersonalRecordEngine().detect(exercise: exercise, history: history, at: workout.startedAt)

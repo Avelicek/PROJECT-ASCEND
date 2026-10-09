@@ -15,7 +15,7 @@ extension AppStore {
         hash.combine(try? encoder.encode(profile)); hash.combine(equipment)
         hash.combine(try? encoder.encode(training.routines)); hash.combine(training.favorites.sorted()); hash.combine(training.hidden.sorted())
         hash.combine(try? encoder.encode(brainArchive.settings)); hash.combine(try? encoder.encode(brainArchive.preferences))
-        hash.combine(ownerSystem.sickActive); hash.combine(ownerSystem.sleepStartedAt)
+        hash.combine(ownerSystem.sickActive); hash.combine(ownerSystem.sleepStartedAt); hash.combine(try? encoder.encode(ownerSystem.checkIns))
         for entry in weights { hash.combine(entry.id); hash.combine(entry.measuredAt); hash.combine(entry.kilograms) }
         for entry in nutrition { hash.combine(entry.dayKey); hash.combine(entry.date); hash.combine(entry.calories); hash.combine(entry.proteinGrams); hash.combine(entry.calorieGoal); hash.combine(entry.proteinGoal) }
         for entry in sleep { hash.combine(entry.dayKey); hash.combine(entry.date); hash.combine(entry.durationHours); hash.combine(entry.quality) }
@@ -55,12 +55,7 @@ extension AppStore {
         value.recovery = readiness
         // Disabling a support input also removes its indirect influence on the recovery estimate used by Brain.
         if !brainArchive.settings.useSleep || !brainArchive.settings.useNutrition {
-            let loads = sessions.filter { $0.completedAt != nil }.flatMap { session in session.exercises.map { entry in
-                let sets = entry.sets.filter { !$0.isWarmup }
-                return TrainingLoad(date: session.evaluationDate, contributions: entry.contributions,
-                    challengingSets: WorkoutEngine().load(sets: sets.map(\.performance), mode: entry.trackingMode, quick: session.isQuickLog),
-                    intensity: (FitnessMath.average(sets.compactMap(\.perceivedExertion)) ?? 7) / 8)
-            } }
+            let loads = canonicalLoads
             value.recovery = RecoveryEngine().evaluate(loads: loads, context: .init(
                 sleepHours: brainArchive.settings.useSleep ? value.sleepHours : nil,
                 sleepQuality: brainArchive.settings.useSleep ? value.sleepQuality : nil, sleepTarget: profile.sleepTargetHours,
@@ -70,9 +65,13 @@ extension AppStore {
         }
         value.weeklyMuscles = Dictionary(uniqueKeysWithValues: weeklyExposure)
         value.weeklyMovements = Dictionary(uniqueKeysWithValues: weeklyMovementExposure)
+        for load in canonicalLoads where policy.sameDay(load.date, now) {
+            for (muscle, amount) in TrainingLoadEngine().muscles(stimulus: load.challengingSets, contributions: load.contributions) { value.todayMuscles[muscle, default: 0] += amount }
+        }
+        value.feeling = checkInToday?.feeling; value.soreness = checkInToday?.soreness
         value.training = training; value.archive = brainArchive
         value.progression = PersonalBrainEngine().progressionFacts(value)
-        personalContext = value; brainDecision = PersonalBrainEngine().decide(value)
+        personalContext = value; brainDecision = WorkoutGenerationEngine().decide(value)
         if brainArchive.settings.enabled {
             var archive = brainArchive; archive.record(brainDecision, date: now)
             if archive.history.count != brainArchive.history.count || archive.history.last?.id != brainArchive.history.last?.id {

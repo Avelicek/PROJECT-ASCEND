@@ -20,6 +20,7 @@ struct LiveExerciseCard: View {
             HStack { Text(metadata?.required.map(\.title).sorted().joined(separator: " · ") ?? "Personal exercise").font(.caption2).foregroundStyle(ExerciseIdentity.tint(metadata)); Spacer(); if !store.missingEquipment(exercise.catalogID).isEmpty { PillStatus(title: "EQUIPMENT UNAVAILABLE", tint: AppColor.warning) } }
             Text(Array(Set(exercise.contributions.filter { $0.fraction >= 0.1 }.map { $0.muscle.group })).sorted().joined(separator: " · "))
                 .font(.caption).foregroundStyle(AppColor.strength)
+            NavigationLink("How do I do this?") { ExerciseEducationView(exerciseID: exercise.catalogID) }.font(.caption).frame(minHeight: 44)
             comparison(previous: previous, suggestion: suggestion)
             if exercise.bodyweight && exercise.addedWeight && exercise.mode == .reps {
                 Toggle("Bodyweight + added load", isOn: Binding(get: { exercise.allowsWeight }, set: { enabled in
@@ -34,6 +35,8 @@ struct LiveExerciseCard: View {
             ForEach(Array(exercise.sets.enumerated()), id: \.element.id) { index, liveSet in
                 LiveSetRow(exercise: exercise, liveSet: liveSet, number: index + 1, focus: focus)
             }
+            ExerciseEffortReview(exercise: exercise)
+            LiveAutoregulationCard(exercise: exercise)
             PrimaryAction(title: "Add set", symbol: "plus", tint: AppColor.strength) { store.addLiveSet(exerciseID: exercise.id) }.accessibilityIdentifier("live.add.set")
             if suggestion.additionalSetSuggested { Text("Three consistent sessions. Consider one extra working set if recovery permits.").font(.caption).foregroundStyle(AppColor.recovery) }
             if let metadata, let variation = TrainingSystem().harderVariation(for: metadata, history: store.exerciseHistory, state: store.training, now: store.actionDate()) {
@@ -149,6 +152,10 @@ private struct LiveSetRow: View {
                         .frame(width: 44, height: 54)
                 }.buttonStyle(PremiumPressStyle()).disabled(completed).accessibilityIdentifier("live.set.complete")
                     .accessibilityLabel(completed ? "Set complete" : "Complete set")
+            }
+            if exercise.mode == .duration && !completed {
+                Button("Start set timer", systemImage: "timer") { focus.wrappedValue = nil; store.startExerciseClock(exerciseID: exercise.id, setID: liveSet.id) }
+                    .font(.subheadline.weight(.medium)).frame(minHeight: 44).accessibilityIdentifier("exercise.timer.start")
             }
             HStack {
                 Button { if !completed { update { $0.isWarmup.toggle() } } } label: {

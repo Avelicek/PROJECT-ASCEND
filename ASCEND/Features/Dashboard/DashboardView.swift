@@ -20,20 +20,24 @@ struct DashboardView: View {
         ScrollViewReader { proxy in
         ScrollView {
             VStack(alignment: .leading, spacing: AppSpacing.lg) {
-                header
+                header.id("dashboard.top")
                 if store.ownerSystem.sleepStartedAt != nil || store.ownerSystem.sickActive { OwnerModeCard() }
-                RankHeroView(showScore: $showScore)
-                VStack(spacing: 4) {
-                    if store.ownerSystem.sleepStartedAt == nil && !store.ownerSystem.sickActive && store.brainArchive.settings.enabled { BrainHeroView { showBrain = true }.id("brain.hero.anchor") }
-                    if store.ownerSystem.sleepStartedAt == nil && !store.ownerSystem.sickActive && (!store.brainArchive.settings.enabled || store.brainDecision.session == nil || (store.nextAction.kind != .train && store.nextAction.kind != .resume)) {
-                        NextActionCard { dailyPresentation = .pending }
-                    }
-                }
-                readinessAndMomentum
-                quickMetrics
-                DailyCommandCard { dailyPresentation = .pending }
-                objectives
-                DashboardNutritionView()
+                TodayCoachHero { showScore = true }
+                NextCoachActionCard { showBrain = true }.id("brain.hero.anchor")
+                MetricStrip(metrics: [
+                    GlanceMetric(title: "Recovery · est.", value: store.readiness.percent.map { String(Int($0.rounded())) } ?? "Learning", symbol: "figure.stand", tint: AppColor.recovery),
+                    GlanceMetric(title: "Weight · kg", value: store.progress.actualWeight.map { $0.formatted(.number.precision(.fractionLength(1))) } ?? "—", symbol: "scalemass", tint: AppColor.bodyweight),
+                    GlanceMetric(title: "Sleep · h", value: store.personalContext.sleepHours.map { $0.formatted(.number.precision(.fractionLength(1))) } ?? "—", symbol: "moon", tint: AppColor.sleep)
+                ])
+                GoalProjectionCard()
+                HStack {
+                    Button("Morning check-in", systemImage: "sun.horizon") { store.presentedSheet = .checkIn }.accessibilityIdentifier("coach.checkin")
+                    Spacer(); Button("Ask ASCEND", systemImage: "bubble.left") { store.presentedSheet = .ask }.accessibilityIdentifier("coach.open.ask")
+                }.font(.caption.weight(.medium)).frame(minHeight: 44)
+                DisclosureGroup("Today's objectives") { objectives.padding(.top, 12) }.font(.subheadline)
+                DisclosureGroup("Daily ELO & rank") {
+                    VStack(spacing: 16) { RankHeroView(showScore: $showScore); DailyCommandCard { dailyPresentation = .pending } }.padding(.top, 12)
+                }.font(.subheadline)
                 if store.ownerSystem.sleepStartedAt == nil && !store.ownerSystem.sickActive { OwnerModeCard() }
             }.padding(.horizontal, AppSpacing.page).padding(.bottom, 96)
                 .opacity(appeared || AppMotion.snapshotMode ? 1 : 0).offset(y: appeared || reduceMotion || AppMotion.snapshotMode ? 0 : 10)
@@ -55,6 +59,8 @@ struct DashboardView: View {
             .sheet(item: $dailyPresentation, onDismiss: { store.acknowledgeEvaluation() }) { presentation in
                 NavigationStack { DailyEvaluationView(preferFinalized: presentation == .finalized).environment(store) }.preferredColorScheme(.dark)
             }
+            .onChange(of: store.ownerSystem.sickActive) { _, active in if active { proxy.scrollTo("dashboard.top", anchor: .top) } }
+            .onChange(of: store.ownerSystem.sleepStartedAt) { _, start in if start != nil { proxy.scrollTo("dashboard.top", anchor: .top) } }
             .onChange(of: store.unseenEvaluation, initial: true) { _, unseen in if unseen { dailyPresentation = .finalized } }
             .task {
                 #if DEBUG

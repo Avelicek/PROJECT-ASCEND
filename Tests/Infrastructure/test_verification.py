@@ -58,7 +58,7 @@ class ExportTests(unittest.TestCase):
             result = export_named_screenshots(root / 'export', root / 'named')
             self.assertEqual([x['name'] for x in result], list(SCREENSHOTS))
             self.assertEqual(list(SCREENSHOTS[:5]), ['01_dashboard', '02_workout', '03_recovery', '04_progress', '05_profile'])
-            self.assertEqual(len(list((root / 'named').glob('*.png'))), 22)
+            self.assertEqual(len(list((root / 'named').glob('*.png'))), 29)
     def test_missing_attachment_fails_before_copying(self):
         with temporary_directory() as temp:
             root = Path(temp); items = attachments(root / 'export')
@@ -160,8 +160,8 @@ class PropagationTests(unittest.TestCase):
             verification = FixtureVerification(temp)
             self.assertTrue(verification.execute())
             selectors = {argument for argument in verification.command_lines['smoke'] if argument.startswith('-only-testing:')}
-            self.assertEqual(selectors, {'-only-testing:ASCENDUITests/AscendSmokeTests', '-only-testing:ASCENDUITests/PersonalTrainingSmokeTests', '-only-testing:ASCENDUITests/PersonalBrainSmokeTests', '-only-testing:ASCENDUITests/OwnerSystemSmokeTests'})
-            self.assertEqual(len(SCREENSHOTS), 22)
+            self.assertEqual(selectors, {'-only-testing:ASCENDUITests/AscendSmokeTests', '-only-testing:ASCENDUITests/PersonalTrainingSmokeTests', '-only-testing:ASCENDUITests/PersonalBrainSmokeTests', '-only-testing:ASCENDUITests/OwnerSystemSmokeTests', '-only-testing:ASCENDUITests/AdaptiveCoachSmokeTests'})
+            self.assertEqual(len(SCREENSHOTS), 29)
             self.assertEqual(list(SCREENSHOTS[5:15]), ['06_live_workout', '07_workout_summary', '08_daily_evaluation', '09_exercise_library', '10_routine', '11_exercise_history', '12_brain_today', '13_brain_detail', '14_brain_low_confidence', '15_post_workout_brain'])
     def test_compile_failure_leaves_tests_not_run(self):
         with temporary_directory() as temp, patch('verify_ios.platform.system', return_value='Darwin'), contextlib.redirect_stdout(io.StringIO()):

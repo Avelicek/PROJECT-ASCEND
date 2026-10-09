@@ -10,46 +10,27 @@ struct WorkoutView: View {
     @State private var historyRoute: ExerciseRoute?
     @State private var pendingStart: WorkoutRoutine?
     @State private var capturePrepared = false
+    @State private var guide = false
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: AppSpacing.lg) {
                 FeatureHeader(eyebrow: "PUT IN THE WORK", title: "Training")
-                PremiumCard(role: .hero, tint: AppColor.strength) {
-                    VStack(alignment: .leading, spacing: 20) {
-                        HStack {
-                            VStack(alignment: .leading, spacing: 9) {
-                                Eyebrow(text: store.activeWorkout == nil ? "YOUR NEXT SESSION" : "SAVED SESSION")
-                                Text(store.activeWorkout == nil ? "Ready when you are." : "Pick up where you left off.").font(.system(.title3, design: .rounded, weight: .semibold)).foregroundStyle(AppColor.text)
-                            }
-                            Spacer(minLength: 8)
-                            ZStack {
-                                Circle().stroke(AppColor.strength.opacity(0.12), lineWidth: 1)
-                                Circle().trim(from: 0.05, to: 0.75).stroke(AppColor.strength.opacity(0.6), style: StrokeStyle(lineWidth: 3, lineCap: .round)).padding(8)
-                                Image(systemName: "dumbbell.fill").font(.system(size: 26)).foregroundStyle(AppColor.strength)
-                            }.frame(width: 64, height: 64).accessibilityHidden(true)
-                        }
-                        PrimaryAction(title: store.activeWorkout == nil ? "Start workout" : "Resume workout", symbol: "play.fill", tint: AppColor.strength) { store.startLiveWorkout() }
-                            .accessibilityIdentifier("workout.start")
-
-                    }
-                }
-                if !store.brainArchive.settings.enabled, let recommendation = store.recommendedRoutine {
-                    Button { routineRoute = .init(id: recommendation.routineID) } label: {
-                        PremiumCard(role: .status, tint: AppColor.recovery) {
-                            VStack(alignment: .leading, spacing: 8) { Eyebrow(text: "SUGGESTED FOCUS · OPTIONAL"); Text(recommendation.title).font(.headline).foregroundStyle(AppColor.recovery); Text(recommendation.reason).font(.caption).foregroundStyle(AppColor.muted) }
-                        }
-                    }.buttonStyle(PremiumPressStyle())
-                }
-                if store.brainArchive.settings.enabled, let session = store.brainDecision.session {
-                    PremiumCard(role: .inline, tint: AppColor.recovery) {
-                        VStack(alignment: .leading, spacing: 10) {
-                            Eyebrow(text: "TODAY'S RECOMMENDATION")
-                            HStack { Text(session.name).font(.headline).foregroundStyle(AppColor.text); Spacer(); Text("~\(store.brainDecision.duration ?? 0) min").font(.caption).foregroundStyle(AppColor.muted) }
-                            PrimaryAction(title: "Start \(store.brainDecision.focus)", symbol: "play.fill", tint: AppColor.recovery) { store.startBrainSession() }.accessibilityIdentifier("workout.brain.start")
+                if store.activeWorkout != nil {
+                    PremiumCard(role: .hero, tint: AppColor.strength) {
+                        VStack(alignment: .leading, spacing: 16) {
+                            Eyebrow(text: "SAVED SESSION")
+                            Text(store.activeWorkout?.title ?? "Your workout").font(.title2.weight(.semibold))
+                            PrimaryAction(title: "Resume workout", symbol: "play.fill", tint: AppColor.strength) { store.startLiveWorkout() }.accessibilityIdentifier("workout.start")
                         }
                     }
+                } else if store.brainArchive.settings.enabled {
+                    GeneratedWorkoutCard()
+                } else {
+                    PrimaryAction(title: "Start workout", symbol: "play.fill", tint: AppColor.strength) { store.startLiveWorkout() }.accessibilityIdentifier("workout.start")
                 }
-                HStack { SectionHeader(title: "Routines"); Spacer(); Button("Create", systemImage: "plus") { createRoutine = true }.font(.caption).frame(minHeight: 44).accessibilityIdentifier("workout.routine.create") }
+                QuickActivityCard()
+                DisclosureGroup("Saved templates & favorites") {
+                HStack { SectionHeader(title: "Templates"); Spacer(); Button("Create", systemImage: "plus") { createRoutine = true }.font(.caption).frame(minHeight: 44).accessibilityIdentifier("workout.routine.create") }
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 12) {
                         ForEach(store.training.routines) { routine in
@@ -66,6 +47,7 @@ struct WorkoutView: View {
                         }
                     }
                 }
+                }.font(.subheadline)
                 SectionHeader(title: "Equipment & exercises")
                 HStack {
                     Button("Exercise library", systemImage: "books.vertical") { showLibrary = true }.accessibilityIdentifier("workout.library")
@@ -89,6 +71,7 @@ struct WorkoutView: View {
                 }
             }.padding(.horizontal, AppSpacing.page).padding(.bottom, AppSpacing.lg)
         }.accessibilityIdentifier("screen.workout").featureBackground(tint: AppColor.strength)
+            .sheet(isPresented: $guide) { NavigationStack { ExerciseEducationView(exerciseID: "push_up").environment(store) }.preferredColorScheme(.dark) }
             .sheet(isPresented: $showRecords) { NavigationStack { RecordHistoryView().environment(store) }.preferredColorScheme(.dark) }
             .sheet(isPresented: $showLibrary) { NavigationStack { ExerciseLibraryView().environment(store) }.preferredColorScheme(.dark) }
             .sheet(isPresented: $showGym) { NavigationStack { TrainingProfileView().environment(store) }.preferredColorScheme(.dark) }
@@ -104,6 +87,7 @@ struct WorkoutView: View {
                 guard store.isDemo, !capturePrepared, ProcessInfo.processInfo.arguments.contains("--ui-testing") else { return }
                 capturePrepared = true
                 let arguments = ProcessInfo.processInfo.arguments
+                if arguments.contains("--capture-guide") { guide = true }
                 if arguments.contains("--capture-library") { showLibrary = true }
                 if arguments.contains("--capture-routine"), let routine = store.training.routines.first(where: { $0.name == "Upper body" }) { routineRoute = .init(id: routine.id) }
                 if arguments.contains("--capture-history") { historyRoute = .init(id: "db_row") }

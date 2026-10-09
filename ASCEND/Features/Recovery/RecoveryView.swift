@@ -6,6 +6,7 @@ struct RecoveryView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: AppSpacing.lg) {
                 FeatureHeader(eyebrow: "RECOVER TO RISE", title: "Body intelligence")
+                PremiumCard(role: .inline) { VStack(alignment: .leading, spacing: 10) { Eyebrow(text: "SO WHAT?"); Text(store.brainDecision.reasons.joined(separator: " ")).font(.subheadline).foregroundStyle(AppColor.secondary) } }
                 BodyMapView(report: store.readiness)
                 PremiumCard(role: .inline) {
                     HStack(spacing: 16) {
@@ -44,6 +45,6 @@ struct RecoveryView: View {
                     }
                 }
             }.padding(.horizontal, AppSpacing.page).padding(.bottom, AppSpacing.lg)
-        }.accessibilityIdentifier("screen.recovery").featureBackground(tint: AppColor.recovery)
+        }.task { if !AppMotion.snapshotMode { await AnatomyAssetCache.shared.preload() } }.accessibilityIdentifier("screen.recovery").featureBackground(tint: AppColor.recovery)
     }
 }

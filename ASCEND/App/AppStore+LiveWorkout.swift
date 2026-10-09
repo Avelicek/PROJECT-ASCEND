@@ -1,5 +1,6 @@
 import Foundation
 import SwiftData
+import AudioToolbox
 
 extension AppStore {
     var exerciseHistory: [ExerciseHistory] {
@@ -24,7 +25,7 @@ extension AppStore {
         change(&value)
         do { try workoutStorage?.write(value); activeWorkout = value
             if value?.rest.deadline != previousDeadline || value?.rest.exerciseID != previousExercise {
-                RestNotifications.synchronize(value?.rest, enabled: !isDemo && !AppMotion.snapshotMode && !container.configurations.allSatisfy(\.isStoredInMemoryOnly))
+                RestNotifications.synchronize(value?.rest, enabled: (ownerSystem.coachPreferences ?? .init()).enabled.contains(.rest) && !isDemo && !AppMotion.snapshotMode && !container.configurations.allSatisfy(\.isStoredInMemoryOnly))
                 RestLiveActivity.synchronize(value, enabled: !isDemo && !AppMotion.snapshotMode && !container.configurations.allSatisfy(\.isStoredInMemoryOnly))
             }
             if hadWorkout != (value != nil) { deriveBrain() }
@@ -79,7 +80,11 @@ extension AppStore {
     }
     func preferredRest(for exerciseID: String) -> Int {
         if let routineRest = activeWorkout?.exercises.first(where: { $0.catalogID == exerciseID })?.restSeconds { return routineRest }
-        return ownerSystem.exerciseRest[exerciseID] ?? (localPreferences?.dictionary(forKey: "exercise-rest-v1")?[exerciseID] as? Int) ?? settings.restTimerSeconds
+        let preference = ownerSystem.exerciseRest[exerciseID] ?? (localPreferences?.dictionary(forKey: "exercise-rest-v1")?[exerciseID] as? Int)
+        let exercise = activeWorkout?.exercises.first { $0.catalogID == exerciseID }
+        let fatigue = readiness.muscles.filter { muscle in exercise?.contributions.contains { $0.muscle == muscle.muscle && $0.fraction >= 0.1 } ?? false }.map(\.fatigue).max()
+        return AdaptiveRestEngine().seconds(pattern: trainingMetadata(exerciseID)?.pattern, goal: training.profile.goal,
+            rpe: exercise?.completedWorkingSets.last?.rpe, fatigue: fatigue, preference: preference)
     }
     func setPreferredRest(_ seconds: Int, for exerciseID: String) {
         let duration = min(900, max(15, seconds))
@@ -94,7 +99,7 @@ extension AppStore {
     }
     func tickRest(at date: Date) {
         guard var rest = activeWorkout?.rest, rest.consumeCompletion(at: date) else { return }
-        if updateWorkout({ $0?.rest = rest }) { AppHaptics.success(enabled: settings.hapticsEnabled) }
+        if updateWorkout({ $0?.rest = rest }) { AppHaptics.success(enabled: settings.hapticsEnabled); if !AppMotion.snapshotMode { AudioServicesPlaySystemSound(1007) } }
     }
     func discardLiveWorkout() {
         if updateWorkout({ $0 = nil }) { completedWorkout = nil; liveWorkoutPresented = false }
@@ -103,7 +108,7 @@ extension AppStore {
         guard let draft = activeWorkout, draft.completedSets > 0 else { errorMessage = "Complete at least one set before finishing."; return false }
         let history = exerciseHistory.filter { $0.sessionID != draft.id }
         var summary = WorkoutSummaryEngine().summarize(draft, history: history, finishedAt: actionDate())
-        let before = ELOEngine().evaluate(evaluationInput(for: actionDate(), includeMisses: false), previousELO: currentELO).delta
+        let before = projectedScore.delta
         let saved = perform {
             if sessions.contains(where: { $0.id == draft.id }) { return }
             let session = WorkoutSession(startedAt: draft.startedAt, title: draft.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Live training" : String(draft.title.prefix(80)), isQuickLog: false)

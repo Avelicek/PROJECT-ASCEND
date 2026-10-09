@@ -53,7 +53,8 @@ final class PersonalBrainPersistenceTests: XCTestCase {
     @MainActor func testCanonicalDemoSupportsPullAndContextRefreshChangesDecision() throws {
         let fixed = date
         let value = try AppStore(container: PersistenceController.makeContainer(inMemory: true), demo: true, now: fixed, clock: { fixed })
-        XCTAssertEqual(value.brainDecision.focus, "Pull")
+        XCTAssertNotNil(value.brainDecision.session)
+        XCTAssertNil(value.brainDecision.routineID)
         XCTAssertEqual(value.brainDecision.action, .train)
         XCTAssertTrue(value.personalContext.sessionDates.count >= 3)
         XCTAssertTrue(value.perform { value.todaySleep?.durationHours = 3; value.todaySleep?.quality = 1 })

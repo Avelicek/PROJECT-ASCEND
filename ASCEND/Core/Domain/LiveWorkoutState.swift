@@ -101,6 +101,7 @@ public struct LiveWorkout: Codable, Sendable, Identifiable {
     public var rest: RestClock
     public var selectedExerciseID: UUID?
     public var routineID: UUID?
+    public var exerciseClock: ExerciseClock?
     public init(startedAt: Date, title: String = "Live training") {
         version = 1; id = UUID(); self.startedAt = startedAt; self.title = title; exercises = []; rest = RestClock()
     }
@@ -110,7 +111,8 @@ public struct LiveWorkout: Codable, Sendable, Identifiable {
               rest.spanSeconds.map({ $0.isFinite && (0...900).contains($0) }) ?? true,
               rest.pausedSeconds.map({ $0.isFinite && (0...900).contains($0) }) ?? true,
               rest.deadline == nil || rest.pausedSeconds == nil,
-              rest.deadline.map({ OwnerDates.valid($0) }) ?? true else { return false }
+              rest.deadline.map({ OwnerDates.valid($0) }) ?? true,
+              exerciseClock.map({ clock in clock.isValid && exercises.contains { $0.id == clock.exerciseID && $0.sets.contains { $0.id == clock.setID && $0.completedAt == nil } } }) ?? true else { return false }
         return exercises.allSatisfy { exercise in
             exercise.sets.count <= 40 && Set(exercise.sets.map(\.id)).count == exercise.sets.count &&
             exercise.weightStep.isFinite && exercise.weightStep > 0 &&

@@ -33,6 +33,8 @@ public struct OwnerSystem: Codable, Sendable {
     public var sickIntervals: [SickInterval] = []
     public var exerciseRest: [String: Int] = [:]
     public var lastSeenDay: String?
+    public var checkIns: [MorningCheckIn]?
+    public var coachPreferences: CoachPreferences?
     public init() {}
     public var sickActive: Bool { sickIntervals.last?.end == nil && !sickIntervals.isEmpty }
     public func protectsTraining(on date: Date, policy: DayPolicy) -> Bool { sickIntervals.contains { $0.intersects(day: date, policy: policy) } }
@@ -43,7 +45,9 @@ public struct OwnerSystem: Codable, Sendable {
               sickIntervals.count <= 10_000, Set(sickIntervals.map(\.id)).count == sickIntervals.count,
               sickIntervals.filter({ $0.end == nil }).count <= 1,
               sickIntervals.allSatisfy({ $0.note.count <= 400 && OwnerDates.valid($0.start) && ($0.end.map(OwnerDates.valid) ?? true) }),
-              exerciseRest.values.allSatisfy({ (15...900).contains($0) }) else { throw OwnerSystemError.invalid }
+              exerciseRest.values.allSatisfy({ (15...900).contains($0) }),
+              coachPreferences?.isValid ?? true,
+              checkIns.map({ $0.count <= 50_000 && $0.allSatisfy(\.isValid) && Set($0.map(\.id)).count == $0.count }) ?? true else { throw OwnerSystemError.invalid }
         if let open = sickIntervals.first(where: { $0.end == nil }), open.id != sickIntervals.last?.id { throw OwnerSystemError.invalid }
         for interval in sickIntervals { if let end = interval.end, end < interval.start { throw OwnerSystemError.invalid } }
     }

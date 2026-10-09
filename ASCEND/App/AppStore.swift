@@ -28,6 +28,8 @@ enum InputError: LocalizedError {
     var evaluations: [DailyEvaluation] = []
     var history: [ELOHistoryEntry] = []
     var records: [PersonalRecord] = []
+    var activityLoads: [TrainingLoad] = []
+    @ObservationIgnored var activityStimulus: [UUID: Double] = [:]
     var progress: ProgressReport
     var readiness: ReadinessReport
     var personalModel: PersonalModel
@@ -116,7 +118,7 @@ enum InputError: LocalizedError {
         } catch { errorMessage = "Unfinished workout file preserved: \(error.localizedDescription)" }
         if activeWorkout != nil { deriveBrain() }
         if activateServices && !memoryOnly && !AppMotion.snapshotMode {
-            RestNotifications.synchronize(activeWorkout?.rest, enabled: true)
+            RestNotifications.synchronize(activeWorkout?.rest, enabled: (ownerSystem.coachPreferences ?? .init()).enabled.contains(.rest))
             RestLiveActivity.synchronize(activeWorkout, enabled: true)
         }
         #if DEBUG
@@ -127,6 +129,7 @@ enum InputError: LocalizedError {
     func refresh(at date: Date = .now) throws {
         now = date
         try loadRecords()
+        rebuildActivityLoads()
         materializeToday()
         synchronizeToday()
         try finalizeClosedDays()
@@ -148,7 +151,7 @@ enum InputError: LocalizedError {
     private func recover(from error: Error) {
         context.rollback()
         errorMessage = error.localizedDescription
-        do { try loadRecords(); deriveState(); revision += 1 } catch { errorMessage = error.localizedDescription }
+        do { try loadRecords(); rebuildActivityLoads(); deriveState(); revision += 1 } catch { errorMessage = error.localizedDescription }
     }
 
     func loadRecords() throws {
@@ -228,17 +231,9 @@ enum InputError: LocalizedError {
             tolerance: personalModel.recoveryTolerance,
             historyDays: sessions.filter { $0.hasWorkingSets }.last.map { max(0, Int(now.timeIntervalSince($0.startedAt) / 86400)) } ?? 0,
             trainingSessions: sessions.filter { $0.hasWorkingSets }.count)
-        let loads = sessions.filter { $0.completedAt != nil }.flatMap { session in
-            session.exercises.map { exercise in
-                let sets = exercise.sets.filter { !$0.isWarmup }
-                let exertion = FitnessMath.average(sets.compactMap(\.perceivedExertion)) ?? 7
-                return TrainingLoad(date: session.evaluationDate, contributions: exercise.contributions,
-                    challengingSets: WorkoutEngine().load(sets: sets.map(\.performance), mode: exercise.trackingMode, quick: session.isQuickLog),
-                    intensity: exertion / 8)
-            }
-        }
+        let loads = canonicalLoads
         readiness = RecoveryEngine().evaluate(loads: loads, context: context, now: now)
-        projectedScore = ELOEngine().evaluate(evaluationInput(for: now, includeMisses: false), previousELO: currentELO)
+        projectedScore = DailyELOEngine().evaluate(dailyScoreInput(for: now), previousELO: currentELO)
         deriveBrain()
 
     }

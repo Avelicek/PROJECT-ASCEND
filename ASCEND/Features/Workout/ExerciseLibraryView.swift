@@ -130,6 +130,9 @@ struct ExerciseLibraryView: View {
                 }
             }.buttonStyle(PremiumPressStyle()).accessibilityIdentifier("live.choose.\(exercise.catalogID)")
                 .disabled(onSelect != nil && ((!allowUnavailableSelection && !missing.isEmpty) || (replacing != nil && duplicate)))
+            if onSelect != nil {
+                NavigationLink { ExerciseEducationView(exerciseID: exercise.catalogID) } label: { Image(systemName: "play.circle").frame(width: 44, height: 44) }.accessibilityLabel("Preview \(exercise.name)")
+            }
             if onSelect == nil {
                 Menu {
                     Button(store.training.favorites.contains(exercise.catalogID) ? "Remove favorite" : "Favorite", systemImage: "star") { store.toggleFavorite(exercise.catalogID) }
@@ -173,6 +176,7 @@ struct ExerciseHistoryView: View {
                         Text("\(history.filter { $0.date >= store.now.addingTimeInterval(-28 * 86400) }.count) sessions in the last 28 days").font(.caption).foregroundStyle(AppColor.muted)
                     }
                 }
+                NavigationLink("How do I do this?", systemImage: "play.circle") { ExerciseEducationView(exerciseID: exerciseID) }.frame(minHeight: 44).accessibilityIdentifier("exercise.education")
                 if history.isEmpty { EmptyStateCard(symbol: "chart.xyaxis.line", title: "Your baseline starts here.", detail: "Completed sessions will appear here. Choose this exercise in a workout or routine.") }
                 else {
                     if exercise?.trackingMode == .reps || exercise?.trackingMode == .weightAndReps { trend }

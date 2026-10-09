@@ -19,7 +19,7 @@ extension AppStore {
         #endif
         return await FitnessBrain(provider: provider).analyze(value)
     }
-    var dailyResult: DailyResult { DailyGameEngine().evaluate(evaluationInput(for: now, includeMisses: false), previousELO: currentELO,
+    var dailyResult: DailyResult { DailyGameEngine().presentation(projectedScore,
         momentum: progress.momentumPercent, confidence: progress.confidence) }
     func finalizedResult(_ entry: ELOHistoryEntry) -> DailyResult {
         let components = entry.evaluation.flatMap { try? JSONDecoder().decode([ScoreComponent].self, from: $0.componentData) } ?? []

@@ -98,6 +98,9 @@ public struct PersonalContext: Sendable {
     public var recovery: ReadinessReport = .init(percent: nil, state: nil, muscles: [], confidence: .low)
     public var weeklyMuscles: [String: Double] = [:]
     public var weeklyMovements: [MovementPattern: Int] = [:]
+    public var todayMuscles: [Muscle: Double] = [:]
+    public var feeling: Int?
+    public var soreness: Int?
     public var progression: [BrainOpportunity] = []
     public var training = PersonalTrainingState()
     public var archive = BrainArchive()

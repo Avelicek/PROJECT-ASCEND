@@ -46,6 +46,12 @@ extension AppStore {
             var entry = liveExercise(catalog)
             let baseline = entry.sets.first ?? LiveSet()
             entry.sets = (0..<item.sets).map { _ in var value = baseline; value.id = UUID(); if let reps = item.repTarget { value.reps = reps }; return value }
+            if generated, let targets = ProgressionPlanEngine().targets(history: exerciseHistory, exercise: entry, count: item.sets, now: actionDate(), recoveryLimited: brainDecision.intensity == .light || brainDecision.intensity == .recoverySession) {
+                for index in entry.sets.indices {
+                    let target = targets[index]; entry.sets[index].reps = target.reps; entry.sets[index].kilograms = target.kilograms
+                    entry.sets[index].seconds = target.seconds; entry.sets[index].distanceMeters = target.distanceMeters
+                }
+            }
             entry.restSeconds = item.restSeconds; draft.exercises.append(entry)
         }
         draft.selectedExerciseID = draft.exercises.first?.id
@@ -93,7 +99,7 @@ extension AppStore {
         var totals: [String: Double] = [:]
         for session in sessions where session.hasWorkingSets && session.evaluationDate >= lower && session.evaluationDate <= now {
             for exercise in session.exercises {
-                let count = WorkoutEngine().load(sets: exercise.sets.filter { !$0.isWarmup }.map(\.performance), mode: exercise.trackingMode, quick: session.isQuickLog)
+                let count = stimulus(for: exercise, quick: session.isQuickLog)
                 for contribution in exercise.contributions { totals[contribution.muscle.group, default: 0] += count * contribution.fraction }
             }
         }
