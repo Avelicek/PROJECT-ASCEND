@@ -55,8 +55,8 @@ final class AscendSmokeTests: XCTestCase {
         let bench = app.buttons["live.choose.chest_press"]
         XCTAssertTrue(bench.waitForExistence(timeout: 10)); bench.tap()
         let screen = app.scrollViews["screen.liveworkout"]
-        let kg = app.textFields["live.set.kg"].firstMatch
-        for _ in 0..<6 { if kg.isHittable { break }; screen.swipeUp() }
+        let kg = app.textFields.matching(identifier: "live.set.kg").matching(NSPredicate(format: "enabled == true")).firstMatch
+        AscendUITestSupport.reveal(kg, screen: "screen.liveworkout", in: app)
         XCTAssertTrue(kg.isHittable)
         kg.tap()
         let complete = app.buttons["live.keyboard.complete"]

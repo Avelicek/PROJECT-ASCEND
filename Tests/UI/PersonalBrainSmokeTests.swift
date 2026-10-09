@@ -13,7 +13,7 @@ final class PersonalBrainSmokeTests: XCTestCase {
         XCTAssertTrue(app.scrollViews["screen.braindetail"].waitForExistence(timeout: 10))
         app.buttons["Done"].firstMatch.tap()
         AscendUITestSupport.navigate("workout", in: app)
-        XCTAssertTrue(app.buttons["workout.start"].waitForExistence(timeout: 10)); app.buttons["workout.start"].tap()
+        let start = app.buttons["workout.start"]; AscendUITestSupport.reveal(start, screen: "screen.workout", in: app); start.tap()
         XCTAssertTrue(app.scrollViews["screen.liveworkout"].waitForExistence(timeout: 10))
         XCTAssertFalse((app.textFields["live.title"].value as? String ?? "").isEmpty)
         XCTAssertTrue(app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "live.exercise.")).count > 0)
@@ -21,9 +21,9 @@ final class PersonalBrainSmokeTests: XCTestCase {
     }
     @MainActor func testLowConfidenceDoesNotInventRecovery() {
         let app = launch(["--brain-low-data"])
-        let confidence = app.staticTexts["brain.confidence"]
-        AscendUITestSupport.reveal(confidence, screen: "screen.dashboard", in: app)
-        XCTAssertTrue(confidence.label.contains("Low confidence"))
+        let detail = app.buttons["brain.detail"]
+        AscendUITestSupport.reveal(detail, screen: "screen.dashboard", in: app); detail.tap()
+        XCTAssertTrue(app.scrollViews["screen.braindetail"].waitForExistence(timeout: 10))
         XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "Learning")).firstMatch.exists)
         XCTAssertFalse(app.staticTexts["91%"].exists)
         app.terminate()
@@ -31,7 +31,7 @@ final class PersonalBrainSmokeTests: XCTestCase {
     @MainActor func testRecommendationUpdatesWhenSleepInputDisabled() {
         let app = launch(["--brain-poor-sleep"])
         AscendUITestSupport.navigate("workout", in: app)
-        XCTAssertTrue(app.staticTexts["Recovery today"].waitForExistence(timeout: 10))
+        XCTAssertFalse(app.buttons["workout.start"].exists)
         AscendUITestSupport.navigate("profile", in: app)
         let settings = app.buttons["profile.brain"]
         AscendUITestSupport.reveal(settings, screen: "screen.profile", in: app); settings.tap()
@@ -40,7 +40,7 @@ final class PersonalBrainSmokeTests: XCTestCase {
         app.buttons["Done"].firstMatch.tap()
         AscendUITestSupport.navigate("workout", in: app)
         XCTAssertTrue(app.buttons["workout.start"].waitForExistence(timeout: 10))
-        XCTAssertFalse(app.staticTexts["Recovery today"].exists)
+        XCTAssertTrue(app.buttons["workout.start"].isEnabled)
         app.terminate()
     }
 }

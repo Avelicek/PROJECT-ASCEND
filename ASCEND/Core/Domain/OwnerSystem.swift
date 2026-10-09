@@ -30,6 +30,9 @@ public struct OwnerSystem: Codable, Sendable {
     public var birthDate: Date?
     public var measurements: [BodyMeasurement] = []
     public var sleepStartedAt: Date?
+    public var sleepEndedAt: Date?
+    public var goalPlanReviewAt: Date?
+    public var weeklyWorkoutTarget: Int?
     public var sickIntervals: [SickInterval] = []
     public var exerciseRest: [String: Int] = [:]
     public var lastSeenDay: String?
@@ -39,6 +42,11 @@ public struct OwnerSystem: Codable, Sendable {
     public var sickActive: Bool { sickIntervals.last?.end == nil && !sickIntervals.isEmpty }
     public func protectsTraining(on date: Date, policy: DayPolicy) -> Bool { sickIntervals.contains { $0.intersects(day: date, policy: policy) } }
     public func validate() throws {
+        guard goalPlanReviewAt.map(OwnerDates.valid) ?? true else { throw OwnerSystemError.invalid }
+        guard weeklyWorkoutTarget.map({ (1...7).contains($0) }) ?? true else { throw OwnerSystemError.invalid }
+        if let end = sleepEndedAt {
+            guard let start = sleepStartedAt, OwnerDates.valid(end), end >= start else { throw OwnerSystemError.invalid }
+        }
         guard version == 1, birthDate.map(OwnerDates.valid) ?? true, sleepStartedAt.map(OwnerDates.valid) ?? true, heightCM.map({ $0.isFinite && (80...250).contains($0) }) ?? true,
               measurements.count <= 50_000, measurements.allSatisfy(\.isValid),
               Set(measurements.map(\.id)).count == measurements.count,

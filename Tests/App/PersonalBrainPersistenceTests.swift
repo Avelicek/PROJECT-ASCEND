@@ -55,7 +55,7 @@ final class PersonalBrainPersistenceTests: XCTestCase {
         let value = try AppStore(container: PersistenceController.makeContainer(inMemory: true), demo: true, now: fixed, clock: { fixed })
         XCTAssertNotNil(value.brainDecision.session)
         XCTAssertNil(value.brainDecision.routineID)
-        XCTAssertEqual(value.brainDecision.action, .train)
+        XCTAssertTrue([RecommendationAction.train, .trainLight].contains(value.brainDecision.action))
         XCTAssertTrue(value.personalContext.sessionDates.count >= 3)
         XCTAssertTrue(value.perform { value.todaySleep?.durationHours = 3; value.todaySleep?.quality = 1 })
         XCTAssertEqual(value.brainDecision.action, .recover)

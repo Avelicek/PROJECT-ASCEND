@@ -3,160 +3,120 @@ import Charts
 
 struct ProgressScreen: View {
     @Environment(AppStore.self) private var store
-    @State private var window: EvaluationWindow = .week
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var showELO = false
     @State private var showRecap = false
     @State private var showAnalytics = false
     @State private var showExercises = false
     @State private var showRecords = false
+    @State private var settingTarget = false
+    private var weekStart: Date {
+        let weekday = (store.policy.calendar.component(.weekday, from: store.now) + 5) % 7
+        return store.policy.adding(days: -weekday, to: store.policy.start(of: store.now))
+    }
+    private var workouts: Int { store.sessions.filter { !$0.isQuickLog && $0.hasWorkingSets && $0.evaluationDate >= weekStart && $0.evaluationDate <= store.now }.count }
+    private var weighIns: Int { Set(store.weights.filter { $0.measuredAt >= weekStart && $0.measuredAt <= store.now }.map { store.policy.key(for: $0.measuredAt) }).count }
+    private var fuelDays: Int { Set(store.nutrition.filter { $0.date >= weekStart && $0.date <= store.now }.map(\.dayKey)).count }
+    private var weekELO: Int { store.history.filter { $0.date >= weekStart && $0.date < store.policy.start(of: store.now) }.reduce(0) { $0 + $1.delta } + store.projectedScore.delta }
+    private var summary: String {
+        if store.ownerSystem.sickActive { return "Recovery takes priority this week. Your training goals are protected." }
+        if let target = store.ownerSystem.weeklyWorkoutTarget, workouts < target { return "\(target - workouts) more workouts would meet your weekly plan. Choose days when you feel recovered." }
+        if let pace = store.goalProjection.weeklyChange, let current = store.goalProjection.current, let target = store.goalProjection.target, (target - current) * pace > 0 { return "You're moving toward your goal. Keep your training and fuel routine steady." }
+        return "Keep logging your weight and fuel so we can see your direction more clearly."
+    }
     var body: some View {
-        let report = store.report(window: window)
         ScrollView {
-            VStack(alignment: .leading, spacing: AppSpacing.lg) {
-                FeatureHeader(eyebrow: "THE LONG GAME", title: "Progress")
-                Picker("Evaluation window", selection: $window) {
-                    Text("Day").tag(EvaluationWindow.day); Text("Week").tag(EvaluationWindow.week); Text("Month").tag(EvaluationWindow.month)
-                }.pickerStyle(.segmented).padding(5).background(AppColor.surface, in: RoundedRectangle(cornerRadius: 13))
-                SectionHeader(title: "Current direction")
-                momentumCard(report)
+            VStack(alignment: .leading, spacing: 24) {
+                FeatureHeader(eyebrow: "YOUR LONG-TERM PROGRESS", title: "Progress")
                 GoalProjectionCard()
-                SectionHeader(title: "Week & recent history")
-                weeklySummary
-                Button { showRecap = true } label: {
-                    PremiumCard(role: .inline) {
-                        HStack {
-                            VStack(alignment: .leading, spacing: 7) {
-                                Eyebrow(text: "WEEKLY RECAP")
-                                Text("\(store.weeklyRecap.eloDelta.formatted(.number.sign(strategy: .always()))) ELO · \(store.weeklyRecap.workouts) workouts").font(.headline)
-                            }
-                            Spacer(); Image(systemName: "arrow.up.right").foregroundStyle(AppColor.blue)
-                        }
-                    }
-                }.buttonStyle(PremiumPressStyle())
-                SectionHeader(title: "Long-term trends")
-                Button { showAnalytics = true } label: {
-                    PremiumCard(role: .action, tint: AppColor.elo) {
-                        HStack {
-                            VStack(alignment: .leading, spacing: 8) { Eyebrow(text: "RATING & TRAINING"); TrendGraphic(values: store.history.suffix(28).map { Double($0.elo) }, tint: AppColor.elo) }
-                            Spacer(); Image(systemName: "arrow.up.right").foregroundStyle(AppColor.elo)
-                        }
-                    }
-                }.buttonStyle(PremiumPressStyle()).accessibilityLabel("Explore ELO, volume, strength, consistency and PR trends")
-                weightCard(report)
-                PrimaryAction(title: "Log body weight", symbol: "plus") { store.presentedSheet = .weight }
-                Button { showELO = true } label: {
-                    PremiumCard(role: .inline) {
-                        HStack(spacing: 14) {
-                            RankBadgeView(rank: store.rank.rank, size: 55)
-                            VStack(alignment: .leading, spacing: 7) {
-                                Eyebrow(text: "ELO HISTORY")
-                                Text("\(store.currentELO) ELO").font(.title3.weight(.semibold))
-                            }
-                            Spacer(minLength: 0)
-                            Image(systemName: "chevron.right").foregroundStyle(AppColor.muted)
-                        }
-                    }
-                }.buttonStyle(PremiumPressStyle()).accessibilityLabel("ELO history, \(store.currentELO) ELO")
-                SectionHeader(title: "Exercises & records")
-                Button { showExercises = true } label: {
-                    Label("Exercise progress", systemImage: "chart.line.uptrend.xyaxis").frame(maxWidth: .infinity, minHeight: 48, alignment: .leading)
-                }.buttonStyle(PremiumPressStyle())
-                Button { showRecords = true } label: {
-                    Label("Personal record history", systemImage: "trophy").frame(maxWidth: .infinity, minHeight: 48, alignment: .leading)
-                }.buttonStyle(PremiumPressStyle())
                 PremiumCard {
-                    DisclosureGroup {
-                        VStack(spacing: 16) {
-                            ForEach(store.personalModel.windows, id: \.days) { baseline in
-                                VStack(alignment: .leading, spacing: 10) {
-                                    HStack { Text("\(baseline.days)D").font(.caption.weight(.semibold)); Spacer(); PillStatus(title: baseline.confidence.rawValue.uppercased(), tint: AppColor.muted) }
-                                    HStack {
-                                        StatBlock(title: "Weight days", value: "\(baseline.observedWeightDays)")
-                                        StatBlock(title: "Fuel days", value: "\(baseline.observedNutritionDays)")
-                                        StatBlock(title: "Training days", value: "\(baseline.trainingDays)")
-                                    }
-                                }
-                            }
-                        }.padding(.top, 16)
-                    } label: {
-                        HStack { Text("Personal baselines").font(.headline); Spacer(); Image(systemName: "waveform.path").foregroundStyle(AppColor.blue) }
+                    VStack(alignment: .leading, spacing: 16) {
+                        Eyebrow(text: "THIS WEEK")
+                        Text("\(weekELO.formatted(.number.sign(strategy: .always()))) ELO").font(.title2.weight(.semibold)).contentTransition(.numericText())
+                        MetricStrip(metrics: [GlanceMetric(title: "Workouts", value: "\(workouts)", symbol: "dumbbell"), GlanceMetric(title: "Weigh-ins", value: "\(weighIns)", symbol: "scalemass"), GlanceMetric(title: "Fuel days", value: "\(fuelDays)", symbol: "flame")])
+                        Text(summary).font(.subheadline).foregroundStyle(AppColor.secondary)
+                        Button("Review this week", systemImage: "arrow.up.right") { showRecap = true }.frame(minHeight: 44)
+                        Text("Monday–today · includes today's live ELO; past days stay finalized.").font(.caption2).foregroundStyle(AppColor.muted)
                     }
                 }
-            }.padding(.horizontal, AppSpacing.page).padding(.bottom, AppSpacing.lg)
+                weightCard(store.report(window: .month))
+                HStack {
+                    Button("Log weight", systemImage: "plus") { store.presentedSheet = .weight }.frame(minHeight: 44)
+                    Spacer()
+                    ContextualCoachButton(title: "Why this trend?", question: "Why is my bodyweight trend slowing?")
+                }
+                strengthCard
+                trainingCard
+                Eyebrow(text: "HISTORY")
+                Button("Daily ELO history", systemImage: "chart.line.uptrend.xyaxis") { showELO = true }.frame(minHeight: 44)
+                Button("Personal records", systemImage: "trophy") { showRecords = true }.frame(minHeight: 44)
+                DisclosureGroup("More details") {
+                    Button("Explore training and rating charts") { showAnalytics = true }.frame(minHeight: 44)
+                    Text("Today's score: \(store.projectedScore.delta.formatted(.number.sign(strategy: .always()))) · finalized total: \(store.currentELO) ELO.").font(.caption)
+                }
+            }.padding(.horizontal, AppSpacing.page).padding(.bottom, 32)
         }.accessibilityIdentifier("screen.progress").featureBackground(tint: AppColor.elo)
+            .animation(reduceMotion || AppMotion.snapshotMode ? nil : AppAnimation.interaction, value: store.revision)
             .sheet(isPresented: $showELO) { NavigationStack { ScoreBreakdownView().environment(store) }.preferredColorScheme(.dark) }
             .sheet(isPresented: $showRecap) { NavigationStack { WeeklyRecapView().environment(store) }.preferredColorScheme(.dark) }
             .sheet(isPresented: $showAnalytics) { NavigationStack { TrainingAnalyticsView().environment(store) }.preferredColorScheme(.dark) }
             .sheet(isPresented: $showExercises) { NavigationStack { TrainingAnalyticsView(exercises: true).environment(store) }.preferredColorScheme(.dark) }
             .sheet(isPresented: $showRecords) { NavigationStack { RecordHistoryView().environment(store) }.preferredColorScheme(.dark) }
     }
-    private var weeklySummary: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                Eyebrow(text: "LAST 7 DAYS")
-                Spacer()
-                Text("Consistency snapshot").font(.caption2).foregroundStyle(AppColor.muted)
-            }
-            let baseline = store.personalModel.windows.first { $0.days == 7 }
-            MetricStrip(metrics: [
-                GlanceMetric(title: "Training days", value: "\(baseline?.trainingDays ?? 0)", symbol: "dumbbell", tint: AppColor.positive),
-                GlanceMetric(title: "Weigh-in days", value: "\(baseline?.observedWeightDays ?? 0)", symbol: "scalemass"),
-                GlanceMetric(title: "Fuel days", value: "\(baseline?.observedNutritionDays ?? 0)", symbol: "flame", tint: AppColor.warning)
-            ])
-        }
-    }
-    private func goalCard(_ report: ProgressReport) -> some View {
-        PremiumCard(role: .glass) {
-            VStack(alignment: .leading, spacing: 20) {
-                HStack(spacing: 20) {
-                    ZStack {
-                        ProgressRing(progress: report.goalProgress ?? 0, tint: AppColor.blue, lineWidth: 7)
-                        Image(systemName: "scope").font(.system(size: 30, weight: .light)).foregroundStyle(AppColor.blue)
-                    }.frame(width: 82, height: 82).accessibilityHidden(true)
-                    VStack(alignment: .leading, spacing: 8) {
-                        Eyebrow(text: "GOAL PROGRESS")
-                        HStack(alignment: .firstTextBaseline, spacing: 2) {
-                            if let progress = report.goalProgress {
-                                CountUpText(value: progress * 100).font(.system(.largeTitle, design: .rounded, weight: .semibold))
-                                Text("%").font(.title3).foregroundStyle(AppColor.muted)
-                            } else { Text("Set your target").font(.title2.weight(.semibold)) }
-                        }
-                        if let deadline = store.profile.targetDeadline {
-                            Text(deadline.formatted(date: .abbreviated, time: .omitted)).font(.caption).foregroundStyle(AppColor.muted)
-                        }
-                    }
-                }
-                HStack(spacing: 8) {
-                    StatBlock(title: "Start", value: weight(store.profile.startingWeightKG))
-                    Image(systemName: "chevron.right").font(.caption2).foregroundStyle(AppColor.muted).accessibilityHidden(true)
-                    StatBlock(title: "Trend", value: weight(report.trendWeight), tint: AppColor.blue)
-                    Image(systemName: "chevron.right").font(.caption2).foregroundStyle(AppColor.blue).accessibilityHidden(true)
-                    StatBlock(title: "Target", value: weight(store.profile.targetWeightKG))
-                }.padding(12).background(AppColor.background.opacity(0.4), in: RoundedRectangle(cornerRadius: 16))
-            }
-        }
-    }
-    private func momentumCard(_ report: ProgressReport) -> some View {
+    private var strengthCard: some View {
         PremiumCard {
-            HStack(spacing: 20) {
-                VStack(alignment: .leading, spacing: 8) {
-                    Eyebrow(text: "MOMENTUM · \(window.rawValue)D")
-                    HStack(alignment: .firstTextBaseline, spacing: 2) {
-                        if let value = report.momentumPercent { CountUpText(value: value, signed: true).font(.title.weight(.semibold)).foregroundStyle(SemanticStatus.momentum(value).tint) }
-                        else { Text("—").font(.title) }
-                        Text("%").font(.caption).foregroundStyle(AppColor.muted)
-                    }
-                    Text(report.momentumPercent.map { $0 < 0 ? "Away from goal" : $0 > 0 ? "Toward your goal" : "Holding steady" } ?? "Building baseline")
-                        .font(.caption).foregroundStyle(AppColor.muted)
+            VStack(alignment: .leading, spacing: 14) {
+                Eyebrow(text: "STRENGTH · LAST 30 DAYS")
+                let trends = strengthTrends
+                if trends.isEmpty { Text("Record two comparable sessions to reveal your strength trend.").font(.subheadline).foregroundStyle(AppColor.secondary) }
+                ForEach(trends.prefix(3), id: \.0) { name, change in
+                    HStack { Text(name); Spacer(); Text(abs(change) < 1 ? "Stable" : "\(change.formatted(.number.precision(.fractionLength(1)).sign(strategy: .always())))%") }.font(.subheadline)
                 }
-
+                Button("Exercise details", systemImage: "arrow.up.right") { showExercises = true }.frame(minHeight: 44)
             }
         }
+    }
+    private var strengthTrends: [(String, Double)] {
+        let lower = store.policy.adding(days: -30, to: store.now)
+        let groups = Dictionary(grouping: store.exerciseHistory.filter { !$0.quick && $0.mode == .weightAndReps && $0.date >= lower && $0.date <= store.now }, by: \.exerciseID)
+        var output: [(String, Double)] = []
+        for (id, entries) in groups {
+            let values = entries.sorted { $0.date < $1.date }.compactMap { entry in
+                WorkoutEngine().recordCandidates(entry.working.map(\.performance)).first { $0.kind == .estimatedOneRepMax }?.value
+            }
+            guard values.count >= 2, let first = values.first, first > 0, let last = values.last else { continue }
+            output.append((store.trainingMetadata(id)?.name ?? id, (last / first - 1) * 100))
+        }
+        return output.sorted { $0.0 < $1.0 }
+    }
+    private var trainingCard: some View {
+        PremiumCard {
+            VStack(alignment: .leading, spacing: 14) {
+                Eyebrow(text: "TRAINING · THIS WEEK")
+                Text(store.ownerSystem.weeklyWorkoutTarget.map { "\(workouts) sessions / target \($0)" } ?? "\(workouts) workouts completed").font(.headline)
+                Button(settingTarget ? "Done" : "Set weekly target") { settingTarget.toggle() }.font(.caption).frame(minHeight: 44)
+                if settingTarget {
+                    Stepper("\(store.ownerSystem.weeklyWorkoutTarget ?? 3) workouts / week", value: Binding(get: { store.ownerSystem.weeklyWorkoutTarget ?? 3 }, set: { value in _ = store.saveOwnerSystem { $0.weeklyWorkoutTarget = value } }), in: 1...7)
+                }
+                let groups = store.weeklyExposure.filter { ["Chest", "Back", "Legs"].contains($0.0) }
+                let maximum = max(1, groups.map { $0.1 }.max() ?? 1)
+                ForEach(groups, id: \.0) { name, amount in HStack { Text(name).font(.caption).frame(width: 55, alignment: .leading); LinearProgress(progress: amount / maximum, tint: AppColor.strength) } }
+                Text(store.ownerSystem.sickActive ? "Rest is part of your plan while you're sick." : balanceConclusion).font(.subheadline).foregroundStyle(AppColor.secondary)
+                ContextualCoachButton(title: "Talk about my training", question: "What should I train this week?")
+            }
+        }
+    }
+    private var balanceConclusion: String {
+        let groups = store.weeklyExposure
+        let legs = groups.first { $0.0 == "Legs" }?.1 ?? 0
+        let upper = max(groups.first { $0.0 == "Chest" }?.1 ?? 0, groups.first { $0.0 == "Back" }?.1 ?? 0)
+        if upper > 1 && legs < upper * 0.5 { return "Lower-body training is behind this week." }
+        return workouts == 0 ? "Start with a comfortable session when you're ready." : "Keep your next session balanced with work you've already done."
     }
     private func weightCard(_ report: ProgressReport) -> some View {
         PremiumCard {
             VStack(alignment: .leading, spacing: 18) {
-                HStack { Text("Weight trend").font(.headline); Spacer(); StatusPill(status: .confidence(report.confidence), title: report.confidence.rawValue.uppercased()) }
+                Text("Bodyweight").font(.headline)
                 HStack {
                     StatBlock(title: "Measured", value: weight(report.actualWeight), symbol: "circle.fill", tint: AppColor.muted)
                     StatBlock(title: "7-day trend", value: weight(report.trendWeight), symbol: "waveform.path", tint: AppColor.blue)

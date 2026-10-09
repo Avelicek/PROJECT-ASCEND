@@ -33,6 +33,7 @@ public struct ExerciseEducation: Sendable {
             case .hipAbduction: steps = ["Stabilize your pelvis with the resistance against the outside of the legs.", "Move the legs apart without twisting, then return under control."]
             }
         }
-        return .init(steps: steps, cues: ["Use a range you can control.", "Keep breathing; match load to repeatable technique.", "The loop illustrates the movement pattern; use the setup instructions for this variation."], visual: exercise.pattern)
+        let cues = exercise.id.contains("push_up") ? ["Hands just wider than shoulders", "Keep your body in one straight line", "Lower your chest under control"] : ["Use a range you can control", "Keep your trunk steady", "Breathe; avoid swinging or bouncing"]
+        return .init(steps: steps, cues: cues, visual: exercise.pattern)
     }
 }

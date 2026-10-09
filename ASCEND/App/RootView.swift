@@ -8,7 +8,7 @@ enum AppDestination: String, CaseIterable, Identifiable {
         switch self { case .dashboard: "square.grid.2x2"; case .workout: "dumbbell"; case .recovery: "figure.stand"; case .progress: "chart.xyaxis.line"; case .profile: "person.crop.circle" }
     }
 }
-enum LogDestination: String, Identifiable { case weight, nutrition, sleep, endSleep, workout, objectives, checkIn, ask, weekly; var id: String { rawValue } }
+enum LogDestination: String, Identifiable { case weight, nutrition, sleep, endSleep, workout, objectives, checkIn, ask, weekly, goalCoach, sleepSummary, sick; var id: String { rawValue } }
 
 private struct DayWakeKey: Hashable { let active: Bool; let day: String }
 
@@ -32,6 +32,12 @@ struct RootView: View {
     }
     var body: some View {
         @Bindable var store = store
+        Group {
+            if let start = store.ownerSystem.sleepStartedAt {
+                if let end = store.ownerSystem.sleepEndedAt {
+                    NavigationStack { EndSleepView(start: start, end: end) }.transition(.opacity)
+                } else { LockedSleepView(start: start).transition(.opacity) }
+            } else {
         TabView(selection: $destination) {
             NavigationStack { DashboardView() }.tag(AppDestination.dashboard).toolbar(.hidden, for: .tabBar)
             NavigationStack { WorkoutView() }.tag(AppDestination.workout).toolbar(.hidden, for: .tabBar)
@@ -39,12 +45,16 @@ struct RootView: View {
             NavigationStack { ProgressScreen() }.tag(AppDestination.progress).toolbar(.hidden, for: .tabBar)
             NavigationStack { ProfileView() }.tag(AppDestination.profile).toolbar(.hidden, for: .tabBar)
         }.safeAreaInset(edge: .bottom, spacing: 0) { tabBar }
+            }
+        }
             .onChange(of: store.navigationRequest) { _, request in if let request { destination = request; store.navigationRequest = nil } }
             .background(AppColor.background)
-            .fullScreenCover(isPresented: $store.liveWorkoutPresented) {
+            .animation(reduceMotion || AppMotion.snapshotMode ? nil : AppAnimation.reveal, value: store.ownerSystem.sleepStartedAt)
+            .animation(reduceMotion || AppMotion.snapshotMode ? nil : AppAnimation.interaction, value: store.ownerSystem.sleepEndedAt)
+            .fullScreenCover(isPresented: Binding(get: { store.liveWorkoutPresented && store.ownerSystem.sleepStartedAt == nil }, set: { store.liveWorkoutPresented = $0 })) {
                 NavigationStack { LiveWorkoutView().environment(store) }.preferredColorScheme(.dark).tint(AppColor.strength)
             }
-            .sheet(item: $store.presentedSheet) { route in
+            .sheet(item: Binding(get: { store.ownerSystem.sleepStartedAt == nil ? store.presentedSheet : nil }, set: { store.presentedSheet = $0 })) { route in
                 NavigationStack {
                     switch route {
                     case .weight: WeightEditor()
@@ -56,6 +66,9 @@ struct RootView: View {
                     case .checkIn: MorningCheckInView()
                     case .ask: AskAscendView()
                     case .weekly: WeeklyRecapView()
+                    case .goalCoach: GoalCoachView()
+                    case .sleepSummary: EndOfDaySummaryView()
+                    case .sick: SickModeView().toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { store.presentedSheet = nil } } }
                     }
                 }.environment(store).preferredColorScheme(.dark).tint(AppColor.accent)
             }
@@ -73,12 +86,13 @@ struct RootView: View {
             .onChange(of: CoachNotificationRouter.shared.route, initial: true) { _, route in
                 guard let route else { return }
                 CoachNotificationRouter.shared.route = nil
+                guard store.ownerSystem.sleepStartedAt == nil else { return }
                 switch route {
                 case "checkIn": store.presentedSheet = .checkIn
                 case "weekly": store.presentedSheet = .weekly
                 case "nutrition": store.presentedSheet = .nutrition
                 case "objectives": store.presentedSheet = .objectives
-                case "sleep": store.presentedSheet = store.ownerSystem.sleepStartedAt == nil ? .sleep : .endSleep
+                case "sleep": store.presentedSheet = .sleepSummary
                 case "weight": store.presentedSheet = .weight
                 case "recovery": destination = .recovery
                 case "progress": destination = .progress
@@ -89,9 +103,12 @@ struct RootView: View {
             .onChange(of: store.revision) { _, _ in if scenePhase == .active { CoachNotifications.synchronize(store: store, requestPermission: false) } }
             .onChange(of: scenePhase) { _, phase in if phase == .active { CoachNotifications.synchronize(store: store, requestPermission: false) } }
             .safeAreaInset(edge: .top, spacing: 0) {
-                if store.ownerSystem.sleepStartedAt != nil || store.ownerSystem.sickActive {
-                    Label(store.ownerSystem.sleepStartedAt != nil ? "SLEEP MODE" : "SICK MODE · TRAINING PROTECTED", systemImage: store.ownerSystem.sleepStartedAt != nil ? "moon.fill" : "shield.lefthalf.filled")
-                        .font(.caption2.weight(.medium)).foregroundStyle(AppColor.muted).padding(8).frame(maxWidth: .infinity).background(AppColor.background)
+                if store.ownerSystem.sleepStartedAt == nil && store.ownerSystem.sickActive {
+                    HStack {
+                        Label("SICK MODE · Recovery prioritized", systemImage: "shield.lefthalf.filled").font(.caption)
+                        Spacer()
+                        Button("End") { store.presentedSheet = .sick }.font(.caption).frame(minHeight: 44).accessibilityIdentifier("sick.global.end")
+                    }.foregroundStyle(AppColor.sleep).padding(.horizontal, 16).background(AppColor.background)
                 }
             }
     }

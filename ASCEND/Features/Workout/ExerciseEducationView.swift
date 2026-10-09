@@ -11,19 +11,24 @@ struct ExerciseEducationView: View {
                 VStack(alignment: .leading, spacing: 20) {
                     FeatureHeader(eyebrow: "MOVEMENT GUIDE", title: exercise.name)
                     MuscleActivationPreview(contributions: exercise.muscles, pattern: guide.visual, exerciseID: exercise.id)
-                    Text(exercise.required.map(\.title).sorted().joined(separator: " · ")).font(.subheadline).foregroundStyle(AppColor.secondary)
-                    Eyebrow(text: "HOW TO DO IT")
-                    ForEach(Array(guide.steps.enumerated()), id: \.offset) { index, text in Text("\(index + 1). \(text)").font(.subheadline).fixedSize(horizontal: false, vertical: true) }
-                    DisclosureGroup("Form cues") { ForEach(guide.cues, id: \.self) { Text($0).font(.caption).foregroundStyle(AppColor.secondary).padding(.top, 8) } }.font(.subheadline)
-                    Button(anatomy ? "Hide anatomy" : "Explore muscle contributions in 3D", systemImage: "figure.stand") { anatomy.toggle() }.frame(minHeight: 44)
-                    if anatomy { ExerciseAnatomyPreview(contributions: exercise.muscles) }
+                    Eyebrow(text: "THREE FORM CUES")
+                    ForEach(guide.cues.prefix(3), id: \.self) { cue in Label(cue, systemImage: "checkmark").font(.subheadline).foregroundStyle(AppColor.secondary) }
+                    Eyebrow(text: "MUSCLES")
                     ForEach(exercise.muscles.sorted { $0.fraction > $1.fraction }, id: \.muscle) { part in
-                        VStack(alignment: .leading, spacing: 8) {
-                            HStack { Text(part.muscle.title); Spacer(); Text(part.fraction >= 0.35 ? "Primary" : part.fraction >= 0.15 ? "Secondary" : "Stabilizer").foregroundStyle(AppColor.muted) }.font(.caption)
-                            LinearProgress(progress: part.fraction, tint: AppColor.strength)
-                        }
+                        HStack { Circle().fill(AppColor.strength.opacity(part.fraction >= 0.35 ? 1 : 0.55)).frame(width: 7, height: 7); Text(part.muscle.title); Spacer(); Text(part.fraction >= 0.35 ? "Primary" : part.fraction >= 0.15 ? "Secondary" : "Stabilizer").foregroundStyle(AppColor.muted) }.font(.caption)
                     }
-                    Text("Contribution intensity is a training model, not measured muscle activation.").font(.caption).foregroundStyle(AppColor.muted)
+                    DisclosureGroup("More details") {
+                        VStack(alignment: .leading, spacing: 14) {
+                            Text(exercise.required.map(\.title).sorted().joined(separator: " · ")).font(.caption)
+                            ForEach(guide.steps, id: \.self) { Text($0).font(.subheadline) }
+                            ForEach(exercise.muscles.sorted { $0.fraction > $1.fraction }, id: \.muscle) { part in
+                                HStack { Text(part.muscle.title).font(.caption).frame(width: 100, alignment: .leading); LinearProgress(progress: part.fraction, tint: AppColor.strength) }
+                            }
+                            Text("Illustrated movement pattern; exact equipment setup varies. Muscle highlights are training estimates, not measured activation.").font(.caption).foregroundStyle(AppColor.muted)
+                            Button(anatomy ? "Hide anatomy" : "Explore anatomy in 3D", systemImage: "figure.stand") { anatomy.toggle() }.frame(minHeight: 44)
+                            if anatomy { ExerciseAnatomyPreview(contributions: exercise.muscles) }
+                        }.padding(.top, 12)
+                    }.font(.subheadline)
                 }.padding(20)
             }
         }.featureBackground(tint: AppColor.strength).toolbar(.visible, for: .navigationBar).navigationTitle("Exercise guide").navigationBarTitleDisplayMode(.inline).accessibilityIdentifier("screen.exerciseguide")
@@ -65,13 +70,28 @@ struct MuscleActivationPreview: View {
     var body: some View {
         TimelineView(.animation(minimumInterval: 1.0 / 20, paused: reduceMotion || phase != .active || AppMotion.snapshotMode)) { time in
             let progress = reduceMotion || AppMotion.snapshotMode ? 0.5 : (sin(time.date.timeIntervalSinceReferenceDate * 2) + 1) / 2
-            MovementIllustration(pattern: pattern, progress: progress, contributions: contributions, exerciseID: exerciseID).frame(height: 180)
+            VStack(spacing: 8) {
+                ExerciseMovementRenderer(pattern: pattern, progress: progress, contributions: contributions, exerciseID: exerciseID).frame(height: 300)
+                HStack {
+                    Text(["wall_sit", "plank", "side_plank", "dead_hang"].contains(exerciseID) ? "HOLD & BREATHE" : (reduceMotion || AppMotion.snapshotMode || cos(time.date.timeIntervalSinceReferenceDate * 2) >= 0 ? "DOWN PHASE" : "UP PHASE")).font(.caption.weight(.semibold)).tracking(2)
+                    Spacer(); Text("CONTROLLED MOVEMENT").font(.caption2).foregroundStyle(AppColor.muted)
+                }.padding(.horizontal, 18).padding(.bottom, 18)
+            }
         }.background(AppColor.surface, in: RoundedRectangle(cornerRadius: 18)).accessibilityElement(children: .ignore)
             .accessibilityLabel("Loop illustrating \(pattern.title). Primary and supporting muscles: \(contributions.sorted { $0.fraction > $1.fraction }.map { $0.muscle.title }.joined(separator: ", ")).")
     }
 }
 
-private struct MovementIllustration: View {
+/// Renderer seam: a rigged asset player can replace this illustration without changing guide or muscle data.
+struct ExerciseMovementRenderer: View {
+    let pattern: MovementPattern
+    let progress: Double
+    let contributions: [MuscleContribution]
+    let exerciseID: String
+    var body: some View { ArticulatedExerciseIllustration(pattern: pattern, progress: progress, contributions: contributions, exerciseID: exerciseID) }
+}
+
+private struct ArticulatedExerciseIllustration: View {
     let pattern: MovementPattern
     let progress: Double
     let contributions: [MuscleContribution]
@@ -84,8 +104,8 @@ private struct MovementIllustration: View {
             var knee = point(0.53, 0.74), foot = point(0.53, 0.91), elbow = point(0.63, 0.43), hand = point(0.62, 0.58)
             switch pattern {
             case .horizontalPush:
-                head = point(0.73, 0.29 + p * 0.20); shoulder = point(0.65, 0.35 + p * 0.20); hip = point(0.39, 0.5 + p * 0.10)
-                knee = point(0.24, 0.65); foot = point(0.14, 0.81); elbow = point(0.73, 0.62); hand = point(0.65, 0.81)
+                head = point(0.74, 0.24 + p * 0.18); shoulder = point(0.65, 0.33 + p * 0.18); hip = point(0.39, 0.57 + p * 0.10)
+                knee = point(0.24, 0.71 + p * 0.04); foot = point(0.14, 0.83); elbow = point(0.73, 0.63 + p * 0.02); hand = point(0.65, 0.83)
             case .squat, .lunge, .kneeExtension:
                 head = point(0.5, 0.18 + p * 0.2); shoulder = point(0.5, 0.3 + p * 0.2); hip = point(0.43 - p * 0.1, 0.58 + p * 0.12); knee = point(0.58, 0.74); elbow = point(0.62, 0.46 + p * 0.1); hand = point(0.6, 0.33 + p * 0.2)
             case .hinge:
@@ -135,16 +155,56 @@ private struct MovementIllustration: View {
                 line([point(0.64, 0.72), point(0.64, 0.93)], color: AppColor.muted, width: 3)
             }
             if exerciseID == "wall_sit" { line([point(0.27, 0.12), point(0.27, 0.93)], color: AppColor.muted, width: 3) }
-            line([shoulder, hip, knee, foot], color: AppColor.secondary, width: 8)
-            line([shoulder, elbow, hand], color: AppColor.secondary, width: 7)
-            let highest = contributions.max { $0.fraction < $1.fraction }?.fraction ?? 1
-            for part in contributions {
-                let intensity = part.fraction / max(0.01, highest) * (0.55 + p * 0.45)
-                let group = part.muscle.group
-                let points: [CGPoint] = ["Chest", "Back", "Core"].contains(group) ? [shoulder, hip] : ["Arms", "Shoulders"].contains(group) ? [shoulder, elbow] : ["Legs", "Glutes"].contains(group) ? [hip, knee] : [knee, foot]
-                line(points, color: AppColor.strength.opacity(intensity), width: 11)
+            // Closed, tapered volumes with lighting and joint contours, rather than a line skeleton.
+            func volume(_ a: CGPoint, _ b: CGPoint, _ startWidth: CGFloat, _ endWidth: CGFloat, color: Color) {
+                let dx = b.x-a.x, dy = b.y-a.y, length = max(1, hypot(dx, dy))
+                let nx = -dy/length, ny = dx/length
+                var shape = Path()
+                shape.move(to: .init(x: a.x+nx*startWidth, y: a.y+ny*startWidth))
+                shape.addQuadCurve(to: .init(x: b.x+nx*endWidth, y: b.y+ny*endWidth), control: .init(x: (a.x+b.x)/2+nx*startWidth*1.12, y: (a.y+b.y)/2+ny*startWidth*1.12))
+                shape.addQuadCurve(to: .init(x: b.x-nx*endWidth, y: b.y-ny*endWidth), control: .init(x: b.x+dx/length*endWidth, y: b.y+dy/length*endWidth))
+                shape.addQuadCurve(to: .init(x: a.x-nx*startWidth, y: a.y-ny*startWidth), control: .init(x: (a.x+b.x)/2-nx*startWidth, y: (a.y+b.y)/2-ny*startWidth))
+                shape.closeSubpath()
+                context.fill(shape, with: .linearGradient(.init(colors: [color.opacity(0.5), color, color.opacity(0.65)]), startPoint: .init(x:a.x+nx*startWidth,y:a.y+ny*startWidth), endPoint: .init(x:b.x-nx*endWidth,y:b.y-ny*endWidth)))
+                context.stroke(shape, with: .color(.white.opacity(0.14)), lineWidth: 0.7)
             }
-            context.fill(Path(ellipseIn: CGRect(x: head.x - 10, y: head.y - 10, width: 20, height: 20)), with: .color(AppColor.secondary))
+            let scale = size.width / 360
+            func offset(_ q: CGPoint) -> CGPoint { .init(x: q.x - 10*scale, y: q.y - 5*scale) }
+            let graphite = Color(red: 0.32, green: 0.40, blue: 0.50)
+            volume(offset(hip), offset(knee), 15*scale, 9*scale, color: graphite.opacity(0.5))
+            volume(offset(knee), offset(foot), 10*scale, 5*scale, color: graphite.opacity(0.5))
+            volume(offset(shoulder), offset(elbow), 10*scale, 7*scale, color: graphite.opacity(0.5))
+            volume(offset(elbow), offset(hand), 8*scale, 4*scale, color: graphite.opacity(0.5))
+            volume(shoulder, hip, 24*scale, 16*scale, color: graphite)
+            volume(hip, knee, 18*scale, 10*scale, color: graphite)
+            volume(knee, foot, 11*scale, 6*scale, color: graphite)
+            volume(shoulder, elbow, 12*scale, 8*scale, color: graphite)
+            volume(elbow, hand, 9*scale, 5*scale, color: graphite)
+            func mix(_ a: CGPoint, _ b: CGPoint, _ f: Double) -> CGPoint { .init(x:a.x+(b.x-a.x)*f,y:a.y+(b.y-a.y)*f) }
+            let highest = contributions.max { $0.fraction < $1.fraction }?.fraction ?? 1
+            let grouped = Dictionary(grouping: contributions, by: { $0.muscle.group })
+            for group in grouped.keys.sorted() {
+                let fraction = grouped[group]?.map(\.fraction).max() ?? 0
+                let intensity = fraction/max(0.01, highest) * (0.6+p*0.4)
+                let color = AppColor.strength.opacity(intensity)
+                switch group {
+                case "Chest", "Back": volume(mix(shoulder,hip,0.10), mix(shoulder,hip,0.43), 20*scale, 17*scale, color: color)
+                case "Core": volume(mix(shoulder,hip,0.5), mix(shoulder,hip,0.85), 15*scale, 12*scale, color: color)
+                case "Shoulders": context.fill(Path(ellipseIn:.init(x:shoulder.x-13*scale,y:shoulder.y-12*scale,width:26*scale,height:24*scale)),with:.color(color))
+                case "Arms": volume(mix(shoulder,elbow,0.2), mix(shoulder,elbow,0.85), 10*scale, 7*scale, color: color)
+                case "Legs": volume(mix(hip,knee,0.2), mix(hip,knee,0.9), 15*scale, 9*scale, color: color)
+                case "Glutes": context.fill(Path(ellipseIn:.init(x:hip.x-16*scale,y:hip.y-15*scale,width:32*scale,height:30*scale)),with:.color(color))
+                case "Calves": volume(mix(knee,foot,0.15), mix(knee,foot,0.7), 9*scale, 6*scale, color: color)
+                default: break
+                }
+            }
+            volume(mix(shoulder,head,0.3), head, 7*scale, 6*scale, color: graphite)
+            let skull = Path(ellipseIn: CGRect(x: head.x-13*scale, y:head.y-17*scale,width:26*scale,height:34*scale))
+            context.fill(skull, with: .linearGradient(.init(colors:[graphite,Color(red:0.58,green:0.66,blue:0.73)]),startPoint:head,endPoint:.init(x:head.x+15*scale,y:head.y-15*scale)))
+            context.stroke(skull, with:.color(.white.opacity(0.2)),lineWidth:0.7)
+            volume(hand, .init(x:hand.x+12*scale,y:hand.y+2*scale), 5*scale, 3*scale, color: graphite)
+            volume(foot, .init(x:foot.x+16*scale,y:foot.y+3*scale), 6*scale, 4*scale, color: graphite)
+
         }
     }
 }

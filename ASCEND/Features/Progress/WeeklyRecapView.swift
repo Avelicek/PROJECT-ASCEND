@@ -47,7 +47,6 @@ struct WeeklyRecapView: View {
                         Eyebrow(text: "DIRECTION")
                         HStack {
                             StatBlock(title: "Trend change", value: recap.trendChange.map { "\($0.formatted(.number.precision(.fractionLength(2)).sign(strategy: .always()))) kg" } ?? "Building baseline")
-                            StatBlock(title: "Momentum", value: recap.momentum.map { "\($0.formatted(.number.precision(.fractionLength(0)).sign(strategy: .always())))%" } ?? "—", tint: AppColor.blue)
                         }
                         Text("Recovery · current estimate only").font(.caption2).foregroundStyle(AppColor.muted)
                     }

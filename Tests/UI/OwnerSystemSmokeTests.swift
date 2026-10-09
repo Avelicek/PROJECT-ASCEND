@@ -34,12 +34,17 @@ final class OwnerSystemSmokeTests: XCTestCase {
         app.launch()
         let end = app.buttons["sleep.end"]
         XCTAssertTrue(end.waitForExistence(timeout: 20))
-        let started = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "Started ")).firstMatch.label
+        let started = app.staticTexts["sleep.started"].label
+        XCTAssertFalse(app.buttons["tab.dashboard"].exists)
+        XCTAssertFalse(app.scrollViews["screen.dashboard"].exists)
         app.terminate(); app.launch()
         XCTAssertTrue(end.waitForExistence(timeout: 20))
-        XCTAssertEqual(app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "Started ")).firstMatch.label, started)
+        XCTAssertEqual(app.staticTexts["sleep.started"].label, started)
+        XCTAssertFalse(app.buttons["tab.workout"].exists)
         end.tap(); XCTAssertTrue(app.scrollViews["screen.endsleep"].waitForExistence(timeout: 10))
         let save = app.buttons["sleep.save"]; AscendUITestSupport.reveal(save, screen: "screen.endsleep", in: app); save.tap()
+        XCTAssertTrue(app.descendants(matching: .any)["screen.checkin"].firstMatch.waitForExistence(timeout: 10))
+        app.buttons["Done"].firstMatch.tap()
         XCTAssertTrue(app.scrollViews["screen.dashboard"].waitForExistence(timeout: 10))
         XCTAssertFalse(app.buttons["sleep.end"].exists)
     }
@@ -58,7 +63,7 @@ final class OwnerSystemSmokeTests: XCTestCase {
         let sick = app.buttons["sick.open"]; AscendUITestSupport.reveal(sick, screen: "screen.dashboard", in: app); sick.tap()
         XCTAssertTrue(app.buttons["sick.start"].waitForExistence(timeout: 10)); app.buttons["sick.start"].tap()
         let done = app.buttons["Done"].firstMatch
-        XCTAssertTrue(done.waitForExistence(timeout: 10)); done.tap()
+        AscendUITestSupport.reveal(done, screen: "screen.sickmode", in: app); done.tap()
         let protection = app.staticTexts["Training pressure paused. Fuel and sleep remain active."]
         XCTAssertTrue(protection.waitForExistence(timeout: 10))
         let endSick = app.buttons["sick.end"]

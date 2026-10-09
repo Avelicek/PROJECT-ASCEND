@@ -6,7 +6,11 @@ struct RecoveryView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: AppSpacing.lg) {
                 FeatureHeader(eyebrow: "RECOVER TO RISE", title: "Body intelligence")
-                PremiumCard(role: .inline) { VStack(alignment: .leading, spacing: 10) { Eyebrow(text: "SO WHAT?"); Text(store.brainDecision.reasons.joined(separator: " ")).font(.subheadline).foregroundStyle(AppColor.secondary) } }
+                PremiumCard(role: .inline) { VStack(alignment: .leading, spacing: 10) {
+                    Text(store.ownerSystem.sickActive ? "Recovery comes first" : SemanticStatus.recovery(store.readiness.percent).title).font(.headline)
+                    Text(store.brainDecision.reasons.last ?? "Log your training to understand recovery.").font(.subheadline).foregroundStyle(AppColor.secondary)
+                    ContextualCoachButton(title: "Why am I still recovering?", question: "Why am I still recovering?")
+                } }
                 BodyMapView(report: store.readiness)
                 PremiumCard(role: .inline) {
                     HStack(spacing: 16) {
@@ -14,7 +18,7 @@ struct RecoveryView: View {
                         VStack(alignment: .leading, spacing: 8) {
                             Eyebrow(text: "BODY READINESS")
                             Text(SemanticStatus.recovery(store.readiness.percent).title).font(.title3.weight(.semibold)).foregroundStyle(SemanticStatus.recovery(store.readiness.percent).tint)
-                            StatusPill(status: .confidence(store.readiness.confidence), title: "\(store.readiness.confidence.rawValue.uppercased()) CONFIDENCE")
+                            Text("Estimate from your recorded activity").font(.caption).foregroundStyle(AppColor.muted)
                         }
                     }
                 }
@@ -40,6 +44,7 @@ struct RecoveryView: View {
                                         .foregroundStyle(region.tint(in: store.readiness)).font(.subheadline).monospacedDigit()
                                 }
                                 LinearProgress(progress: (region.recovery(in: store.readiness) ?? 0) / 100, tint: region.tint(in: store.readiness), height: 4)
+                                Text(region.recovery(in: store.readiness).map { $0 >= 85 ? "Ready for comfortable training" : "Still recovering · avoid heavy work here" } ?? "Log activity to learn this muscle's recovery").font(.caption).foregroundStyle(AppColor.secondary)
                             }
                         }
                     }

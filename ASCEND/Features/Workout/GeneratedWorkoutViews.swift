@@ -10,14 +10,14 @@ struct GeneratedWorkoutCard: View {
                 HStack { CoachIdentity(); Eyebrow(text: "TODAY'S GENERATED WORKOUT") }
                 Text(decision.session?.name ?? "Recovery today").font(.title2.weight(.semibold))
                 if let plan = decision.session {
-                    Text("\(store.training.profile.goal == .strength ? "Strength" : "Balanced stimulus") · ~\(decision.duration ?? 0) min · \(plan.exercises.reduce(0) { $0 + $1.sets }) sets").font(.caption).foregroundStyle(AppColor.secondary)
-                    WorkoutFocusMap(exerciseIDs: plan.exercises.map(\.exerciseID), sets: Dictionary(grouping: plan.exercises, by: \.exerciseID).mapValues { $0.reduce(0) { $0 + $1.sets } })
+                    Text("~\(decision.duration ?? 0) min · \(plan.exercises.count) exercises").font(.subheadline).foregroundStyle(AppColor.secondary)
                     Button("Why this workout?", systemImage: "info.circle") { showPlan = true }.font(.subheadline).frame(minHeight: 44).accessibilityIdentifier("workout.why")
                     PrimaryAction(title: "Start workout", symbol: "play.fill", tint: AppColor.strength) { store.startBrainSession() }.accessibilityIdentifier("workout.start")
                     // Stable accessibility target for the existing generated-session journey.
                     Button("Review exercises") { showPlan = true }.font(.caption).frame(minHeight: 44).accessibilityIdentifier("workout.brain.start")
+                    ContextualCoachButton(title: "Talk about this workout", question: "Why this workout?")
                 } else {
-                    Text(decision.reasons.joined(separator: " ")).font(.subheadline).foregroundStyle(AppColor.secondary)
+                    Text(decision.reasons.last ?? "Give recovery time today.").font(.subheadline).foregroundStyle(AppColor.secondary)
                     PrimaryAction(title: "Review recovery", symbol: "figure.stand", tint: AppColor.recovery) { store.navigationRequest = .recovery }
                 }
                 Button("Build my own session") { store.startLiveWorkout() }.font(.caption).frame(minHeight: 44).accessibilityIdentifier("workout.manual.start")

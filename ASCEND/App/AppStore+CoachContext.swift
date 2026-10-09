@@ -13,7 +13,7 @@ extension AppStore {
                 reps: entry.working.map { $0.performance.reps }, rpe: entry.working.compactMap(\.rpe), recommendation: opportunity.suggestion.explanation)
         }
         let projection = goalProjection
-        return .init(date: now, dailyELO: projectedScore.delta, components: projectedScore.components, checkInCompleted: checkInToday != nil,
+        var context = CoachContext(date: now, dailyELO: projectedScore.delta, components: projectedScore.components, checkInCompleted: checkInToday != nil,
             activeWorkout: activeWorkout != nil, sickMode: ownerSystem.sickActive, sleepMode: ownerSystem.sleepStartedAt != nil,
             readiness: readiness.percent, recoveryConfidence: readiness.confidence, sleepHours: personalContext.sleepHours,
             calories: todayNutrition?.calories, calorieGoal: profile.calorieGoal, protein: todayNutrition?.proteinGrams, proteinGoal: profile.proteinGoal,
@@ -21,6 +21,8 @@ extension AppStore {
             projectionConfidence: projection.confidence, projectionEarliest: projection.earliest, projectionLatest: projection.latest, targetDeadline: profile.targetDeadline, timeZoneIdentifier: policy.timeZoneIdentifier, projectionReason: projection.explanation, workoutTitle: brainDecision.session?.name,
             workoutReasons: brainDecision.reasons + brainDecision.warnings, muscleLoad: today, muscleRecovery: recovery, exercises: facts,
             completedObjectives: todayObjectives.filter { $0.completedAt != nil }.count, dueObjectives: todayObjectives.count)
+        context.projectionEstimateWeeks = projection.estimatedWeeks; context.projectionEstimateDate = projection.estimatedDate
+        return context
     }
     func coachContext(for question: String) -> CoachContext {
         var result = coachContext
@@ -31,6 +33,7 @@ extension AppStore {
               (20...400).contains(target) else { return result }
         let projection = ProjectionEngine().weight(samples: weights.map { .init(date: $0.measuredAt, kilograms: $0.kilograms) }, target: target, now: now, policy: policy)
         if result.targetWeight != target { result.targetDeadline = nil }
+        result.projectionEstimateWeeks = projection.estimatedWeeks; result.projectionEstimateDate = projection.estimatedDate
         result.targetWeight = target; result.projectionWeeks = projection.weeks.map { [$0.lowerBound, $0.upperBound] }
         result.projectionEarliest = projection.earliest; result.projectionLatest = projection.latest
         result.projectionReason = projection.explanation; result.projectionConfidence = projection.confidence

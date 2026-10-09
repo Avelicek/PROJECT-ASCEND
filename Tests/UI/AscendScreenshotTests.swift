@@ -36,14 +36,14 @@ final class AscendScreenshotTests: XCTestCase {
             let attachment = XCTAttachment(screenshot: capture.screenshot()); attachment.name = name; attachment.lifetime = .keepAlways; add(attachment)
             capture.terminate()
         }
-        for (argument, name, screen) in [("--capture-onboarding", "16_onboarding", "screen.onboarding"), ("--capture-sleep", "17_sleep_mode", "screen.dashboard"), ("--capture-end-sleep", "18_end_sleep", "screen.endsleep"), ("--capture-objectives", "19_daily_objectives", "screen.objectives"), ("--capture-sick", "20_sick_mode", "screen.dashboard"), ("--capture-data", "21_data_management", "screen.data")] {
+        for (argument, name, screen) in [("--capture-onboarding", "16_onboarding", "screen.onboarding"), ("--capture-sleep", "17_sleep_mode", "screen.sleepmode"), ("--capture-end-sleep", "18_end_sleep", "screen.endsleep"), ("--capture-objectives", "19_daily_objectives", "screen.objectives"), ("--capture-sick", "20_sick_mode", "screen.dashboard"), ("--capture-data", "21_data_management", "screen.data")] {
             let capture = XCUIApplication(); capture.launchArguments = ["--demo", "--ui-testing", argument]; capture.launch()
             XCTAssertTrue(capture.descendants(matching: .any)[screen].firstMatch.waitForExistence(timeout: 20))
             let attachment = XCTAttachment(screenshot: capture.screenshot()); attachment.name = name; attachment.lifetime = .keepAlways; add(attachment)
             capture.terminate()
         }
 
-        for (argument, name, screen) in [("--capture-checkin", "23_morning_checkin", "screen.checkin"), ("--capture-ask", "24_ask_ascend", "screen.askascend"), ("--capture-plan", "25_generated_plan", "screen.generatedplan"), ("--capture-quick", "26_quick_activity", "screen.quickactivity"), ("--capture-timer", "27_exercise_timer", "screen.exercisetimer"), ("--capture-guide", "28_exercise_guide", "screen.exerciseguide"), ("--capture-weekly", "29_weekly_coach", "coach.weekly.analysis")] {
+        for (argument, name, screen) in [("--capture-checkin", "23_morning_checkin", "screen.checkin"), ("--capture-ask", "24_ask_ascend", "screen.askascend"), ("--capture-plan", "25_generated_plan", "screen.generatedplan"), ("--capture-quick", "26_quick_activity", "screen.quickactivity"), ("--capture-timer", "27_exercise_timer", "screen.exercisetimer"), ("--capture-guide", "28_exercise_guide", "screen.exerciseguide"), ("--capture-weekly", "29_weekly_coach", "coach.weekly.analysis"), ("--capture-goal-coach", "30_goal_coach", "screen.goalcoach"), ("--capture-sleep-summary", "31_sleep_summary", "screen.sleepsummary")] {
             let capture = XCUIApplication(); capture.launchArguments = ["--demo", "--ui-testing", argument]; capture.launch()
             let target = capture.descendants(matching: .any)[screen].firstMatch
             if screen == "coach.weekly.analysis" {

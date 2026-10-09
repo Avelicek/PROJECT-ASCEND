@@ -21,11 +21,12 @@ struct DashboardView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: AppSpacing.lg) {
                 header.id("dashboard.top")
+                CompactRankIdentity { showScore = true }
                 if store.ownerSystem.sleepStartedAt != nil || store.ownerSystem.sickActive { OwnerModeCard() }
                 TodayCoachHero { showScore = true }
                 NextCoachActionCard { showBrain = true }.id("brain.hero.anchor")
                 MetricStrip(metrics: [
-                    GlanceMetric(title: "Recovery · est.", value: store.readiness.percent.map { String(Int($0.rounded())) } ?? "Learning", symbol: "figure.stand", tint: AppColor.recovery),
+                    GlanceMetric(title: "Recovery", value: store.readiness.percent.map { $0 >= 85 ? "Ready" : $0 >= 55 ? "Take it easy" : "Rest" } ?? "Learning", symbol: "figure.stand", tint: AppColor.recovery),
                     GlanceMetric(title: "Weight · kg", value: store.progress.actualWeight.map { $0.formatted(.number.precision(.fractionLength(1))) } ?? "—", symbol: "scalemass", tint: AppColor.bodyweight),
                     GlanceMetric(title: "Sleep · h", value: store.personalContext.sleepHours.map { $0.formatted(.number.precision(.fractionLength(1))) } ?? "—", symbol: "moon", tint: AppColor.sleep)
                 ])

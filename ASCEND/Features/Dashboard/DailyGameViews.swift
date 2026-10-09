@@ -16,7 +16,7 @@ struct DailyCommandCard: View {
                     Text(result.grade).font(.system(size: 44, weight: .semibold, design: .rounded)).foregroundStyle(AppColor.blue)
                     VStack(alignment: .leading, spacing: 5) {
                         Text(result.status).font(.headline)
-                        Text(result.momentum.map { "Momentum \($0.formatted(.number.precision(.fractionLength(0)).sign(strategy: .always())))%" } ?? "Momentum · building baseline")
+                        Text("Tap Details for today’s score")
                             .font(.caption).foregroundStyle(AppColor.muted)
                     }
                     Spacer(minLength: 0)
@@ -60,7 +60,7 @@ struct DailyEvaluationView: View {
                         VStack(alignment: .leading, spacing: 8) {
                             CountUpText(value: Double(result.elo.delta), signed: true).font(.largeTitle.weight(.semibold)).foregroundStyle(SemanticStatus.momentum(Double(result.elo.delta)).tint)
                             Text(finalized ? "FINALIZED ELO" : "PENDING ELO").font(.caption).foregroundStyle(AppColor.muted)
-                            if let momentum = result.momentum { Text("Momentum \(momentum.formatted(.number.precision(.fractionLength(0)).sign(strategy: .always())))%").font(.caption) }
+                            ContextualCoachButton(title: "Why this ELO?", question: "Why did I get this ELO today?")
                         }
                     }
                 }

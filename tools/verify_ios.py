@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 import json, os, platform, re, shlex, shutil, struct, subprocess, sys
 
 ROOT = Path(__file__).resolve().parents[1]
-SCREENSHOTS = ('01_dashboard', '02_workout', '03_recovery', '04_progress', '05_profile', '06_live_workout', '07_workout_summary', '08_daily_evaluation', '09_exercise_library', '10_routine', '11_exercise_history', '12_brain_today', '13_brain_detail', '14_brain_low_confidence', '15_post_workout_brain', '16_onboarding', '17_sleep_mode', '18_end_sleep', '19_daily_objectives', '20_sick_mode', '21_data_management', '22_anatomy_3d', '23_morning_checkin', '24_ask_ascend', '25_generated_plan', '26_quick_activity', '27_exercise_timer', '28_exercise_guide', '29_weekly_coach')
+SCREENSHOTS = ('01_dashboard', '02_workout', '03_recovery', '04_progress', '05_profile', '06_live_workout', '07_workout_summary', '08_daily_evaluation', '09_exercise_library', '10_routine', '11_exercise_history', '12_brain_today', '13_brain_detail', '14_brain_low_confidence', '15_post_workout_brain', '16_onboarding', '17_sleep_mode', '18_end_sleep', '19_daily_objectives', '20_sick_mode', '21_data_management', '22_anatomy_3d', '23_morning_checkin', '24_ask_ascend', '25_generated_plan', '26_quick_activity', '27_exercise_timer', '28_exercise_guide', '29_weekly_coach', '30_goal_coach', '31_sleep_summary')
 
 def select_simulator(inventory):
     runtimes = {r['identifier']: r for r in inventory['runtimes'] if r.get('isAvailable') and 'iOS' in r.get('name', '')}

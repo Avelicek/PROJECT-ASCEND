@@ -48,6 +48,8 @@ public struct CoachContext: Codable, Sendable {
     public var exercises: [CoachExerciseFact]
     public var completedObjectives: Int
     public var dueObjectives: Int
+    public var projectionEstimateWeeks: Int?
+    public var projectionEstimateDate: Date?
 }
 public struct CoachAnswer: Sendable {
     public var observed: [String]
@@ -72,7 +74,7 @@ public struct CoachReasoningEngine: Sendable {
         } else if (q.contains("reach") || q.contains("goal") || q.contains("december") || q.contains("weight")) && !["bench", "press", "increase", "load"].contains(where: { q.contains($0) }) {
             answer.observed = [c.weight.map { "Latest weigh-in: \($0.formatted()) kg." } ?? "No recent weigh-in."]
             if let target = c.targetWeight { answer.observed.append("Bodyweight target for this comparison: \(target.formatted()) kg.") }
-            if let weeks = c.projectionWeeks, weeks.count == 2 { answer.estimates.append("Estimated \(weeks[0])–\(weeks[1]) weeks to your configured target.") }
+            if let weeks = c.projectionEstimateWeeks { answer.estimates.append("Estimated \(weeks) weeks to your configured target.") }
             answer.estimates.append(c.projectionReason)
             var deadline = c.targetDeadline
             let calendar = DayPolicy(timeZoneIdentifier: c.timeZoneIdentifier).calendar
@@ -87,7 +89,7 @@ public struct CoachReasoningEngine: Sendable {
             if let deadline, let earliest = c.projectionEarliest, let latest = c.projectionLatest {
                 answer.estimates.append(latest <= deadline ? "The current estimated range falls before your deadline." : earliest > deadline ? "The current estimated range falls after your deadline." : "Your deadline overlaps the estimated range; the outcome remains uncertain.")
             } else if deadline != nil { answer.estimates.append("There is not enough reliable trend data to compare that deadline.") }
-            answer.recommendation = "Keep comparable morning weigh-ins and consistent intake. Use the projected date range to judge a deadline; ASCEND cannot guarantee a future result."
+            answer.recommendation = "Keep comparable morning weigh-ins and consistent intake. Use the estimated date to discuss a deadline; ASCEND cannot guarantee a future result."
             answer.confidence = c.projectionConfidence
         } else if q.contains("increase") || q.contains("bench") || q.contains("press") || q.contains("progression") {
             let mentioned = c.exercises.first { q.contains($0.name.lowercased()) || q.contains($0.id.replacingOccurrences(of: "_", with: " ")) }
@@ -100,8 +102,8 @@ public struct CoachReasoningEngine: Sendable {
         } else if q.contains("recovery") || q.contains("chest") || q.contains("enough") || q.contains("remove") {
             let muscle = c.muscleLoad.keys.sorted().first { q.contains($0.lowercased()) } ?? (q.contains("chest") ? "Chest" : nil)
             if let muscle {
-                if let load = c.muscleLoad[muscle] { answer.estimates.append("\(muscle): \(load.formatted(.number.precision(.fractionLength(1)))) weighted stimulus units today, including quick activities.") }
-                if let recovery = c.muscleRecovery[muscle] { answer.estimates.append("\(muscle): \(Int(recovery.rounded()))% modeled recovery.") }
+                if c.muscleLoad[muscle, default: 0] > 0 { answer.observed.append("\(muscle) worked today, including quick activities.") }
+                if let recovery = c.muscleRecovery[muscle] { answer.estimates.append("\(muscle): \(recovery >= 85 ? "ready for comfortable training" : "still recovering; avoid heavy work here").") }
             } else if let readiness = c.readiness { answer.estimates.append("Readiness: \(Int(readiness.rounded()))%, based on recorded training and recovery support.") }
             answer.recommendation = c.workoutReasons.joined(separator: " "); answer.confidence = c.recoveryConfidence
         } else if q.contains("train") || q.contains("legs") || q.contains("stop") || q.contains("workout") {

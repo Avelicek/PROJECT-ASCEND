@@ -11,6 +11,8 @@ public struct GoalProjection: Sendable {
     public var observedDays: Int
     public var weeks: ClosedRange<Int>?
     public var withinGoalRange = false
+    public var estimatedDate: Date?
+    public var estimatedWeeks: Int?
 }
 public struct ProjectionEngine: Sendable {
     public init() {}
@@ -45,6 +47,8 @@ public struct ProjectionEngine: Sendable {
         let eta = (target - current) / slope
         guard eta <= 730 else { result.explanation = "The current pace is too slow for a useful date estimate."; return result }
         let fast = max(1, eta * (1 - uncertainty)), slow = eta * (1 + uncertainty)
+        result.estimatedDate = policy.adding(days: max(1, Int(eta.rounded())), to: now)
+        result.estimatedWeeks = max(1, Int((eta / 7).rounded()))
         result.earliest = policy.adding(days: Int(fast.rounded()), to: now)
         result.latest = policy.adding(days: Int(slow.rounded()), to: now)
         result.weeks = max(1, Int(floor(fast / 7)))...max(1, Int(ceil(slow / 7)))

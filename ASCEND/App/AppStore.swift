@@ -14,6 +14,7 @@ enum InputError: LocalizedError {
     let settings: UserSettings
     let isDemo: Bool
     var presentedSheet: LogDestination?
+    var coachQuestion: String?
     var navigationRequest: AppDestination?
     var errorMessage: String?
     var revision = 0

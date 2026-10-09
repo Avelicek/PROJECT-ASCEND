@@ -56,7 +56,7 @@ struct TimedExerciseView: View {
         if let clock = store.activeWorkout?.exerciseClock, let exercise = store.activeWorkout?.exercises.first(where: { $0.id == clock.exerciseID }) {
             VStack(spacing: 28) {
                 Eyebrow(text: "TIMED EXERCISE")
-                Text(exercise.name).font(.title.weight(.semibold))
+                Text(exercise.name).font(.title.weight(.semibold)).accessibilityIdentifier("screen.exercisetimer")
                 let index = (exercise.sets.firstIndex { $0.id == clock.setID } ?? 0) + 1
                 Text("SET \(index) / \(exercise.sets.count)").font(.caption).foregroundStyle(AppColor.muted)
                 TimelineView(.animation(minimumInterval: 1, paused: phase != .active || clock.startedAt == nil || AppMotion.snapshotMode)) { timeline in
@@ -69,7 +69,7 @@ struct TimedExerciseView: View {
                 PrimaryAction(title: clock.startedAt == nil ? "Resume" : "Pause", symbol: clock.startedAt == nil ? "play.fill" : "pause.fill") { store.pauseExerciseClock() }.accessibilityIdentifier("exercise.timer.pause")
                 PrimaryAction(title: "Finish set", symbol: "checkmark", tint: AppColor.positive) { _ = store.finishExerciseClock() }.accessibilityIdentifier("exercise.timer.finish")
                 Text("Elapsed time is saved using the clock, including while your iPhone is locked.").font(.caption).foregroundStyle(AppColor.muted)
-            }.padding(28).padding(.top, 24).frame(maxWidth: .infinity, maxHeight: .infinity).background(AppColor.background).interactiveDismissDisabled().accessibilityIdentifier("screen.exercisetimer")
+            }.padding(28).padding(.top, 24).frame(maxWidth: .infinity, maxHeight: .infinity).background(AppColor.background).interactiveDismissDisabled()
         }
     }
 }

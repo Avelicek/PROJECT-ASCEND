@@ -35,39 +35,49 @@ struct NextCoachActionCard: View {
         PremiumCard(role: .action, tint: AppColor.accent) {
             VStack(alignment: .leading, spacing: 16) {
                 HStack { CoachIdentity(); Eyebrow(text: "NEXT BEST ACTION"); Spacer(); Button(action: details) { Image(systemName: "info.circle").frame(width: 44, height: 44) }.accessibilityLabel("Why this recommendation?").accessibilityIdentifier("brain.detail") }
-                Text("\(store.brainDecision.confidence.rawValue.capitalized) confidence · local estimates").font(.caption).foregroundStyle(AppColor.muted).accessibilityIdentifier("brain.confidence")
-                Text(action.title).font(.title2.weight(.semibold)).foregroundStyle(AppColor.text).fixedSize(horizontal: false, vertical: true)
+                Text(action.title).accessibilityIdentifier("brain.hero").font(.title2.weight(.semibold)).foregroundStyle(AppColor.text).fixedSize(horizontal: false, vertical: true)
                 Text(action.reason).font(.subheadline).foregroundStyle(AppColor.secondary).fixedSize(horizontal: false, vertical: true)
-                if let opportunity = action.opportunity, opportunity > 0 {
-                    Text("Estimated opportunity · \(store.projectedScore.delta.formatted(.number.sign(strategy: .always()))) → \((store.projectedScore.delta + opportunity).formatted(.number.sign(strategy: .always()))) ELO")
-                        .font(.caption.weight(.medium)).foregroundStyle(AppColor.positive)
-                }
                 PrimaryAction(title: action.button, symbol: "arrow.right") { store.openCoachAction(action.action) }.accessibilityIdentifier("coach.next.action")
+                ContextualCoachButton(title: "Ask about this plan", question: "Why this workout?")
             }
-        }.accessibilityIdentifier("brain.hero")
+        }
     }
 }
 
 struct GoalProjectionCard: View {
     @Environment(AppStore.self) private var store
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     var body: some View {
         let projection = store.goalProjection
         PremiumCard(role: .metric, tint: AppColor.bodyweight) {
             VStack(alignment: .leading, spacing: 12) {
-                HStack { Eyebrow(text: "YOUR GOAL"); Spacer(); if let target = projection.target { Text("\(target.formatted()) kg").font(.headline) } }
+                HStack { Eyebrow(text: "YOUR GOAL").accessibilityIdentifier("coach.goal.projection"); Spacer(); if let target = projection.target { Text("\(target.formatted()) kg").font(.headline) } }
                 if projection.target == nil { Text("Set a weight goal in Profile.").font(.subheadline).foregroundStyle(AppColor.secondary) }
                 else {
                     LinearProgress(progress: store.progress.goalProgress ?? 0, tint: AppColor.bodyweight)
-                    if let weeks = projection.weeks {
-                        Text("Estimated \(weeks.lowerBound)–\(weeks.upperBound) weeks").font(.title3.weight(.semibold)).contentTransition(.numericText())
-                        Text("\(projection.confidence.rawValue.capitalized) confidence").font(.caption).foregroundStyle(AppColor.muted)
+                    if let current = projection.current, let target = projection.target {
+                        Text("\(current.formatted(.number.precision(.fractionLength(1)))) → \(target.formatted(.number.precision(.fractionLength(1)))) kg").font(.subheadline).foregroundStyle(AppColor.secondary)
+                    }
+                    if let weeks = projection.estimatedWeeks, let date = projection.estimatedDate {
+                        Text("Estimated \(weeks) weeks").font(.title2.weight(.semibold)).contentTransition(.numericText()).accessibilityIdentifier("goal.eta")
+                        Text("Around \(date.formatted(.dateTime.month(.wide).day()))").font(.subheadline).foregroundStyle(AppColor.secondary)
                     } else if projection.withinGoalRange {
                         Text("Within your goal range").font(.headline)
-                    } else { Text("Learning your trend").font(.headline) }
-                    DisclosureGroup("What this estimate uses") { Text(projection.explanation).font(.caption).foregroundStyle(AppColor.secondary).padding(.top, 8) }.font(.caption)
+                    } else {
+                        Text(projection.weeklyChange == nil ? "Learning your trend" : "Let's review your pace").font(.headline)
+                        Text(projection.explanation).font(.caption).foregroundStyle(AppColor.secondary)
+                    }
+                    if let pace = projection.weeklyChange {
+                        Text("\(pace >= 0 ? "Gaining" : "Losing") about \(abs(pace).formatted(.number.precision(.fractionLength(2)))) kg/week.").font(.caption).foregroundStyle(AppColor.secondary)
+                    }
+                    Button("Talk to ASCEND", systemImage: "bubble.left") { store.presentedSheet = .goalCoach }.font(.subheadline).frame(minHeight: 44).accessibilityIdentifier("goal.coach")
+                    DisclosureGroup("Why this estimate?") {
+                        Text(projection.explanation).font(.caption).foregroundStyle(AppColor.secondary).padding(.top, 8)
+                        Text("\(projection.confidence.rawValue.capitalized) confidence · weight trend only. Fuel and training inform coaching, not this date.").font(.caption).foregroundStyle(AppColor.muted)
+                    }.font(.caption)
                 }
             }
-        }.accessibilityIdentifier("coach.goal.projection")
+        }.animation(reduceMotion || AppMotion.snapshotMode ? nil : AppAnimation.interaction, value: projection.estimatedWeeks)
     }
 }
 
@@ -142,6 +152,7 @@ struct AskAscendView: View {
                 }
             }.padding(20)
         }.background(AppColor.background).navigationTitle("Coach").navigationBarTitleDisplayMode(.inline).accessibilityIdentifier("screen.askascend")
+            .onAppear { if let contextQuestion = store.coachQuestion { question = contextQuestion; store.coachQuestion = nil; ask() } }
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
     }
     private func factSection(_ title: String, _ facts: [String]) -> some View {

@@ -87,7 +87,7 @@ struct BodyMapView: View {
                         HStack(spacing: 4) { Circle().fill(status.gradient).frame(width: 5, height: 5); Text(status.title).font(.caption2).foregroundStyle(AppColor.muted) }
                     }
                 }.frame(maxWidth: .infinity, alignment: .center) }
-                else { Text(metric == .load ? "Relative exposure · high load needs attention" : "Fatigue · green is low, orange is elevated, red is high").font(.caption2).foregroundStyle(AppColor.muted) }
+                else { Text(metric == .load ? "Muscle work · brighter areas worked more" : "Fatigue · green is low, orange is elevated, red is high").font(.caption2).foregroundStyle(AppColor.muted) }
                 if native, let mesh = selectedMesh, let name = AnatomyMeshMapping.sourceNames[mesh] {
                     VStack(alignment: .leading, spacing: 8) {
                         Text(name).font(.subheadline.weight(.medium))

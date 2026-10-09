@@ -5,6 +5,8 @@ enum PreviewData {
     #if DEBUG
     @MainActor static func preparePresentationFixture(store: AppStore, arguments: [String] = ProcessInfo.processInfo.arguments) throws {
         guard store.isDemo, arguments.contains("--ui-testing") else { return }
+        if arguments.contains("--capture-sleep-summary") { store.presentedSheet = .sleepSummary }
+        if arguments.contains("--capture-goal-coach") { store.presentedSheet = .goalCoach }
         if arguments.contains("--capture-checkin") { store.presentedSheet = .checkIn }
         if arguments.contains("--capture-ask") { store.presentedSheet = .ask }
         if arguments.contains("--capture-weekly") { store.presentedSheet = .weekly }
@@ -15,6 +17,7 @@ enum PreviewData {
         if arguments.contains("--capture-onboarding") { store.ownerSystem.onboardingComplete = false }
         if arguments.contains("--capture-sleep") || arguments.contains("--capture-end-sleep") {
             store.ownerSystem.sleepStartedAt = store.now.addingTimeInterval(-8 * 3600)
+            if arguments.contains("--capture-end-sleep") { store.ownerSystem.sleepEndedAt = store.now }
             try store.refresh(at: store.now)
         }
         if arguments.contains("--capture-sick") { store.startSick(note: "Training pause") }

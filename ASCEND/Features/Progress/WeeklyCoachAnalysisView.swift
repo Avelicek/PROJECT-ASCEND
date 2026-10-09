@@ -20,7 +20,7 @@ struct WeeklyCoachAnalysisView: View {
                     Text(store.weeklyExplanation).font(.subheadline)
                     Text("\(checkIns) real check-ins and \(productive) recorded productive sets this week.").font(.caption).foregroundStyle(AppColor.secondary)
                     Eyebrow(text: "NEEDS ATTENTION")
-                    if let lowest = store.weeklyExposure.min(by: { $0.1 < $1.1 }), lowest.1 < 2 { Text("\(lowest.0) stimulus is low this week. The generator gives available, recovered muscles priority.").font(.subheadline) }
+                    if let lowest = store.weeklyExposure.min(by: { $0.1 < $1.1 }), lowest.1 < 2 { Text("\(lowest.0) could use more work this week, once recovered.").font(.subheadline) }
                     if let average, let previous, average < previous - 0.25 { Text("Recorded sleep decreased by \((previous - average).formatted(.number.precision(.fractionLength(1)))) hours versus the prior week.").font(.subheadline) }
                     if completed.isEmpty { Text("Learning your training baseline. Complete a comfortable first session.").font(.subheadline) }
                     Eyebrow(text: "ASCEND ADJUSTMENT")
