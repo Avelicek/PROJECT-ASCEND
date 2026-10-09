@@ -86,21 +86,8 @@ jobs:
             python3 tools/check_delimiters.py
           } 2>&1 | tee work/verification/infrastructure.log
       - name: Real iOS compile, unit tests, UI smoke and screenshot capture
+        id: ios-verification
         run: python3 tools/verify_ios.py
-      - name: Build unsigned physical-iPhone archive
-        if: always()
-        run: python3 tools/archive_device.py
-      - name: Upload unsigned device archive and signing status
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: ascend-unsigned-device-archive
-          path: |
-            work/verification/device/
-            !work/verification/device/DerivedData/**
-          include-hidden-files: true
-          if-no-files-found: warn
-          retention-days: 14
       - name: iOS result summary
         if: always()
         run: python3 tools/report_verification.py work/verification --output work/verification/ios-summary.md
@@ -131,6 +118,20 @@ jobs:
         with:
           name: ascend-simulator-screenshots
           path: work/verification/ios/screenshots/
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Build unsigned physical-iPhone archive
+        if: ${{ !cancelled() && steps.ios-verification.outcome == 'success' }}
+        run: python3 tools/archive_device.py
+      - name: Upload unsigned device archive and signing status
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: ascend-unsigned-device-archive
+          path: |
+            work/verification/device/
+            !work/verification/device/DerivedData/**
+          include-hidden-files: true
           if-no-files-found: warn
           retention-days: 14
 

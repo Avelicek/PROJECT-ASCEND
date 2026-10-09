@@ -10,6 +10,7 @@ public struct GoalProjection: Sendable {
     public var explanation: String
     public var observedDays: Int
     public var weeks: ClosedRange<Int>?
+    public var withinGoalRange = false
 }
 public struct ProjectionEngine: Sendable {
     public init() {}
@@ -19,8 +20,14 @@ public struct ProjectionEngine: Sendable {
         let days = grouped.map { WeightSample(date: $0.key, kilograms: FitnessMath.average($0.value.map(\.kilograms)) ?? 0) }.sorted { $0.date < $1.date }
         var result = GoalProjection(target: target, current: days.last?.kilograms, weeklyChange: nil, earliest: nil, latest: nil,
             confidence: .low, explanation: "Learning your trend · \(max(0, 6 - days.count)) more distinct weigh-ins recommended", observedDays: days.count, weeks: nil)
-        guard let target, target.isFinite, target > 0, let first = days.first, let last = days.last, days.count >= 6,
-              last.date >= policy.adding(days: -3, to: policy.start(of: now)), last.date.timeIntervalSince(first.date) >= 7 * 86400 else { return result }
+        guard let target, target.isFinite, target > 0 else { result.explanation = "Set a bodyweight goal to estimate your progress."; return result }
+        guard let first = days.first, let last = days.last, days.count >= 6 else { return result }
+        guard last.date >= policy.adding(days: -3, to: policy.start(of: now)) else {
+            result.explanation = "Log a recent weigh-in to update your trend. The latest measurement is more than three days old."; return result
+        }
+        guard last.date.timeIntervalSince(first.date) >= 7 * 86400 else {
+            result.explanation = "Keep measuring across at least eight calendar days to learn your trend."; return result
+        }
         let x = days.map { $0.date.timeIntervalSince(first.date) / 86400 }
         let y = days.map(\.kilograms)
         let meanX = FitnessMath.average(x) ?? 0, meanY = FitnessMath.average(y) ?? 0
@@ -29,7 +36,7 @@ public struct ProjectionEngine: Sendable {
         let slope = zip(x, y).reduce(0) { $0 + ($1.0 - meanX) * ($1.1 - meanY) } / variance
         let current = meanY + slope * ((now.timeIntervalSince(first.date) / 86400) - meanX)
         result.current = current; result.weeklyChange = slope * 7
-        if abs(target - current) < 0.15 { result.explanation = "Your recent trend is within 0.15 kg of the target."; return result }
+        if abs(target - current) < 0.15 { result.withinGoalRange = true; result.explanation = "Your recent trend is within 0.15 kg of the target."; return result }
         guard abs(slope * 7) >= 0.03, abs(slope * 7) <= 1.5, (target - current) * slope > 0 else {
             result.explanation = "Recent trend is flat or moving away from your goal. Review intake and collect more weigh-ins."; return result
         }

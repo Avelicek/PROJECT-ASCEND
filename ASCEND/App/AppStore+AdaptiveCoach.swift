@@ -45,7 +45,7 @@ extension AppStore {
         activityStimulus = units; activityLoads = loads
     }
     func dailyScoreInput(for date: Date, closed: Bool = false) -> DailyELOInput {
-        var input = DailyELOInput(); input.facts = evaluationInput(for: date, includeMisses: closed); input.closed = closed
+        var input = DailyELOInput(); input.facts = evaluationInput(for: date, includeMisses: true); input.closed = closed
         let daySessions = sessions.filter { $0.hasWorkingSets && policy.sameDay($0.evaluationDate, date) }
         for session in daySessions {
             let load = session.exercises.reduce(0) { $0 + stimulus(for: $1, quick: session.isQuickLog) }

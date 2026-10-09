@@ -24,7 +24,7 @@ final class PersonalBrainSmokeTests: XCTestCase {
         let confidence = app.staticTexts["brain.confidence"]
         AscendUITestSupport.reveal(confidence, screen: "screen.dashboard", in: app)
         XCTAssertTrue(confidence.label.contains("Low confidence"))
-        XCTAssertTrue(app.staticTexts["Learning"].firstMatch.exists)
+        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "Learning")).firstMatch.exists)
         XCTAssertFalse(app.staticTexts["91%"].exists)
         app.terminate()
     }

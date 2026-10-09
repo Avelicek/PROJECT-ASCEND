@@ -160,6 +160,12 @@ final class AdaptiveCoachTests: XCTestCase {
         XCTAssertEqual(engine.weight(samples: samples, target: 60, now: now, policy: policy).observedDays, 1)
         let old = (0..<14).map { WeightSample(date: now.addingTimeInterval(Double($0 - 50) * 86400), kilograms: 56 + Double($0) * 0.04) }
         XCTAssertNil(engine.weight(samples: old, target: 60, now: now, policy: policy).weeks)
+        let staleNearTarget = (0..<8).map { WeightSample(date: policy.adding(days: $0 - 12, to: now), kilograms: 60) }
+        let stale = engine.weight(samples: staleNearTarget, target: 60, now: now, policy: policy)
+        XCTAssertFalse(stale.withinGoalRange)
+        XCTAssertTrue(stale.explanation.contains("recent weigh-in"))
+        let crowded = (0..<6).map { WeightSample(date: policy.adding(days: $0 - 5, to: now), kilograms: 56) }
+        XCTAssertTrue(engine.weight(samples: crowded, target: 60, now: now, policy: policy).explanation.contains("eight calendar days"))
     }
     func testProjectionSupportsGainingAndLosingAndRejectsWrongDirection() {
         let gaining = (0..<15).map { WeightSample(date: policy.adding(days: $0 - 14, to: now), kilograms: 56 + Double($0) * 0.04) }

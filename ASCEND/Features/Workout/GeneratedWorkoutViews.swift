@@ -129,7 +129,7 @@ struct QuickActivityEditor: View {
                             Text("Use your observed device reading or own count. Duration and effort determine modeled training load; arbitrary units are not converted into calories or muscle fatigue.").font(.caption).foregroundStyle(AppColor.muted)
                         }
                     }
-                    Picker("Effort", selection: $rating) { ForEach(EffortRating.allCases, id: \.self) { Text($0.title).tag($0) } }
+                    Picker("Effort", selection: $rating) { ForEach(EffortRating.allCases, id: \.self) { Text(exercise.trackingMode == .reps || exercise.trackingMode == .weightAndReps ? $0.title : $0.intensityTitle).tag($0) } }
                 }
                 Section { PrimaryAction(title: "Log activity", symbol: "checkmark") {
                     guard amount.isFinite, amount > 0, amount <= (exercise.trackingMode == .reps ? 2000 : 1440), distance.isFinite,

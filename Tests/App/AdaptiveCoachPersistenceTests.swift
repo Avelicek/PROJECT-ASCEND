@@ -21,7 +21,17 @@ final class AdaptiveCoachPersistenceTests: XCTestCase {
         XCTAssertEqual(restored.sessions.map(\.id), ids); XCTAssertEqual(restored.sessions.first?.exercises.first?.sets.first?.reps, 100)
         XCTAssertEqual(restored.weights.first?.kilograms, 56.8); XCTAssertEqual(restored.todayObjectives.map(\.occurrenceKey), keys)
         XCTAssertNotNil(restored.todayObjectives.first?.completedAt); XCTAssertEqual(restored.activeWorkout?.id, draft.id)
+        XCTAssertEqual(restored.nextBestAction.action, .resume)
         XCTAssertEqual(restored.projectedScore.delta, value.projectedScore.delta)
+    }
+    @MainActor func testNextActionChangesImmediatelyWhenDraftStartsAndEnds() throws {
+        let value = try store()
+        XCTAssertNotEqual(value.nextBestAction.action, .resume)
+        value.startLiveWorkout()
+        XCTAssertEqual(value.nextBestAction.action, .resume)
+        value.discardLiveWorkout()
+        XCTAssertNotEqual(value.nextBestAction.action, .resume)
+        XCTAssertNil(value.activeWorkout)
     }
     @MainActor func testLegacyPlusFourLedgerIsNeverRewritten() throws {
         let value = try store(), yesterday = value.policy.adding(days: -1, to: date), key = value.policy.key(for: yesterday)
@@ -155,6 +165,20 @@ final class AdaptiveCoachPersistenceTests: XCTestCase {
         XCTAssertEqual(restored.sessions.first?.id, session.id); XCTAssertEqual(restored.sessions.first?.notes, original)
         XCTAssertEqual(restored.projectedScore.delta, value.projectedScore.delta)
         XCTAssertEqual(restored.sessions.first?.exercises.first?.sets.first?.durationSeconds, 1200)
+    }
+
+    @MainActor func testOpenDayObjectiveCreditUsesAllDueTargetsWithoutMissPenalties() throws {
+        let value = try store()
+        for index in 1...5 {
+            var draft = ObjectiveDraft(); draft.title = "Habit \(index)"; draft.startsAt = date
+            XCTAssertTrue(value.saveObjective(draft))
+        }
+        let first = try XCTUnwrap(value.todayObjectives.first)
+        XCTAssertTrue(value.toggleObjective(first))
+        XCTAssertEqual(value.dailyScoreInput(for: date).facts.objectives.count, 5)
+        XCTAssertEqual(value.projectedScore.components.first { $0.category == .objective }?.points, 1)
+        for remaining in value.todayObjectives where remaining.completedAt == nil { XCTAssertTrue(value.toggleObjective(remaining)) }
+        XCTAssertEqual(value.projectedScore.components.first { $0.category == .objective }?.points, 4)
     }
 
 }

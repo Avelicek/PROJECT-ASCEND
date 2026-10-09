@@ -8,17 +8,19 @@ import UIKit
     static let shared = AnatomyAssetCache()
     private var template: Entity?
     private var loading: Task<Entity, Error>?
+    private var generation = 0
     private(set) var decodeCount = 0
     private(set) var lastCloneSeconds: Double = 0
     private override init() {
         super.init()
         NotificationCenter.default.addObserver(self, selector: #selector(memoryWarning), name: UIApplication.didReceiveMemoryWarningNotification, object: nil)
     }
-    @objc private func memoryWarning() { template = nil; loading?.cancel(); loading = nil }
+    @objc private func memoryWarning() { generation += 1; template = nil; loading?.cancel(); loading = nil }
     func clone() async throws -> Entity {
         let entity: Entity
         if let template { entity = template }
         else {
+            let generation = self.generation
             if loading == nil {
                 loading = Task {
                     guard let url = Bundle.main.url(forResource: "AscendMuscles", withExtension: "usdz", subdirectory: "Anatomy") else { throw OwnerSystemError.invalid }
@@ -30,8 +32,12 @@ import UIKit
                 decodeCount += 1
             }
             guard let loading else { throw OwnerSystemError.invalid }
-            do { entity = try await loading.value; template = entity; self.loading = nil }
-            catch { self.loading = nil; throw error }
+            do {
+                entity = try await loading.value
+                guard generation == self.generation else { throw CancellationError() }
+                template = entity; self.loading = nil
+            }
+            catch { if generation == self.generation { self.loading = nil }; throw error }
         }
         let start = Date(); let copy = entity.clone(recursive: true); lastCloneSeconds = Date().timeIntervalSince(start)
         return copy

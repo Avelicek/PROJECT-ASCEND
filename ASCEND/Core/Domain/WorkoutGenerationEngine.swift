@@ -26,20 +26,23 @@ public struct WorkoutGenerationEngine: Sendable {
             let goal = context.training.profile.goal == .strength && compound.contains(exercise.pattern) ? 5.0 : 0
             return (readiness.minimum ?? 75) - min(30, weekly * 4) - today(exercise) * 30 + preferred + familiar + FitnessMath.clamp(learned, -6...6) + goal
         }
-        let ordered = available.sorted { value($0) == value($1) ? $0.id < $1.id : value($0) > value($1) }
+        let ordered = available.map { (exercise: $0, score: value($0)) }.sorted { $0.score == $1.score ? $0.exercise.id < $1.exercise.id : $0.score > $1.score }
         var entries: [RoutineExercise] = [], patterns = Set<MovementPattern>(), families = Set<String>(), usedMinutes = 5
         let light = base.action == .trainLight || context.feeling.map { $0 <= 2 } == true || context.soreness.map { $0 >= 4 } == true
-        for exercise in ordered where value(exercise) > -900 {
+        for candidate in ordered where candidate.score > -900 {
+            let exercise = candidate.exercise
             guard !patterns.contains(exercise.pattern), !families.contains(exercise.family ?? exercise.id) else { continue }
             let load = today(exercise)
-            let sets = light ? 2 : load >= 0.3 ? 1 : context.training.profile.goal == .generalFitness ? 2 : 3
+            var sets = light ? 2 : load >= 0.3 ? 1 : context.training.profile.goal == .generalFitness ? 2 : 3
             let recentRPE = context.history.filter { $0.exerciseID == exercise.id && $0.date <= context.date }.sorted { $0.date > $1.date }.first.flatMap { FitnessMath.average($0.working.compactMap(\.rpe)) }
             let rest = AdaptiveRestEngine().seconds(pattern: exercise.pattern, goal: context.training.profile.goal, rpe: recentRPE, fatigue: nil)
-            let cost = 2 + sets * (45 + rest) / 60
-            guard usedMinutes + cost <= minutes || entries.isEmpty else { continue }
+            func cost(_ count: Int) -> Int { 2 + Int(ceil(Double(count * (45 + rest)) / 60)) }
+            while usedMinutes + cost(sets) > minutes && sets > 1 { sets -= 1 }
+            guard usedMinutes + cost(sets) <= minutes else { continue }
+            let duration = cost(sets)
             var item = RoutineExercise(exercise.id, sets: sets, restSeconds: rest)
             item.id = PersonalBrainEngine.stableID("generated:" + exercise.id)
-            entries.append(item); usedMinutes += cost; patterns.insert(exercise.pattern); families.insert(exercise.family ?? exercise.id)
+            entries.append(item); usedMinutes += duration; patterns.insert(exercise.pattern); families.insert(exercise.family ?? exercise.id)
             if entries.count >= 5 { break }
         }
         var reasons = ["Generated from equipment, recovery estimates, recent performance and weekly stimulus; \(minutes)-minute budget."]

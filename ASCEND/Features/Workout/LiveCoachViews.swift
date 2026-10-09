@@ -3,20 +3,24 @@ import SwiftUI
 struct ExerciseEffortReview: View {
     @Environment(AppStore.self) private var store
     let exercise: LiveExercise
+    private var measuresReps: Bool { exercise.mode == .reps || exercise.mode == .weightAndReps }
     var body: some View {
         if !exercise.completedWorkingSets.isEmpty {
             DisclosureGroup("Effort review · \(exercise.completedWorkingSets.filter { $0.rpe != nil }.count)/\(exercise.completedWorkingSets.count) rated") {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("How many reps were left? Optional; rate all sets in seconds.").font(.caption).foregroundStyle(AppColor.muted)
+                    Text(measuresReps ? "How many reps were left? Optional; rate all sets in seconds." : "How hard did each set feel? Optional; rate all sets in seconds.").font(.caption).foregroundStyle(AppColor.muted)
                     ForEach(Array(exercise.completedWorkingSets.enumerated()), id: \.element.id) { index, set in
                         HStack {
                             Text("Set \(index + 1)").font(.subheadline)
                             Spacer()
                             Menu {
-                                ForEach(EffortRating.allCases, id: \.self) { rating in Button(rating.title) { store.setEffort(exerciseID: exercise.id, setID: set.id, rating: rating) } }
+                                ForEach(EffortRating.allCases, id: \.self) { rating in Button(measuresReps ? rating.title : rating.intensityTitle) { store.setEffort(exerciseID: exercise.id, setID: set.id, rating: rating) } }
                                 Button("Skip / clear") { store.setEffort(exerciseID: exercise.id, setID: set.id, rating: nil) }
                             } label: {
-                                Text(set.rpe.map { $0 >= 10 ? "0 left · failure" : $0 <= 6 ? "4+ left" : "\(Int(10 - $0)) left" } ?? "Rate effort").font(.subheadline.weight(.medium)).frame(minHeight: 44)
+                                Text(set.rpe.map { effort in
+                                    if !measuresReps { return EffortRating(rawValue: min(10, max(6, Int(effort.rounded()))))?.intensityTitle ?? "Rate effort" }
+                                    return effort >= 10 ? "0 left · failure" : effort <= 6 ? "4+ left" : "\(Int(10 - effort)) left"
+                                } ?? "Rate effort").font(.subheadline.weight(.medium)).frame(minHeight: 44)
                             }.accessibilityIdentifier("effort.\(index)")
                         }
                     }
@@ -55,7 +59,7 @@ struct TimedExerciseView: View {
                 Text(exercise.name).font(.title.weight(.semibold))
                 let index = (exercise.sets.firstIndex { $0.id == clock.setID } ?? 0) + 1
                 Text("SET \(index) / \(exercise.sets.count)").font(.caption).foregroundStyle(AppColor.muted)
-                TimelineView(.periodic(from: .now, by: 1, paused: phase != .active || clock.startedAt == nil || AppMotion.snapshotMode)) { timeline in
+                TimelineView(.animation(minimumInterval: 1, paused: phase != .active || clock.startedAt == nil || AppMotion.snapshotMode)) { timeline in
                     let seconds = Int(clock.elapsed(at: store.isDemo ? store.actionDate() : timeline.date))
                     Text(String(format: "%02d:%02d", seconds / 60, seconds % 60)).font(.system(size: 76, weight: .light, design: .rounded)).monospacedDigit().contentTransition(.numericText())
                 }

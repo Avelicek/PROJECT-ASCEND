@@ -138,7 +138,7 @@ class Verification:
         if device.get('state') != 'Booted': self.run('simulator-boot', ['xcrun', 'simctl', 'boot', device['udid']])
         self.run('simulator-boot-status', ['xcrun', 'simctl', 'bootstatus', device['udid'], '-b'])
         self.run('simulator-status-bar', ['xcrun', 'simctl', 'status_bar', device['udid'], 'override', '--time', '09:41', '--batteryState', 'charged', '--batteryLevel', '100'], required=False)
-        base = ['xcodebuild', '-project', 'ASCEND.xcodeproj', '-scheme', 'ASCEND', '-configuration', 'Debug', '-sdk', 'iphonesimulator', '-destination', f"platform=iOS Simulator,id={device['udid']}", '-destination-timeout', '180', '-derivedDataPath', str(self.output / 'DerivedData'), '-parallel-testing-enabled', 'NO', 'CODE_SIGNING_ALLOWED=NO', 'SWIFT_TREAT_WARNINGS_AS_ERRORS=YES', 'GCC_TREAT_WARNINGS_AS_ERRORS=YES', 'SWIFT_STRICT_CONCURRENCY=complete']
+        base = ['xcodebuild', '-project', 'ASCEND.xcodeproj', '-scheme', 'ASCEND', '-configuration', 'Debug', '-sdk', 'iphonesimulator', '-destination', f"platform=iOS Simulator,id={device['udid']}", '-destination-timeout', '180', '-derivedDataPath', str(self.output / 'DerivedData'), '-parallel-testing-enabled', 'NO', 'CODE_SIGNING_ALLOWED=NO', 'ONLY_ACTIVE_ARCH=YES', 'SWIFT_TREAT_WARNINGS_AS_ERRORS=YES', 'GCC_TREAT_WARNINGS_AS_ERRORS=YES', 'SWIFT_STRICT_CONCURRENCY=complete']
         self.status('IOS COMPILE', 'FAIL', 'App and test compilation started; not yet successful')
         try:
             self.run('build-app', base + ['build'])

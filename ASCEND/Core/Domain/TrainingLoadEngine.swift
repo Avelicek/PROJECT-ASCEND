@@ -4,6 +4,7 @@ public enum EffortRating: Int, CaseIterable, Hashable, Sendable {
     case easy = 6, moderate = 7, hard = 8, nearFailure = 9, failure = 10
     public var rir: Int { 10 - rawValue }
     public var title: String { switch self { case .easy: "Easy · 4+ left"; case .moderate: "Moderate · 3 left"; case .hard: "Hard · 2 left"; case .nearFailure: "Near failure · 1 left"; case .failure: "Failure · 0 left" } }
+    public var intensityTitle: String { switch self { case .easy: "Easy"; case .moderate: "Moderate"; case .hard: "Hard"; case .nearFailure: "Near limit"; case .failure: "Maximum effort" } }
 }
 
 /// Comparable estimated stimulus units, not measured muscle damage or calories.

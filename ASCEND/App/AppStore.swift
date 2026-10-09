@@ -118,7 +118,7 @@ enum InputError: LocalizedError {
         do {
             if let draft = try restored?.live ?? self.workoutStorage?.read(), !sessions.contains(where: { $0.id == draft.id }) { activeWorkout = draft }
         } catch { errorMessage = "Unfinished workout file preserved: \(error.localizedDescription)" }
-        if activeWorkout != nil { deriveBrain() }
+        if activeWorkout != nil { deriveBrain(); nextBestAction = makeNextBestAction() }
         if activateServices && !memoryOnly && !AppMotion.snapshotMode {
             RestNotifications.synchronize(activeWorkout?.rest, enabled: (ownerSystem.coachPreferences ?? .init()).enabled.contains(.rest))
             RestLiveActivity.synchronize(activeWorkout, enabled: true)

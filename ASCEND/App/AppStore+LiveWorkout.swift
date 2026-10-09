@@ -28,7 +28,11 @@ extension AppStore {
                 RestNotifications.synchronize(value?.rest, enabled: (ownerSystem.coachPreferences ?? .init()).enabled.contains(.rest) && !isDemo && !AppMotion.snapshotMode && !container.configurations.allSatisfy(\.isStoredInMemoryOnly))
                 RestLiveActivity.synchronize(value, enabled: !isDemo && !AppMotion.snapshotMode && !container.configurations.allSatisfy(\.isStoredInMemoryOnly))
             }
-            if hadWorkout != (value != nil) { deriveBrain() }
+            if hadWorkout != (value != nil) {
+                deriveBrain()
+                nextBestAction = makeNextBestAction()
+                revision += 1
+            }
             return true }
         catch { errorMessage = "Workout progress could not be saved: \(error.localizedDescription)"; return false }
     }
