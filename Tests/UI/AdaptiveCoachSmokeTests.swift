@@ -46,7 +46,7 @@ final class AdaptiveCoachSmokeTests: XCTestCase {
         app.terminate()
     }
 
-    @MainActor func testGoalCoachAttachesContextAndChangesGoalThroughRealEditor() {
+    @MainActor func testGoalCoachAttachesContextAppliesPlanAndOpensRealGoalEditor() {
         continueAfterFailure = false
         let app = AscendUITestSupport.launchDemo()
         AscendUITestSupport.navigate("progress", in: app)
@@ -55,6 +55,11 @@ final class AdaptiveCoachSmokeTests: XCTestCase {
         AscendUITestSupport.reveal(coach, screen: "screen.progress", in: app); coach.tap()
         XCTAssertTrue(app.scrollViews["screen.goalcoach"].waitForExistence(timeout: 10))
         app.buttons["goal.faster"].tap()
+        let adjust = app.buttons["goal.adjust"]
+        AscendUITestSupport.reveal(adjust, screen: "screen.goalcoach", in: app); adjust.tap()
+        let apply = app.buttons["Apply reviewed plan"]
+        XCTAssertTrue(apply.waitForExistence(timeout: 10)); apply.tap()
+        XCTAssertTrue(app.staticTexts["Plan updated"].waitForExistence(timeout: 10))
         let change = app.buttons["goal.change"]; AscendUITestSupport.reveal(change, screen: "screen.goalcoach", in: app); change.tap()
         XCTAssertTrue(app.navigationBars["Profile & goals"].waitForExistence(timeout: 10))
         app.terminate()

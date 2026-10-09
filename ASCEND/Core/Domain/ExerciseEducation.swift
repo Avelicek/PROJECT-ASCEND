@@ -1,9 +1,34 @@
 import Foundation
 
+public struct ExerciseMuscleRole: Sendable, Identifiable {
+    public let name: String
+    public let fraction: Double
+    public var id: String { name }
+    public var role: String { fraction >= 0.35 ? "Primary" : fraction >= 0.15 ? "Secondary" : "Stabilizer" }
+}
+
 public struct ExerciseEducation: Sendable {
     public let steps: [String]
     public let cues: [String]
     public let visual: MovementPattern
+    public static func muscleRoles(_ contributions: [MuscleContribution]) -> [ExerciseMuscleRole] {
+        func name(_ muscle: Muscle) -> String {
+            switch muscle {
+            case .anteriorDeltoid: "Front delts"
+            case .lateralDeltoid: "Side delts"
+            case .posteriorDeltoid: "Rear delts"
+            case .tricepsLongHead, .tricepsLateralHead, .tricepsMedialHead: "Triceps"
+            case .bicepsLongHead, .bicepsShortHead, .brachialis: "Biceps"
+            case .forearmFlexors, .forearmExtensors: "Forearms"
+            case .bicepsFemoris, .semitendinosus, .semimembranosus: "Hamstrings"
+            case .rectusFemoris, .vastusLateralis, .vastusMedialis, .vastusIntermedius: "Quads"
+            default: muscle.group
+            }
+        }
+        let groups = Dictionary(grouping: contributions) { name($0.muscle) }
+        return groups.map { ExerciseMuscleRole(name: $0.key, fraction: $0.value.reduce(0) { $0 + $1.fraction }) }
+            .sorted { $0.fraction == $1.fraction ? $0.name < $1.name : $0.fraction > $1.fraction }
+    }
     public static func guide(_ exercise: TrainingExercise) -> ExerciseEducation {
         let steps: [String]
         switch exercise.id {

@@ -51,6 +51,7 @@ final class AscendScreenshotTests: XCTestCase {
                 for _ in 0..<10 { if target.exists && target.isHittable { break }; capture.scrollViews.firstMatch.swipeUp() }
             }
             XCTAssertTrue(target.waitForExistence(timeout: 20))
+            if screen == "screen.goalcoach" { capture.buttons["goal.faster"].tap() }
             let attachment = XCTAttachment(screenshot: capture.screenshot()); attachment.name = name; attachment.lifetime = .keepAlways; add(attachment); capture.terminate()
         }
         let anatomy = XCUIApplication(); anatomy.launchArguments = ["--demo", "--ui-testing", "--capture-anatomy-3d"]; anatomy.launch()

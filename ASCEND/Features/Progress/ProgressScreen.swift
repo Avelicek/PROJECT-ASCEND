@@ -73,6 +73,7 @@ struct ProgressScreen: View {
                     HStack { Text(name); Spacer(); Text(abs(change) < 1 ? "Stable" : "\(change.formatted(.number.precision(.fractionLength(1)).sign(strategy: .always())))%") }.font(.subheadline)
                 }
                 Button("Exercise details", systemImage: "arrow.up.right") { showExercises = true }.frame(minHeight: 44)
+                Text("Estimated from your recorded loads and reps.").font(.caption).foregroundStyle(AppColor.muted)
             }
         }
     }

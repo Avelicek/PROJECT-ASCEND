@@ -14,8 +14,8 @@ struct ExerciseEducationView: View {
                     Eyebrow(text: "THREE FORM CUES")
                     ForEach(guide.cues.prefix(3), id: \.self) { cue in Label(cue, systemImage: "checkmark").font(.subheadline).foregroundStyle(AppColor.secondary) }
                     Eyebrow(text: "MUSCLES")
-                    ForEach(exercise.muscles.sorted { $0.fraction > $1.fraction }, id: \.muscle) { part in
-                        HStack { Circle().fill(AppColor.strength.opacity(part.fraction >= 0.35 ? 1 : 0.55)).frame(width: 7, height: 7); Text(part.muscle.title); Spacer(); Text(part.fraction >= 0.35 ? "Primary" : part.fraction >= 0.15 ? "Secondary" : "Stabilizer").foregroundStyle(AppColor.muted) }.font(.caption)
+                    ForEach(ExerciseEducation.muscleRoles(exercise.muscles)) { part in
+                        HStack { Circle().fill(AppColor.strength.opacity(part.fraction >= 0.35 ? 1 : 0.55)).frame(width: 7, height: 7); Text(part.name); Spacer(); Text(part.role).foregroundStyle(AppColor.muted) }.font(.caption)
                     }
                     DisclosureGroup("More details") {
                         VStack(alignment: .leading, spacing: 14) {
